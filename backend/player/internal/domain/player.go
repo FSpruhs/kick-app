@@ -1,4 +1,4 @@
-package player
+package domain
 
 type Player struct {
 	Id        string

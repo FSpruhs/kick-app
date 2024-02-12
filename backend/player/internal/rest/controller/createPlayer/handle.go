@@ -1,8 +1,8 @@
 package createPlayer
 
 import (
-	"github.com/FSpruhs/kick-app/backend/player/domain/player"
-	"github.com/FSpruhs/kick-app/backend/player/persistence"
+	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
+	"github.com/FSpruhs/kick-app/backend/player/internal/mongodb"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
@@ -10,7 +10,7 @@ import (
 
 var validate = validator.New()
 
-func Handle(repository persistence.PlayerRepository) gin.HandlerFunc {
+func Handle(repository mongodb.PlayerRepository) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var playerMessage Message
@@ -25,7 +25,7 @@ func Handle(repository persistence.PlayerRepository) gin.HandlerFunc {
 			return
 		}
 
-		newPlayer := player.Player{
+		newPlayer := domain.Player{
 			"",
 			playerMessage.FirstName,
 			playerMessage.LastName,

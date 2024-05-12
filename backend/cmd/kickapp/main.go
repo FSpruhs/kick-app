@@ -43,7 +43,6 @@ func main() {
 
 	m.startupModules()
 
-	//rest.PlayerRoutes(router, playerRepository.New(mongoClient))
 	m.router.Run()
 }
 

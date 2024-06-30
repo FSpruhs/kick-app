@@ -2,12 +2,13 @@ package main
 
 import (
 	"github.com/FSpruhs/kick-app/backend/internal/config"
+	"github.com/FSpruhs/kick-app/backend/internal/ginConfig"
 	"github.com/FSpruhs/kick-app/backend/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/player"
-	"go.mongodb.org/mongo-driver/mongo"
-
+	"github.com/FSpruhs/kick-app/backend/user"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type app struct {
@@ -36,9 +37,11 @@ func main() {
 	m.db = mongodb.ConnectMongoDB(conf.EnvMongoURI, conf.DatabaseName)
 
 	m.router = gin.Default()
+	m.router.Use(ginConfig.CorsMiddleware())
 
 	m.modules = []monolith.Module{
 		&player.Module{},
+		&user.Module{},
 	}
 
 	m.startupModules()

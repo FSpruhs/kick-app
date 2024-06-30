@@ -1,24 +1,33 @@
 package application
 
-import "github.com/FSpruhs/kick-app/backend/player/internal/domain"
-
-type CreatePlayer struct {
-	firstName string
-	lastName  string
-}
-
-type Application struct {
-	players domain.PlayerRepository
-}
+import (
+	"github.com/FSpruhs/kick-app/backend/player/internal/application/commands"
+	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
+)
 
 type App interface {
-	CreatePlayer(create CreatePlayer)
+	Commands
+	Queries
 }
+
+type Commands interface {
+	CreatePlayer(cmd commands.CreatePlayer) (*domain.Player, error)
+}
+
+type Queries interface{}
+
+type Application struct{ appCommands }
+
+type appCommands struct {
+	commands.CreatePlayerHandler
+}
+
+var _ App = (*Application)(nil)
 
 func New(players domain.PlayerRepository) *Application {
-	return &Application{players: players}
-}
-
-func (a Application) CreatePlayer(player CreatePlayer) {
-
+	return &Application{
+		appCommands: appCommands{
+			CreatePlayerHandler: commands.NewCreatePlayerHandler(players),
+		},
+	}
 }

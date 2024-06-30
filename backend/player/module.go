@@ -12,8 +12,8 @@ type Module struct{}
 func (m *Module) Startup(mono monolith.Monolith) {
 	players := mongodb.NewPlayerRepository(mono.DB(), "players.players")
 
-	rest.PlayerRoutes(mono.Router(), players)
+	var app application.App
+	app = application.New(players)
 
-	var _ application.App
-	_ = application.New(players)
+	rest.PlayerRoutes(mono.Router(), app)
 }

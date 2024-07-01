@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"net/mail"
+	"strings"
 )
 
 var ErrEmailInvalid = fmt.Errorf("email is invalid")
@@ -15,7 +16,7 @@ func NewEmail(value string) (*Email, error) {
 	if !isEmailValid(value) {
 		return nil, ErrEmailInvalid
 	}
-	return &Email{value: value}, nil
+	return &Email{value: strings.TrimSpace(value)}, nil
 }
 
 func (e Email) Value() string {

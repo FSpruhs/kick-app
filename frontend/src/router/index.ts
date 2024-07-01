@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
   {
@@ -15,12 +15,17 @@ const routes = [
     path: '/registration',
     name: 'Registration',
     component: () => import('../views/RegistrationView.vue')
+  },
+  {
+    path: '/group',
+    name: 'Group',
+    component: () => import('../views/GroupView.vue')
   }
-]
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
+});
 
-export default router
+export default router;

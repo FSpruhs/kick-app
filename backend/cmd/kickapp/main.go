@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/FSpruhs/kick-app/backend/group"
 	"github.com/FSpruhs/kick-app/backend/internal/config"
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/internal/ginConfig"
 	"github.com/FSpruhs/kick-app/backend/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
@@ -12,10 +14,11 @@ import (
 )
 
 type app struct {
-	cfg     config.AppConfig
-	modules []monolith.Module
-	db      *mongo.Database
-	router  *gin.Engine
+	cfg             config.AppConfig
+	modules         []monolith.Module
+	db              *mongo.Database
+	router          *gin.Engine
+	eventDispatcher *ddd.EventDispatcher
 }
 
 func (a *app) Config() config.AppConfig {
@@ -30,6 +33,11 @@ func (a *app) Router() *gin.Engine {
 	return a.router
 }
 
+func (a *app) EventDispatcher() *ddd.EventDispatcher {
+	return a.eventDispatcher
+
+}
+
 func main() {
 	var conf = config.InitConfig()
 	m := app{cfg: conf}
@@ -38,10 +46,12 @@ func main() {
 
 	m.router = gin.Default()
 	m.router.Use(ginConfig.CorsMiddleware())
+	m.eventDispatcher = ddd.NewEventDispatcher()
 
 	m.modules = []monolith.Module{
 		&player.Module{},
 		&user.Module{},
+		&group.Module{},
 	}
 
 	m.startupModules()

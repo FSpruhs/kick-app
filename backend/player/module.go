@@ -3,6 +3,7 @@ package player
 import (
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/player/internal/application"
+	"github.com/FSpruhs/kick-app/backend/player/internal/handler"
 	"github.com/FSpruhs/kick-app/backend/player/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/player/internal/rest"
 )
@@ -15,5 +16,8 @@ func (m *Module) Startup(mono monolith.Monolith) {
 	var app application.App
 	app = application.New(players)
 
+	groupCreatedHandler := application.NewGroupHandler(players)
+
+	handler.RegisterGroupHandler(groupCreatedHandler, mono.EventDispatcher())
 	rest.PlayerRoutes(mono.Router(), app)
 }

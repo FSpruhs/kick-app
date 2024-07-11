@@ -1,5 +1,6 @@
 package domain
 
 type GroupRepository interface {
-	Create(group *Group) (*Group, error)
+	FindById(id string) (*Group, error)
+	Save(group *Group) error
 }

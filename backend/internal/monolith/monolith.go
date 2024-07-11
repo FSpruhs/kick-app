@@ -11,7 +11,7 @@ type Monolith interface {
 	Config() config.AppConfig
 	DB() *mongo.Database
 	Router() *gin.Engine
-	EventDispatcher() *ddd.EventDispatcher
+	EventDispatcher() *ddd.EventDispatcher[ddd.AggregateEvent]
 }
 
 type Module interface {

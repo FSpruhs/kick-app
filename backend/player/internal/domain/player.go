@@ -1,9 +1,9 @@
 package domain
 
 type Player struct {
-	Id        string
-	FirstName string
-	LastName  string
+	Id      string
+	GroupId string
+	UserId  string
 }
 
 func (p *Player) SetId(id string) {

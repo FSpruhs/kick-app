@@ -9,8 +9,9 @@ import (
 )
 
 type PlayerDocument struct {
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
+	ID      primitive.ObjectID `bson:"_id,omitempty"`
+	GroupId string             `json:"groupId,omitempty"`
+	UserId  string             `json:"userId,omitempty"`
 }
 
 type PlayerRepository struct {
@@ -25,8 +26,8 @@ func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	playerDoc := PlayerDocument{
-		FirstName: newPlayer.FirstName,
-		LastName:  newPlayer.LastName,
+		GroupId: newPlayer.GroupId,
+		UserId:  newPlayer.UserId,
 	}
 	result, err := p.collection.InsertOne(ctx, playerDoc)
 	if id, ok := result.InsertedID.(primitive.ObjectID); ok {

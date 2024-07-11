@@ -18,7 +18,7 @@ type app struct {
 	modules         []monolith.Module
 	db              *mongo.Database
 	router          *gin.Engine
-	eventDispatcher *ddd.EventDispatcher
+	eventDispatcher *ddd.EventDispatcher[ddd.AggregateEvent]
 }
 
 func (a *app) Config() config.AppConfig {
@@ -33,9 +33,8 @@ func (a *app) Router() *gin.Engine {
 	return a.router
 }
 
-func (a *app) EventDispatcher() *ddd.EventDispatcher {
+func (a *app) EventDispatcher() *ddd.EventDispatcher[ddd.AggregateEvent] {
 	return a.eventDispatcher
-
 }
 
 func main() {
@@ -46,7 +45,7 @@ func main() {
 
 	m.router = gin.Default()
 	m.router.Use(ginConfig.CorsMiddleware())
-	m.eventDispatcher = ddd.NewEventDispatcher()
+	m.eventDispatcher = ddd.NewEventDispatcher[ddd.AggregateEvent]()
 
 	m.modules = []monolith.Module{
 		&player.Module{},

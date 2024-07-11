@@ -1,39 +1,52 @@
 package ddd
 
-type EventSubscriber interface {
-	Subscribe(event Event, handler EventHandler)
-}
+type (
+	EventHandler[T Event] interface {
+		HandleEvent(event T) error
+	}
 
-type EventPublisher interface {
-	Publish(events ...Event) error
-}
+	EventHandlerFunc[T Event] func(event T) error
 
-type EventDispatcher struct {
-	handlers map[string][]EventHandler
-}
+	EventSubscriber[T Event] interface {
+		Subscribe(name string, handler EventHandler[T])
+	}
+
+	EventPublisher[T Event] interface {
+		Publish(events ...T) error
+	}
+
+	EventDispatcher[T Event] struct {
+		handlers map[string][]EventHandler[T]
+	}
+)
 
 var _ interface {
-	EventSubscriber
-	EventPublisher
-} = (*EventDispatcher)(nil)
+	EventSubscriber[Event]
+	EventPublisher[Event]
+} = (*EventDispatcher[Event])(nil)
 
-func NewEventDispatcher() *EventDispatcher {
-	return &EventDispatcher{
-		handlers: make(map[string][]EventHandler),
+func NewEventDispatcher[T Event]() *EventDispatcher[T] {
+	return &EventDispatcher[T]{
+		handlers: make(map[string][]EventHandler[T]),
 	}
 }
 
-func (d *EventDispatcher) Subscribe(event Event, handler EventHandler) {
-	d.handlers[event.EventName()] = append(d.handlers[event.EventName()], handler)
+func (d *EventDispatcher[T]) Subscribe(name string, handler EventHandler[T]) {
+	d.handlers[name] = append(d.handlers[name], handler)
 }
 
-func (d *EventDispatcher) Publish(events ...Event) error {
+func (d *EventDispatcher[T]) Publish(events ...T) error {
 	for _, event := range events {
 		for _, handler := range d.handlers[event.EventName()] {
-			if err := handler(event); err != nil {
+			err := handler.HandleEvent(event)
+			if err != nil {
 				return err
 			}
 		}
 	}
 	return nil
+}
+
+func (f EventHandlerFunc[T]) HandleEvent(event T) error {
+	return f(event)
 }

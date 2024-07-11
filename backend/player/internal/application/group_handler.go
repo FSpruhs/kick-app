@@ -17,6 +17,15 @@ func NewGroupHandler(players domain.PlayerRepository) *GroupHandler {
 
 func (h GroupHandler) OnGroupCreated(event ddd.Event) error {
 	orderCreated := event.(grouppb.GroupCreated)
-	println(orderCreated.Group.Name)
+	newPlayer := domain.Player{
+		GroupId: orderCreated.Group.Id,
+		UserId:  orderCreated.Group.Users[0],
+	}
+
+	_, err := h.players.Create(&newPlayer)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

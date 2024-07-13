@@ -11,7 +11,7 @@ type Module struct {
 }
 
 func (m *Module) Startup(mono monolith.Monolith) {
-	groups := mongodb.NewGroupRepository(mono.DB(), "groups.groups")
+	groups := mongodb.NewGroupRepository(mono.DB(), "group.groups")
 
 	var app application.App
 	app = application.New(groups, mono.EventDispatcher())

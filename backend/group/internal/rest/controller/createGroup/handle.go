@@ -1,6 +1,7 @@
 package createGroup
 
 import (
+	"errors"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
@@ -32,8 +33,15 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		result, err := app.CreateGroup(&groupCommand)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
-			return
+			switch {
+			case errors.Is(err, domain.ErrInvalidName):
+				c.JSON(http.StatusBadRequest, c.Error(err))
+				return
+			default:
+				c.JSON(http.StatusInternalServerError, c.Error(err))
+				return
+			}
+
 		}
 
 		c.JSON(http.StatusCreated, toResponse(result))
@@ -43,6 +51,6 @@ func Handle(app application.App) gin.HandlerFunc {
 func toResponse(group *domain.Group) *Response {
 	return &Response{
 		Id:   group.ID(),
-		Name: group.Name,
+		Name: group.Name.Value(),
 	}
 }

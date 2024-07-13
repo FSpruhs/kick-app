@@ -11,13 +11,13 @@ import (
 type Module struct{}
 
 func (m *Module) Startup(mono monolith.Monolith) {
-	players := mongodb.NewPlayerRepository(mono.DB(), "players.players")
+	players := mongodb.NewPlayerRepository(mono.DB(), "player.players")
 
 	var app application.App
 	app = application.New(players)
 
-	groupCreatedHandler := application.NewGroupHandler(players)
+	groupEventHandler := application.NewGroupHandler(players)
 
-	handler.RegisterGroupHandler(groupCreatedHandler, mono.EventDispatcher())
+	handler.RegisterGroupHandler(groupEventHandler, mono.EventDispatcher())
 	rest.PlayerRoutes(mono.Router(), app)
 }

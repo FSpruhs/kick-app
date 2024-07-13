@@ -23,7 +23,7 @@ func NewInviteUserHandler(groups domain.GroupRepository, eventPublisher ddd.Even
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
 	group, err := h.GroupRepository.FindById(cmd.GroupId)
 	if err != nil {
-		return err
+		return domain.ErrGroupNotFound
 	}
 
 	group.InviteUser(cmd.UserId)

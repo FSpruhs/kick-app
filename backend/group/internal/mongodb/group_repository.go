@@ -35,10 +35,10 @@ func (g GroupRepository) FindById(id string) (*domain.Group, error) {
 		return nil, err
 	}
 
-	group := domain.NewGroup(groupDoc.Id)
-	group.Name = groupDoc.Name
-	group.Users = groupDoc.UserIds
-	group.InvitedUserIds = groupDoc.InvitedUserIds
+	group, err := toDomain(&groupDoc)
+	if err != nil {
+		return nil, err
+	}
 
 	return group, nil
 }
@@ -47,12 +47,8 @@ func (g GroupRepository) Save(group *domain.Group) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	groupDoc := GroupDocument{
-		Id:             group.ID(),
-		Name:           group.Name,
-		UserIds:        group.Users,
-		InvitedUserIds: group.InvitedUserIds,
-	}
+	groupDoc := toDocument(group)
+
 	_, err := g.collection.ReplaceOne(ctx, bson.M{"_id": group.ID()}, groupDoc)
 	return err
 }
@@ -61,16 +57,35 @@ func (g GroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	groupDoc := GroupDocument{
-		Id:             newGroup.ID(),
-		Name:           newGroup.Name,
-		UserIds:        newGroup.Users,
-		InvitedUserIds: newGroup.InvitedUserIds,
-	}
+	groupDoc := toDocument(newGroup)
+
 	_, err := g.collection.InsertOne(ctx, groupDoc)
 	if err != nil {
 		return nil, err
 	}
 
 	return newGroup, err
+}
+
+func toDocument(group *domain.Group) *GroupDocument {
+	return &GroupDocument{
+		Id:             group.ID(),
+		Name:           group.Name.Value(),
+		UserIds:        group.UserIds,
+		InvitedUserIds: group.InvitedUserIds,
+	}
+}
+
+func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
+	name, err := domain.NewName(groupDoc.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	group := domain.NewGroup(groupDoc.Id)
+	group.Name = name
+	group.UserIds = groupDoc.UserIds
+	group.InvitedUserIds = groupDoc.InvitedUserIds
+
+	return group, nil
 }

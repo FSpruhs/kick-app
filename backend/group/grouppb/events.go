@@ -5,10 +5,11 @@ const UserInvitedEvent = "group.UserInvited"
 
 type GroupCreated struct {
 	GroupID string
-	Users   []string
+	UserIds []string
 }
 
 type UserInvited struct {
-	GroupId string
-	UserId  string
+	GroupId   string
+	GroupName string
+	UserId    string
 }

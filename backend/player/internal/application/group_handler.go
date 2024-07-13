@@ -29,7 +29,7 @@ func (h GroupHandler[T]) onGroupCreatedEvent(event ddd.Event) error {
 	newPlayer := domain.Player{
 		Id:      uuid.New().String(),
 		GroupId: orderCreated.GroupID,
-		UserId:  orderCreated.Users[0],
+		UserId:  orderCreated.UserIds[0],
 	}
 
 	_, err := h.players.Create(&newPlayer)

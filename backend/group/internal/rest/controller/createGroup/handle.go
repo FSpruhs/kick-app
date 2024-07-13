@@ -42,7 +42,7 @@ func Handle(app application.App) gin.HandlerFunc {
 
 func toResponse(group *domain.Group) *Response {
 	return &Response{
-		Id:   group.Id,
+		Id:   group.ID(),
 		Name: group.Name,
 	}
 }

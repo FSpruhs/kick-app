@@ -3,16 +3,15 @@ package mongodb
 import (
 	"context"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
 
 type GroupDocument struct {
-	Id             primitive.ObjectID `bson:"_id,omitempty"`
-	Name           string             `json:"name,omitempty"`
-	UserIds        []string           `json:"userIds,omitempty"`
-	InvitedUserIds []string           `json:"invitedUserIds,omitempty"`
+	Id             string   `bson:"_id,omitempty"`
+	Name           string   `json:"name,omitempty"`
+	UserIds        []string `json:"userIds,omitempty"`
+	InvitedUserIds []string `json:"invitedUserIds,omitempty"`
 }
 
 type GroupRepository struct {
@@ -30,18 +29,12 @@ func (g GroupRepository) FindById(id string) (*domain.Group, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
 	var groupDoc GroupDocument
-	err = g.collection.FindOne(ctx, GroupDocument{Id: objectId}).Decode(&groupDoc)
-	if err != nil {
+	if err := g.collection.FindOne(ctx, GroupDocument{Id: id}).Decode(&groupDoc); err != nil {
 		return nil, err
 	}
 
-	group := domain.NewGroup(groupDoc.Id.Hex())
+	group := domain.NewGroup(groupDoc.Id)
 	group.Name = groupDoc.Name
 	group.Users = groupDoc.UserIds
 	group.InvitedUserIds = groupDoc.InvitedUserIds
@@ -53,17 +46,29 @@ func (g GroupRepository) Save(group *domain.Group) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	objectId, err := primitive.ObjectIDFromHex(group.ID())
-	if err != nil {
-		return err
-	}
-
 	groupDoc := GroupDocument{
-		Id:             objectId,
+		Id:             group.ID(),
 		Name:           group.Name,
 		UserIds:        group.Users,
 		InvitedUserIds: group.InvitedUserIds,
 	}
-	_, err = g.collection.ReplaceOne(ctx, GroupDocument{Id: objectId}, groupDoc)
+	_, err := g.collection.ReplaceOne(ctx, GroupDocument{Id: group.ID()}, groupDoc)
 	return err
+}
+
+func (g GroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	groupDoc := GroupDocument{
+		Id:      newGroup.ID(),
+		Name:    newGroup.Name,
+		UserIds: newGroup.Users,
+	}
+	_, err := g.collection.InsertOne(ctx, groupDoc)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGroup, err
 }

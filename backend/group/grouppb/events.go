@@ -1,11 +1,10 @@
 package grouppb
 
-import "github.com/FSpruhs/kick-app/backend/group/internal/domain"
-
 const GroupCreatedEvent = "group.GroupCreated"
 
 type GroupCreated struct {
-	Group *domain.Group
+	GroupID string
+	Users   []string
 }
 
 func (GroupCreated) EventName() string {

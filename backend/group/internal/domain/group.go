@@ -28,7 +28,10 @@ func CreateNewGroup(userId, name string) *Group {
 		Name:           name,
 		InvitedUserIds: make([]string, 0),
 	}
-	newGroup.AddEvent(grouppb.GroupCreatedEvent, grouppb.GroupCreated{Group: newGroup})
+	newGroup.AddEvent(grouppb.GroupCreatedEvent, grouppb.GroupCreated{
+		GroupID: newGroup.ID(),
+		Users:   newGroup.Users,
+	})
 
 	return newGroup
 }

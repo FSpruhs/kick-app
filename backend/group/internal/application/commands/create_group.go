@@ -22,12 +22,13 @@ func NewCreateGroupHandler(groups domain.GroupRepository, eventPublisher ddd.Eve
 func (h CreateGroupHandler) CreateGroup(cmd *CreateGroup) (*domain.Group, error) {
 	newGroup := domain.CreateNewGroup(cmd.UserId, cmd.Name)
 
-	if err := h.GroupRepository.Save(newGroup); err != nil {
+	result, err := h.GroupRepository.Create(newGroup)
+	if err != nil {
 		return nil, err
 	}
 
 	if err := h.Publish(newGroup.Events()...); err != nil {
 		return nil, err
 	}
-	return newGroup, nil
+	return result, nil
 }

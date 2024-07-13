@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -12,13 +11,13 @@ import (
 )
 
 type UserDocument struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	FirstName string             `json:"firstName,omitempty"`
-	LastName  string             `json:"lastName,omitempty"`
-	NickName  string             `json:"nickName,omitempty"`
-	Email     string             `json:"email,omitempty"`
-	Password  string             `json:"password,omitempty"`
-	Groups    []string           `json:"groups,omitempty"`
+	ID        string   `bson:"_id,omitempty"`
+	FirstName string   `json:"firstName,omitempty"`
+	LastName  string   `json:"lastName,omitempty"`
+	NickName  string   `json:"nickName,omitempty"`
+	Email     string   `json:"email,omitempty"`
+	Password  string   `json:"password,omitempty"`
+	Groups    []string `json:"groups,omitempty"`
 }
 
 type UserRepository struct {
@@ -45,7 +44,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	userDoc := UserDocument{
-		ID:        primitive.NewObjectID(),
+		ID:        newUser.Id,
 		FirstName: newUser.FullName.FirstName(),
 		LastName:  newUser.FullName.LastName(),
 		NickName:  newUser.NickName,
@@ -53,10 +52,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 		Password:  newUser.Password.Hash(),
 		Groups:    newUser.Groups,
 	}
-	result, err := u.collection.InsertOne(ctx, userDoc)
-	if id, ok := result.InsertedID.(primitive.ObjectID); ok {
-		newUser.SetId(id.Hex())
-	}
+	_, err := u.collection.InsertOne(ctx, userDoc)
 
 	return newUser, err
 }
@@ -109,7 +105,7 @@ func toDomain(userDoc UserDocument) (*domain.User, error) {
 	}
 	password := domain.NewHashedPassword(userDoc.Password)
 	return &domain.User{
-		Id:       userDoc.ID.Hex(),
+		Id:       userDoc.ID,
 		FullName: fullName,
 		NickName: userDoc.NickName,
 		Email:    email,

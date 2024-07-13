@@ -37,5 +37,9 @@ func CreateNewGroup(userId, name string) *Group {
 }
 
 func (g *Group) InviteUser(userId string) {
-	g.Users = append(g.InvitedUserIds, userId)
+	g.InvitedUserIds = append(g.InvitedUserIds, userId)
+	g.AddEvent(grouppb.UserInvitedEvent, grouppb.UserInvited{
+		GroupId: g.ID(),
+		UserId:  userId,
+	})
 }

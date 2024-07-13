@@ -3,6 +3,7 @@ package mongodb
 import (
 	"context"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 )
@@ -30,7 +31,7 @@ func (g GroupRepository) FindById(id string) (*domain.Group, error) {
 	defer cancel()
 
 	var groupDoc GroupDocument
-	if err := g.collection.FindOne(ctx, GroupDocument{Id: id}).Decode(&groupDoc); err != nil {
+	if err := g.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&groupDoc); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +53,7 @@ func (g GroupRepository) Save(group *domain.Group) error {
 		UserIds:        group.Users,
 		InvitedUserIds: group.InvitedUserIds,
 	}
-	_, err := g.collection.ReplaceOne(ctx, GroupDocument{Id: group.ID()}, groupDoc)
+	_, err := g.collection.ReplaceOne(ctx, bson.M{"_id": group.ID()}, groupDoc)
 	return err
 }
 
@@ -61,9 +62,10 @@ func (g GroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
 	defer cancel()
 
 	groupDoc := GroupDocument{
-		Id:      newGroup.ID(),
-		Name:    newGroup.Name,
-		UserIds: newGroup.Users,
+		Id:             newGroup.ID(),
+		Name:           newGroup.Name,
+		UserIds:        newGroup.Users,
+		InvitedUserIds: newGroup.InvitedUserIds,
 	}
 	_, err := g.collection.InsertOne(ctx, groupDoc)
 	if err != nil {

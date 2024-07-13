@@ -4,6 +4,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
+	"github.com/google/uuid"
 )
 
 type GroupHandler[T ddd.AggregateEvent] struct {
@@ -26,6 +27,7 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 func (h GroupHandler[T]) onGroupCreatedEvent(event ddd.Event) error {
 	orderCreated := event.Payload().(grouppb.GroupCreated)
 	newPlayer := domain.Player{
+		Id:      uuid.New().String(),
 		GroupId: orderCreated.GroupID,
 		UserId:  orderCreated.Users[0],
 	}

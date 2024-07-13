@@ -5,7 +5,3 @@ type Player struct {
 	GroupId string
 	UserId  string
 }
-
-func (p *Player) SetId(id string) {
-	p.Id = id
-}

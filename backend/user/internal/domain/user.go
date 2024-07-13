@@ -3,6 +3,7 @@ package domain
 import (
 	"crypto/sha256"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 var (
@@ -21,6 +22,7 @@ type User struct {
 
 func NewUser(fullName *FullName, nickName string, password *Password, email *Email) *User {
 	return &User{
+		Id:       uuid.New().String(),
 		FullName: fullName,
 		NickName: nickName,
 		Email:    email,
@@ -37,10 +39,6 @@ func (u *User) Login(email *Email, password *Password) error {
 		return fmt.Errorf("invalid email")
 	}
 	return nil
-}
-
-func (u *User) SetId(id string) {
-	u.Id = id
 }
 
 func hashString(input string) string {

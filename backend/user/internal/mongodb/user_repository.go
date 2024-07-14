@@ -1,13 +1,14 @@
 package mongodb
 
 import (
+	"log"
+	"time"
+
 	"context"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
-	"time"
 )
 
 type UserDocument struct {

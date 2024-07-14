@@ -38,21 +38,27 @@ func (a *app) EventDispatcher() *ddd.EventDispatcher[ddd.AggregateEvent] {
 }
 
 func main() {
-	var conf = config.InitConfig()
-	m := app{cfg: conf}
+	conf := config.InitConfig()
 
-	m.db = mongodb.ConnectMongoDB(conf.EnvMongoURI, conf.DatabaseName)
+	db := mongodb.ConnectMongoDB(conf.EnvMongoURI, conf.DatabaseName)
 
-	m.router = gin.Default()
-	m.router.Use(ginConfig.CorsMiddleware())
-	m.eventDispatcher = ddd.NewEventDispatcher[ddd.AggregateEvent]()
+	router := gin.Default()
+	router.Use(ginConfig.CorsMiddleware())
+	eventDispatcher := ddd.NewEventDispatcher[ddd.AggregateEvent]()
 
-	m.modules = []monolith.Module{
+	modules := []monolith.Module{
 		&player.Module{},
 		&user.Module{},
 		&group.Module{},
 	}
 
+	m := app{
+		cfg:             conf,
+		modules:         modules,
+		db:              db,
+		router:          router,
+		eventDispatcher: eventDispatcher,
+	}
 	m.startupModules()
 
 	m.router.Run()

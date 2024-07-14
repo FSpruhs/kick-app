@@ -25,9 +25,9 @@ func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	playerDoc := PlayerDocument{
-		ID:      newPlayer.Id,
-		GroupId: newPlayer.GroupId,
-		UserId:  newPlayer.UserId,
+		ID:      newPlayer.ID,
+		GroupId: newPlayer.GroupID,
+		UserId:  newPlayer.UserID,
 	}
 	_, err := p.collection.InsertOne(ctx, playerDoc)
 

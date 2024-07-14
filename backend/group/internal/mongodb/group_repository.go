@@ -71,8 +71,8 @@ func toDocument(group *domain.Group) *GroupDocument {
 	return &GroupDocument{
 		Id:             group.ID(),
 		Name:           group.Name.Value(),
-		UserIds:        group.UserIds,
-		InvitedUserIds: group.InvitedUserIds,
+		UserIds:        group.UserIDs,
+		InvitedUserIds: group.InvitedUserIDs,
 	}
 }
 
@@ -84,8 +84,8 @@ func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 
 	group := domain.NewGroup(groupDoc.Id)
 	group.Name = name
-	group.UserIds = groupDoc.UserIds
-	group.InvitedUserIds = groupDoc.InvitedUserIds
+	group.UserIDs = groupDoc.UserIds
+	group.InvitedUserIDs = groupDoc.InvitedUserIds
 
 	return group, nil
 }

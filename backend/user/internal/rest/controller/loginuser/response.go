@@ -1,4 +1,4 @@
-package loginUser
+package loginuser
 
 type Response struct {
 	Id        string   `json:"id"`

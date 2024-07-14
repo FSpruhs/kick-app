@@ -1,4 +1,4 @@
-package createUser
+package createuser
 
 import (
 	"bytes"

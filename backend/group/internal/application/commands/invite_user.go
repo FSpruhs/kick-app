@@ -6,9 +6,9 @@ import (
 )
 
 type InviteUser struct {
-	GroupId string
-	UserId  string
-	PayerId string
+	GroupID string
+	UserID  string
+	PayerID string
 }
 
 type InviteUserHandler struct {
@@ -16,17 +16,20 @@ type InviteUserHandler struct {
 	ddd.EventPublisher[ddd.AggregateEvent]
 }
 
-func NewInviteUserHandler(groups domain.GroupRepository, eventPublisher ddd.EventPublisher[ddd.AggregateEvent]) InviteUserHandler {
+func NewInviteUserHandler(
+	groups domain.GroupRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+) InviteUserHandler {
 	return InviteUserHandler{groups, eventPublisher}
 }
 
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
-	group, err := h.GroupRepository.FindById(cmd.GroupId)
+	group, err := h.GroupRepository.FindById(cmd.GroupID)
 	if err != nil {
 		return domain.ErrGroupNotFound
 	}
 
-	group.InviteUser(cmd.UserId)
+	group.InviteUser(cmd.UserID)
 
 	if err := h.GroupRepository.Save(group); err != nil {
 		return err

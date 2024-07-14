@@ -30,6 +30,7 @@ func NewEvent(name string, payload EventPayload) event {
 		payload:    payload,
 		occurredAt: time.Now(),
 	}
+
 	return evt
 }
 

@@ -5,6 +5,9 @@ import (
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 )
 
-func RegisterGroupHandler(groupHandler ddd.EventHandler[ddd.AggregateEvent], domainSubscriber ddd.EventSubscriber[ddd.AggregateEvent]) {
+func RegisterGroupHandler(
+	groupHandler ddd.EventHandler[ddd.AggregateEvent],
+	domainSubscriber ddd.EventSubscriber[ddd.AggregateEvent],
+) {
 	domainSubscriber.Subscribe(grouppb.GroupCreatedEvent, groupHandler)
 }

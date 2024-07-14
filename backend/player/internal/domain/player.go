@@ -1,7 +1,7 @@
 package domain
 
 type Player struct {
-	Id      string
-	GroupId string
-	UserId  string
+	ID      string
+	GroupID string
+	UserID  string
 }

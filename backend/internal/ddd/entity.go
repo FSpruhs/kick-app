@@ -32,7 +32,7 @@ func (e *Entity) EntityName() string {
 	return e.name
 }
 
-func (e *Entity) setId(id string) {
+func (e *Entity) setID(id string) {
 	e.id = id
 }
 

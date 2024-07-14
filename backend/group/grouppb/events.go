@@ -1,15 +1,17 @@
 package grouppb
 
-const GroupCreatedEvent = "group.GroupCreated"
-const UserInvitedEvent = "group.UserInvited"
+const (
+	GroupCreatedEvent = "group.GroupCreated"
+	UserInvitedEvent  = "group.UserInvited"
+)
 
 type GroupCreated struct {
 	GroupID string
-	UserIds []string
+	UserIDs []string
 }
 
 type UserInvited struct {
-	GroupId   string
+	GroupID   string
 	GroupName string
-	UserId    string
+	UserID    string
 }

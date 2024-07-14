@@ -1,4 +1,4 @@
-package inviteUser
+package inviteuser
 
 type Message struct {
 	GroupId  string `json:"groupId,omitempty" validate:"required"`

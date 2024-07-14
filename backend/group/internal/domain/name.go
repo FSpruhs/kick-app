@@ -1,8 +1,10 @@
 package domain
 
-import "fmt"
+import (
+	"errors"
+)
 
-var ErrInvalidName = fmt.Errorf("invalid name")
+var ErrInvalidName = errors.New("invalid name")
 
 type Name struct {
 	value string

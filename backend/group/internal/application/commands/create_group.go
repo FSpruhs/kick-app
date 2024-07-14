@@ -7,7 +7,7 @@ import (
 
 type CreateGroup struct {
 	Name   string
-	UserId string
+	UserID string
 }
 
 type CreateGroupHandler struct {
@@ -15,12 +15,15 @@ type CreateGroupHandler struct {
 	ddd.EventPublisher[ddd.AggregateEvent]
 }
 
-func NewCreateGroupHandler(groups domain.GroupRepository, eventPublisher ddd.EventPublisher[ddd.AggregateEvent]) CreateGroupHandler {
+func NewCreateGroupHandler(
+	groups domain.GroupRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+) CreateGroupHandler {
 	return CreateGroupHandler{groups, eventPublisher}
 }
 
 func (h CreateGroupHandler) CreateGroup(cmd *CreateGroup) (*domain.Group, error) {
-	newGroup := domain.CreateNewGroup(cmd.UserId, cmd.Name)
+	newGroup := domain.CreateNewGroup(cmd.UserID, cmd.Name)
 
 	result, err := h.GroupRepository.Create(newGroup)
 	if err != nil {
@@ -30,5 +33,6 @@ func (h CreateGroupHandler) CreateGroup(cmd *CreateGroup) (*domain.Group, error)
 	if err := h.Publish(newGroup.Events()...); err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }

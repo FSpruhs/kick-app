@@ -1,15 +1,16 @@
 package mongodb
 
 import (
+	"time"
+
 	"context"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 type MessageDocument struct {
 	ID         string             `bson:"_id,omitempty"`
-	UserId     string             `json:"userId,omitempty"`
+	UserID     string             `json:"userId,omitempty"`
 	Content    string             `json:"content,omitempty"`
 	Type       domain.MessageType `json:"type,omitempty"`
 	OccurredAt time.Time          `json:"occurredAt,omitempty"`
@@ -32,7 +33,7 @@ func (m *MessageRepository) Create(message domain.Message) error {
 
 	messageDoc := MessageDocument{
 		ID:         message.ID,
-		UserId:     message.UserId,
+		UserID:     message.UserId,
 		Content:    message.Content,
 		Type:       message.Type,
 		OccurredAt: message.OccurredAt,

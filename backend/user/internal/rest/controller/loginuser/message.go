@@ -1,4 +1,4 @@
-package loginUser
+package loginuser
 
 type Message struct {
 	Email    string `json:"email" validate:"required,email"`

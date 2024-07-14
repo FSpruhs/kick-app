@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
@@ -16,6 +17,7 @@ func InitConfig() AppConfig {
 	if err != nil {
 		log.Fatal("Error loading .env.file")
 	}
+
 	return AppConfig{
 		EnvMongoURI:  os.Getenv("DATABASE_URL"),
 		DatabaseName: os.Getenv("DATABASE_NAME"),

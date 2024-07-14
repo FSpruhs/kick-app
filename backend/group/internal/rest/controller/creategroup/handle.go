@@ -1,4 +1,4 @@
-package inviteUser
+package creategroup
 
 import (
 	"errors"
@@ -14,35 +14,43 @@ var validate = validator.New()
 
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var message Message
+		var groupMessage Message
 
-		if err := c.BindJSON(&message); err != nil {
+		if err := c.BindJSON(&groupMessage); err != nil {
 			c.JSON(http.StatusBadRequest, c.Error(err))
 			return
 		}
 
-		if validationErr := validate.Struct(&message); validationErr != nil {
+		if validationErr := validate.Struct(&groupMessage); validationErr != nil {
 			c.JSON(http.StatusBadRequest, c.Error(validationErr))
 			return
 		}
 
-		inviteUserCommand := commands.InviteUser{
-			UserId:  message.UserId,
-			GroupId: message.GroupId,
-			PayerId: message.PlayerId,
+		groupCommand := commands.CreateGroup{
+			Name:   groupMessage.Name,
+			UserID: groupMessage.UserId,
 		}
 
-		if err := app.InviteUser(&inviteUserCommand); err != nil {
+		result, err := app.CreateGroup(&groupCommand)
+		if err != nil {
 			switch {
-			case errors.Is(err, domain.ErrGroupNotFound):
-				c.JSON(http.StatusNotFound, c.Error(err))
+			case errors.Is(err, domain.ErrInvalidName):
+				c.JSON(http.StatusBadRequest, c.Error(err))
 				return
 			default:
 				c.JSON(http.StatusInternalServerError, c.Error(err))
 				return
 			}
+
 		}
 
-		c.JSON(http.StatusCreated, nil)
+		c.JSON(http.StatusCreated, toResponse(result))
+	}
+}
+
+func toResponse(group *domain.Group) *Response {
+	return &Response{
+		Id:   group.ID(),
+		Name: group.Name.Value(),
 	}
 }

@@ -1,5 +1,7 @@
 package ddd
 
+import "fmt"
+
 type (
 	EventHandler[T Event] interface {
 		HandleEvent(event T) error
@@ -40,10 +42,11 @@ func (d *EventDispatcher[T]) Publish(events ...T) error {
 		for _, handler := range d.handlers[event.EventName()] {
 			err := handler.HandleEvent(event)
 			if err != nil {
-				return err
+				return fmt.Errorf("while handling event: %w", err)
 			}
 		}
 	}
+
 	return nil
 }
 

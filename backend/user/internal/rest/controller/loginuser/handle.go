@@ -1,4 +1,4 @@
-package loginUser
+package loginuser
 
 import (
 	"errors"
@@ -19,17 +19,18 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		if err := c.BindJSON(&userMessage); err != nil {
 			c.JSON(http.StatusBadRequest, c.Error(err))
+
 			return
 		}
 
 		if validationErr := validate.Struct(&userMessage); validationErr != nil {
 			c.JSON(http.StatusBadRequest, c.Error(validationErr))
+
 			return
 		}
 
 		email, err := domain.NewEmail(userMessage.Email)
 		if err != nil {
-			println(err)
 			c.JSON(http.StatusBadRequest, c.Error(err))
 			return
 		}

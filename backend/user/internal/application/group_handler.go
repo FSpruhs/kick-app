@@ -2,11 +2,12 @@ package application
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"github.com/google/uuid"
-	"time"
 )
 
 type GroupHandler[T ddd.AggregateEvent] struct {
@@ -22,6 +23,7 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 	case grouppb.UserInvitedEvent:
 		return h.onUserInvitedEvent(event)
 	}
+
 	return nil
 }
 
@@ -29,7 +31,7 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 	userInvited := event.Payload().(grouppb.UserInvited)
 	message := domain.Message{
 		ID:         uuid.New().String(),
-		UserId:     userInvited.UserId,
+		UserId:     userInvited.UserID,
 		Content:    fmt.Sprintf("You have been invited to %s!", userInvited.GroupName),
 		Type:       domain.GroupInvitation,
 		OccurredAt: time.Now(),
@@ -37,7 +39,7 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 	}
 
 	if err := h.messages.Create(message); err != nil {
-		return err
+		return fmt.Errorf("while creating db err: %w", err)
 	}
 
 	return nil

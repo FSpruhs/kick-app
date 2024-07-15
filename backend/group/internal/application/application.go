@@ -27,11 +27,15 @@ type appCommands struct {
 
 var _ App = (*Application)(nil)
 
-func New(groups domain.GroupRepository, eventPublisher ddd.EventPublisher[ddd.AggregateEvent]) *Application {
+func New(
+	groups domain.GroupRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+	players domain.PlayerRepository,
+) *Application {
 	return &Application{
 		appCommands: appCommands{
 			CreateGroupHandler: commands.NewCreateGroupHandler(groups, eventPublisher),
-			InviteUserHandler:  commands.NewInviteUserHandler(groups, eventPublisher),
+			InviteUserHandler:  commands.NewInviteUserHandler(groups, eventPublisher, players),
 		},
 	}
 }

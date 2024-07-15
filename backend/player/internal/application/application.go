@@ -14,3 +14,7 @@ type Application struct{ appCommands }
 type appCommands struct{}
 
 var _ App = (*Application)(nil)
+
+func New() *Application {
+	return &Application{}
+}

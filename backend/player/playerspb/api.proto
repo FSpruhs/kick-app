@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package playerspb;
+
+option go_package = "github.com/FSpruhs/kick-app/backend/player/playerspb";
+
+service PlayersService {
+  rpc ConfirmPlayer(ConfirmPlayerRequest) returns (ConfirmPlayerResponse);
+}
+
+message ConfirmPlayerRequest {
+  string playerId = 1;
+  string groupId = 2;
+  string role = 3;
+}
+
+message ConfirmPlayerResponse {}

@@ -14,13 +14,15 @@ type InviteUser struct {
 type InviteUserHandler struct {
 	domain.GroupRepository
 	ddd.EventPublisher[ddd.AggregateEvent]
+	domain.PlayerRepository
 }
 
 func NewInviteUserHandler(
 	groups domain.GroupRepository,
 	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+	players domain.PlayerRepository,
 ) InviteUserHandler {
-	return InviteUserHandler{groups, eventPublisher}
+	return InviteUserHandler{groups, eventPublisher, players}
 }
 
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
@@ -29,6 +31,9 @@ func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
 		return domain.ErrGroupNotFound
 	}
 
+	if err := h.PlayerRepository.ConfirmPlayer(cmd.PayerID); err != nil {
+		return err
+	}
 	group.InviteUser(cmd.UserID)
 
 	if err := h.GroupRepository.Save(group); err != nil {

@@ -8,10 +8,9 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest"
 )
 
-type Module struct {
-}
+type Module struct{}
 
-func (m *Module) Startup(mono monolith.Monolith) {
+func (m *Module) Startup(mono monolith.Monolith) error {
 	users := mongodb.NewUserRepository(mono.DB(), "user.users")
 	messages := mongodb.NewMessageRepository(mono.DB(), "user.messages")
 
@@ -21,4 +20,6 @@ func (m *Module) Startup(mono monolith.Monolith) {
 
 	handler.RegisterGroupHandler(groupEventHandler, mono.EventDispatcher())
 	rest.UserRoutes(mono.Router(), app)
+
+	return nil
 }

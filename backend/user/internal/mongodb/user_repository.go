@@ -1,10 +1,10 @@
 package mongodb
 
 import (
+	"context"
 	"log"
 	"time"
 
-	"context"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -42,7 +42,7 @@ func NewUserRepository(database *mongo.Database, collectionName string) UserRepo
 }
 
 func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	userDoc := UserDocument{
 		ID:        newUser.Id,

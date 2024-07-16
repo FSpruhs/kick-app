@@ -2,55 +2,59 @@ package creategroup
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"net/http"
 )
 
 var validate = validator.New()
 
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		var groupMessage Message
 
-		if err := c.BindJSON(&groupMessage); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+		if err := context.BindJSON(&groupMessage); err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
+
 			return
 		}
 
 		if validationErr := validate.Struct(&groupMessage); validationErr != nil {
-			c.JSON(http.StatusBadRequest, c.Error(validationErr))
+			context.JSON(http.StatusBadRequest, context.Error(validationErr))
+
 			return
 		}
 
 		groupCommand := commands.CreateGroup{
 			Name:   groupMessage.Name,
-			UserID: groupMessage.UserId,
+			UserID: groupMessage.UserID,
 		}
 
 		result, err := app.CreateGroup(&groupCommand)
 		if err != nil {
 			switch {
 			case errors.Is(err, domain.ErrInvalidName):
-				c.JSON(http.StatusBadRequest, c.Error(err))
+				context.JSON(http.StatusBadRequest, context.Error(err))
+
 				return
 			default:
-				c.JSON(http.StatusInternalServerError, c.Error(err))
+				context.JSON(http.StatusInternalServerError, context.Error(err))
+
 				return
 			}
-
 		}
 
-		c.JSON(http.StatusCreated, toResponse(result))
+		context.JSON(http.StatusCreated, toResponse(result))
 	}
 }
 
 func toResponse(group *domain.Group) *Response {
 	return &Response{
-		Id:   group.ID(),
+		ID:   group.ID(),
 		Name: group.Name.Value(),
 	}
 }

@@ -1,4 +1,4 @@
-package ginConfig
+package ginconfig
 
 import (
 	"net/http"

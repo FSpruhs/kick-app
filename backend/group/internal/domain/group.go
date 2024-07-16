@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type Group struct {
 	Name           *Name
 	UserIDs        []string
 	InvitedUserIDs []string
+	InviteLevel    int
 }
 
 func NewGroup(id string) *Group {
@@ -24,7 +26,7 @@ func NewGroup(id string) *Group {
 	}
 }
 
-func CreateNewGroup(userId, name string) *Group {
+func CreateNewGroup(userID, name string) *Group {
 	newName, err := NewName(name)
 	if err != nil {
 		return nil
@@ -32,9 +34,10 @@ func CreateNewGroup(userId, name string) *Group {
 
 	newGroup := &Group{
 		Aggregate:      ddd.NewAggregate(uuid.New().String(), GroupAggregate),
-		UserIDs:        []string{userId},
+		UserIDs:        []string{userID},
 		Name:           newName,
 		InvitedUserIDs: make([]string, 0),
+		InviteLevel:    1,
 	}
 	newGroup.AddEvent(grouppb.GroupCreatedEvent, grouppb.GroupCreated{
 		GroupID: newGroup.ID(),

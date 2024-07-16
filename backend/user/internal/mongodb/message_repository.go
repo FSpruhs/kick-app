@@ -1,12 +1,15 @@
 package mongodb
 
 import (
+	"context"
+	"fmt"
 	"time"
 
-	"context"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+const timeout = 10 * time.Second
 
 type MessageDocument struct {
 	ID         string             `bson:"_id,omitempty"`
@@ -28,7 +31,7 @@ func NewMessageRepository(db *mongo.Database, collectionName string) *MessageRep
 }
 
 func (m *MessageRepository) Create(message domain.Message) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	messageDoc := MessageDocument{
@@ -42,7 +45,7 @@ func (m *MessageRepository) Create(message domain.Message) error {
 
 	_, err := m.collection.InsertOne(ctx, messageDoc)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not insert message: %w", err)
 	}
 
 	return nil

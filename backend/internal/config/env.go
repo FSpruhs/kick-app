@@ -1,17 +1,17 @@
 package config
 
 import (
-	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 	"log"
 	"os"
 
+	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 	"github.com/joho/godotenv"
 )
 
 type AppConfig struct {
 	EnvMongoURI  string
 	DatabaseName string
-	Rpc          rpc.RpcConfig
+	RPC          rpc.Config
 }
 
 func InitConfig() AppConfig {
@@ -23,7 +23,7 @@ func InitConfig() AppConfig {
 	return AppConfig{
 		EnvMongoURI:  os.Getenv("DATABASE_URL"),
 		DatabaseName: os.Getenv("DATABASE_NAME"),
-		Rpc: rpc.RpcConfig{
+		RPC: rpc.Config{
 			Port: os.Getenv("GRPC_PORT"),
 			Host: os.Getenv("GRPC_HOST"),
 		},

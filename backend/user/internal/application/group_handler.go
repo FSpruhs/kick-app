@@ -28,7 +28,11 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 }
 
 func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
-	userInvited := event.Payload().(grouppb.UserInvited)
+	userInvited, ok := event.Payload().(grouppb.UserInvited)
+	if !ok {
+		return ddd.ErrInvalidEventPayload
+	}
+
 	message := domain.Message{
 		ID:         uuid.New().String(),
 		UserId:     userInvited.UserID,

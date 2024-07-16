@@ -2,12 +2,13 @@ package loginuser
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
 	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"net/http"
 )
 
 var validate = validator.New()
@@ -56,7 +57,7 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		response := Response{
-			Id:        result.Id,
+			ID:        result.Id,
 			FirstName: result.FullName.FirstName(),
 			LastName:  result.FullName.LastName(),
 			Email:     result.Email.Value(),

@@ -28,7 +28,7 @@ type waiterCfg struct {
 	catchSignals bool
 }
 
-func New(options ...WaiterOption) Waiter {
+func New(options ...Option) Waiter {
 	cfg := &waiterCfg{
 		parentCtx:    context.Background(),
 		catchSignals: false,

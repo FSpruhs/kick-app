@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 )
@@ -26,22 +28,23 @@ func NewInviteUserHandler(
 }
 
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
-	group, err := h.GroupRepository.FindById(cmd.GroupID)
+	group, err := h.GroupRepository.FindByID(cmd.GroupID)
 	if err != nil {
 		return domain.ErrGroupNotFound
 	}
 
-	if err := h.PlayerRepository.ConfirmPlayer(cmd.PayerID); err != nil {
-		return err
+	if err := h.PlayerRepository.ConfirmPlayer(cmd.PayerID, cmd.GroupID, group.InviteLevel); err != nil {
+		return fmt.Errorf("confirm player: %w", err)
 	}
+
 	group.InviteUser(cmd.UserID)
 
 	if err := h.GroupRepository.Save(group); err != nil {
-		return err
+		return fmt.Errorf("save group: %w", err)
 	}
 
 	if err := h.Publish(group.Events()...); err != nil {
-		return err
+		return fmt.Errorf("publish events: %w", err)
 	}
 
 	return nil

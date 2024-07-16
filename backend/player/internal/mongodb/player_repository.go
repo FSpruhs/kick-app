@@ -2,15 +2,21 @@ package mongodb
 
 import (
 	"context"
-	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
-	"go.mongodb.org/mongo-driver/mongo"
+	"fmt"
 	"time"
+
+	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+const timeout = 10 * time.Second
 
 type PlayerDocument struct {
 	ID      string `bson:"_id,omitempty"`
-	GroupId string `json:"groupId,omitempty"`
-	UserId  string `json:"userId,omitempty"`
+	GroupID string `json:"groupId,omitempty"`
+	UserID  string `json:"userId,omitempty"`
+	Role    int    `json:"role,omitempty"`
 }
 
 type PlayerRepository struct {
@@ -21,15 +27,36 @@ func NewPlayerRepository(database *mongo.Database, collectionName string) Player
 	return PlayerRepository{collection: database.Collection(collectionName)}
 }
 
-func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+func (p PlayerRepository) FindByID(id string) (*domain.Player, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
+	var playerDoc PlayerDocument
+	if err := p.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&playerDoc); err != nil {
+		return nil, fmt.Errorf("while finding player err: %w", err)
+	}
+
+	player := domain.Player{
+		ID:      playerDoc.ID,
+		GroupID: playerDoc.GroupID,
+		UserID:  playerDoc.UserID,
+		Role:    domain.PlayerRole(playerDoc.Role),
+	}
+
+	return &player, nil
+}
+
+func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
 	playerDoc := PlayerDocument{
 		ID:      newPlayer.ID,
-		GroupId: newPlayer.GroupID,
-		UserId:  newPlayer.UserID,
+		GroupID: newPlayer.GroupID,
+		UserID:  newPlayer.UserID,
+		Role:    int(newPlayer.Role),
 	}
 	_, err := p.collection.InsertOne(ctx, playerDoc)
 
-	return newPlayer, err
+	return newPlayer, fmt.Errorf("while creating player err: %w", err)
 }

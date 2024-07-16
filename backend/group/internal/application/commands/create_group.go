@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 )
@@ -27,11 +28,11 @@ func (h CreateGroupHandler) CreateGroup(cmd *CreateGroup) (*domain.Group, error)
 
 	result, err := h.GroupRepository.Create(newGroup)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create group: %w", err)
 	}
 
 	if err := h.Publish(newGroup.Events()...); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to publish events: %w", err)
 	}
 
 	return result, nil

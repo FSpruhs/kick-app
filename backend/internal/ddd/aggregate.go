@@ -6,7 +6,7 @@ type (
 	}
 
 	Eventer interface {
-		AddEvent(string, EventPayload)
+		AddEvent(name string, payload EventPayload)
 		Events() []AggregateEvent
 		ClearEvents()
 	}

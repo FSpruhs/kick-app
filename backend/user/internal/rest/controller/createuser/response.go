@@ -1,7 +1,7 @@
 package createuser
 
 type Response struct {
-	Id        string
+	ID        string
 	FirstName string
 	LastName  string
 	Email     string

@@ -64,7 +64,7 @@ func TestHandle_Success(t *testing.T) {
 	}
 
 	expectedResponse := Response{
-		Id:        "123",
+		ID:        "123",
 		FirstName: "John",
 		LastName:  "Doe",
 		Email:     "john.doe@example.com",

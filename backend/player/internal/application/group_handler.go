@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
@@ -10,7 +11,6 @@ import (
 
 type GroupHandler[T ddd.AggregateEvent] struct {
 	players domain.PlayerRepository
-	ignoreUnimplementedDomainEvents
 }
 
 func NewGroupHandler(players domain.PlayerRepository) *GroupHandler[ddd.AggregateEvent] {
@@ -27,11 +27,16 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 }
 
 func (h GroupHandler[T]) onGroupCreatedEvent(event ddd.Event) error {
-	orderCreated := event.Payload().(grouppb.GroupCreated)
+	orderCreated, ok := event.Payload().(grouppb.GroupCreated)
+	if !ok {
+		return ddd.ErrInvalidEventPayload
+	}
+
 	newPlayer := domain.Player{
 		ID:      uuid.New().String(),
 		GroupID: orderCreated.GroupID,
 		UserID:  orderCreated.UserIDs[0],
+		Role:    domain.Master,
 	}
 
 	_, err := h.players.Create(&newPlayer)

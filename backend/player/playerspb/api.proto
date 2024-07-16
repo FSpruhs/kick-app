@@ -11,7 +11,7 @@ service PlayersService {
 message ConfirmPlayerRequest {
   string playerId = 1;
   string groupId = 2;
-  string role = 3;
+  int32 inviteLevel = 3;
 }
 
 message ConfirmPlayerResponse {}

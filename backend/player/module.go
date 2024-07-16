@@ -15,7 +15,7 @@ type Module struct{}
 func (m *Module) Startup(mono monolith.Monolith) error {
 	players := mongodb.NewPlayerRepository(mono.DB(), "player.players")
 
-	app := application.New()
+	app := application.New(players)
 
 	groupEventHandler := application.NewGroupHandler(players)
 

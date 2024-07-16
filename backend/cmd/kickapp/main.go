@@ -1,14 +1,16 @@
 package main
 
 import (
-	"fmt"
-
 	"context"
+	"fmt"
+	"net"
+	"os"
+	"time"
 
 	"github.com/FSpruhs/kick-app/backend/group"
 	"github.com/FSpruhs/kick-app/backend/internal/config"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
-	"github.com/FSpruhs/kick-app/backend/internal/ginConfig"
+	"github.com/FSpruhs/kick-app/backend/internal/ginconfig"
 	"github.com/FSpruhs/kick-app/backend/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/internal/rpc"
@@ -20,9 +22,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"os"
-	"time"
 )
 
 type app struct {
@@ -80,7 +79,7 @@ func (a *app) waitForWeb(ctx context.Context) error {
 }
 
 func (a *app) waitForRpc(ctx context.Context) error {
-	listener, err := net.Listen("tcp", a.cfg.Rpc.Address())
+	listener, err := net.Listen("tcp", a.cfg.RPC.Address())
 	if err != nil {
 		return err
 	}
@@ -133,7 +132,7 @@ func run() error {
 	eventDispatcher := ddd.NewEventDispatcher[ddd.AggregateEvent]()
 	newWaiter := waiter.New(waiter.CatchSignals())
 	router := initRouter()
-	newRpc := initRpc(conf.Rpc)
+	newRpc := initRpc(conf.RPC)
 
 	modules := []monolith.Module{
 		&player.Module{},
@@ -172,7 +171,7 @@ func (a *app) startupModules() {
 	}
 }
 
-func initRpc(_ rpc.RpcConfig) *grpc.Server {
+func initRpc(_ rpc.Config) *grpc.Server {
 	server := grpc.NewServer()
 	reflection.Register(server)
 
@@ -181,7 +180,7 @@ func initRpc(_ rpc.RpcConfig) *grpc.Server {
 
 func initRouter() *gin.Engine {
 	router := gin.Default()
-	router.Use(ginConfig.CorsMiddleware())
+	router.Use(ginconfig.CorsMiddleware())
 
 	return router
 }

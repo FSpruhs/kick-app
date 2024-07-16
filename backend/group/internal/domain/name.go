@@ -14,6 +14,7 @@ func NewName(name string) (*Name, error) {
 	if !isNameValid(name) {
 		return nil, ErrInvalidName
 	}
+
 	return &Name{value: name}, nil
 }
 
@@ -23,5 +24,4 @@ func isNameValid(name string) bool {
 
 func (n Name) Value() string {
 	return n.value
-
 }

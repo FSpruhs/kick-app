@@ -43,7 +43,7 @@ func Handle(app application.App) gin.HandlerFunc {
 
 func toResponse(user *domain.User) Response {
 	return Response{
-		Id:        user.Id,
+		ID:        user.Id,
 		FirstName: user.FullName.FirstName(),
 		LastName:  user.FullName.LastName(),
 		Email:     user.Email.Value(),

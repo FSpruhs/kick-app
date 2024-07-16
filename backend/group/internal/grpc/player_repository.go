@@ -2,6 +2,8 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/FSpruhs/kick-app/backend/player/playerspb"
 	"google.golang.org/grpc"
@@ -17,7 +19,12 @@ func NewPlayerRepository(conn *grpc.ClientConn) *PlayerRepository {
 	return &PlayerRepository{client: playerspb.NewPlayersServiceClient(conn)}
 }
 
-func (r *PlayerRepository) ConfirmPlayer(playerID string) error {
-	_, err := r.client.ConfirmPlayer(context.Background(), &playerspb.ConfirmPlayerRequest{PlayerId: playerID})
-	return err
+func (r *PlayerRepository) ConfirmPlayer(playerID, groupID string, inviteLevel int) error {
+	_, err := r.client.ConfirmPlayer(context.Background(), &playerspb.ConfirmPlayerRequest{
+		PlayerId:    playerID,
+		GroupId:     groupID,
+		InviteLevel: int32(inviteLevel),
+	})
+
+	return fmt.Errorf("failed to confirm player: %w", err)
 }

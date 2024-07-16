@@ -1,7 +1,7 @@
 package inviteuser
 
 type Message struct {
-	GroupId  string `json:"groupId,omitempty" validate:"required"`
-	UserId   string `json:"userId,omitempty" validate:"required"`
-	PlayerId string `json:"playerId,omitempty" validate:"required"`
+	GroupID  string `json:"groupId,omitempty" validate:"required"`
+	UserID   string `json:"userId,omitempty" validate:"required"`
+	PlayerID string `json:"playerId,omitempty" validate:"required"`
 }

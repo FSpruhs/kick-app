@@ -14,7 +14,7 @@ type Module struct{}
 
 func (m *Module) Startup(mono monolith.Monolith) error {
 	groups := mongodb.NewGroupRepository(mono.DB(), "group.groups")
-	conn, err := grpc.NewClient(mono.Config().Rpc.Address())
+	conn, err := grpc.NewClient(mono.Config().RPC.Address())
 	if err != nil {
 		log.Fatalf("failed to connect to rpc server: %v", err)
 

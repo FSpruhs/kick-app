@@ -1,9 +1,13 @@
 package ddd
 
 import (
-	"github.com/google/uuid"
+	"errors"
 	"time"
+
+	"github.com/google/uuid"
 )
+
+var ErrInvalidEventPayload = errors.New("invalid event payload type")
 
 type (
 	EventPayload interface{}

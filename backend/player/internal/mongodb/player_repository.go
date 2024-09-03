@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const timeout = 10 * time.Second
+
+var _ domain.PlayerRepository = (*PlayerRepository)(nil)
 
 type PlayerDocument struct {
 	ID      string `bson:"_id,omitempty"`
@@ -37,10 +40,10 @@ func (p PlayerRepository) FindByID(id string) (*domain.Player, error) {
 	}
 
 	player := domain.Player{
-		ID:      playerDoc.ID,
-		GroupID: playerDoc.GroupID,
-		UserID:  playerDoc.UserID,
-		Role:    domain.PlayerRole(playerDoc.Role),
+		Aggregate: ddd.NewAggregate(playerDoc.ID, domain.PlayerAggregate),
+		GroupID:   playerDoc.GroupID,
+		UserID:    playerDoc.UserID,
+		Role:      domain.PlayerRole(playerDoc.Role),
 	}
 
 	return &player, nil
@@ -50,13 +53,28 @@ func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, erro
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	playerDoc := PlayerDocument{
-		ID:      newPlayer.ID,
-		GroupID: newPlayer.GroupID,
-		UserID:  newPlayer.UserID,
-		Role:    int(newPlayer.Role),
-	}
+	playerDoc := toDocument(newPlayer)
 	_, err := p.collection.InsertOne(ctx, playerDoc)
 
 	return newPlayer, fmt.Errorf("while creating player err: %w", err)
+}
+
+func (p PlayerRepository) Save(player *domain.Player) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	playerDoc := toDocument(player)
+
+	_, err := p.collection.ReplaceOne(ctx, bson.M{"_id": player.ID()}, playerDoc)
+
+	return fmt.Errorf("while saving group err: %w", err)
+}
+
+func toDocument(player *domain.Player) PlayerDocument {
+	return PlayerDocument{
+		ID:      player.ID(),
+		GroupID: player.GroupID,
+		UserID:  player.UserID,
+		Role:    int(player.Role),
+	}
 }

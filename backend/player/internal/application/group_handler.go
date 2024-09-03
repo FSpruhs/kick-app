@@ -33,10 +33,10 @@ func (h GroupHandler[T]) onGroupCreatedEvent(event ddd.Event) error {
 	}
 
 	newPlayer := domain.Player{
-		ID:      uuid.New().String(),
-		GroupID: orderCreated.GroupID,
-		UserID:  orderCreated.UserIDs[0],
-		Role:    domain.Master,
+		Aggregate: ddd.NewAggregate(uuid.New().String(), domain.PlayerAggregate),
+		GroupID:   orderCreated.GroupID,
+		UserID:    orderCreated.UserIDs[0],
+		Role:      domain.Master,
 	}
 
 	_, err := h.players.Create(&newPlayer)

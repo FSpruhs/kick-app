@@ -111,7 +111,7 @@
         <option value="interfacebloat" />
       </list>
     </option>
-    <option name="goLinterExe" value="$USER_HOME$/Downloads/golangci-lint" />
+    <option name="goLinterExe" value="$USER_HOME$/go linter/golangci-lint" />
     <option name="linterSelected" value="true" />
   </component>
 </project>

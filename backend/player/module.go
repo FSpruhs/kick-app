@@ -1,13 +1,14 @@
 package player
 
 import (
+	"log"
+
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/player/internal/application"
 	"github.com/FSpruhs/kick-app/backend/player/internal/grpc"
 	"github.com/FSpruhs/kick-app/backend/player/internal/handler"
 	"github.com/FSpruhs/kick-app/backend/player/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/player/internal/rest"
-	"log"
 )
 
 type Module struct{}
@@ -24,6 +25,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 
 	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
 		log.Fatalf("failed to register server: %v", err)
+
 		return err
 	}
 

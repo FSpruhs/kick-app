@@ -3,15 +3,15 @@ package createuser
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
-	"github.com/gin-gonic/gin"
 )
 
 type MockApp struct{}

@@ -5,10 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+
+	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
 type UserDocument struct {

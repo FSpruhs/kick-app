@@ -2,20 +2,14 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
-	"github.com/FSpruhs/kick-app/backend/player/playerspb"
 )
 
 const PlayerAggregate = "player.PlayerAggregate"
 
-var (
-	ErrDifferentGroups    = errors.New("players are not in the same group")
-	ErrNotAdmin           = errors.New("updating player has to be at least an admin")
-	ErrSelfUpdate         = errors.New("player cannot update their own role")
-	ErrOnlyMasterToMember = errors.New("only master can update to member")
-	ErrOnlyMasterToMaster = errors.New("only master can update to master")
-)
+var ErrUpdatingRole = errors.New("error updating role")
 
 type Player struct {
 	ddd.Aggregate
@@ -25,33 +19,49 @@ type Player struct {
 }
 
 func (p *Player) UpdateRole(updatingPlayer *Player, newRole PlayerRole) error {
-	if p.GroupID != updatingPlayer.GroupID {
-		return ErrDifferentGroups
-	}
-
-	if updatingPlayer.Role == Member {
-		return ErrNotAdmin
-	}
-
-	if p.ID() == updatingPlayer.ID() {
-		return ErrSelfUpdate
-	}
-
-	if newRole == Member && updatingPlayer.Role != Master {
-		return ErrOnlyMasterToMember
-	}
-
-	if newRole == Master && updatingPlayer.Role != Master {
-		return ErrOnlyMasterToMaster
+	if err := validateUpdateRolePermission(updatingPlayer, p, newRole); err != nil {
+		return fmt.Errorf("validating update role permission: %w", err)
 	}
 
 	p.Role = newRole
 
-	if newRole == Master {
-		p.AddEvent(playerspb.NewMasterAppointedEvent, playerspb.NewMasterAppointed{
-			OldMasterID: updatingPlayer.ID(),
-			NewMasterID: p.ID(),
-		})
+	if newRole != Master {
+		return nil
+	}
+
+	if err := updatingPlayer.UpdateRole(p, Admin); err != nil {
+		return fmt.Errorf("error updating role: %w", err)
+	}
+
+	return nil
+}
+
+func validateUpdateRolePermission(updatingPlayer, targetPlayer *Player, newRole PlayerRole) error {
+	if targetPlayer.GroupID != updatingPlayer.GroupID {
+		return fmt.Errorf("players are not in the same group: %w", ErrUpdatingRole)
+	}
+
+	if updatingPlayer.Role == Member {
+		return fmt.Errorf("updating player has to be at least an admin: %w", ErrUpdatingRole)
+	}
+
+	if updatingPlayer.ID() == targetPlayer.ID() {
+		return fmt.Errorf("player cannot update their own role: %w", ErrUpdatingRole)
+	}
+
+	switch newRole {
+	case Member:
+		if updatingPlayer.Role != Master {
+			return fmt.Errorf("only master can downgrade to member: %w", ErrUpdatingRole)
+		}
+	case Master:
+		if updatingPlayer.Role != Master {
+			return fmt.Errorf("only master can update to master: %w", ErrUpdatingRole)
+		}
+	case Admin:
+		if targetPlayer.Role == Master && updatingPlayer.Role != Master {
+			return fmt.Errorf("only master can downgrade a master: %w", ErrUpdatingRole)
+		}
 	}
 
 	return nil

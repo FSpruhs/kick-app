@@ -1,11 +1,12 @@
 package commands
 
 import (
-	"github.com/stretchr/testify/mock"
 	"testing"
 
-	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
 func TestCreateUserHandler_CreateUser(t *testing.T) {

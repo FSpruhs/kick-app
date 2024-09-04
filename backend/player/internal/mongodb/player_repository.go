@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSpruhs/kick-app/backend/internal/ddd"
-	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
+	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 )
 
 const timeout = 10 * time.Second
@@ -68,6 +69,40 @@ func (p PlayerRepository) Save(player *domain.Player) error {
 	_, err := p.collection.ReplaceOne(ctx, bson.M{"_id": player.ID()}, playerDoc)
 
 	return fmt.Errorf("while saving group err: %w", err)
+}
+
+func (p PlayerRepository) SaveAll(players []*domain.Player) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	session, err := p.collection.Database().Client().StartSession()
+	if err != nil {
+		return fmt.Errorf("starting session: %w", err)
+	}
+	defer session.EndSession(ctx)
+
+	err = session.StartTransaction()
+	if err != nil {
+		return fmt.Errorf("starting transaction: %w", err)
+	}
+
+	if err := mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
+		for _, player := range players {
+			playerDoc := toDocument(player)
+			_, err := p.collection.ReplaceOne(sc, bson.M{"_id": player.ID()}, playerDoc)
+			if err != nil {
+				if err := session.AbortTransaction(sc); err != nil {
+					return fmt.Errorf("while aborting transaction: %w", err)
+				}
+				return fmt.Errorf("while saving player %s: %w", player.ID(), err)
+			}
+		}
+		return session.CommitTransaction(sc)
+	}); err != nil {
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+
+	return nil
 }
 
 func toDocument(player *domain.Player) PlayerDocument {

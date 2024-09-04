@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
 type MockUserRepository struct {

@@ -3,11 +3,12 @@ package createuser
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
 	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 func Handle(app application.App) gin.HandlerFunc {
@@ -54,7 +55,7 @@ func toResponse(user *domain.User) Response {
 
 func toCommand(message Message) (*commands.CreateUser, error) {
 
-	fullname, err := domain.NewFullName(message.FirstName, message.LastName)
+	fullName, err := domain.NewFullName(message.FirstName, message.LastName)
 	if err != nil {
 		return nil, domain.ErrInvalidFullName
 	}
@@ -69,7 +70,7 @@ func toCommand(message Message) (*commands.CreateUser, error) {
 		return nil, domain.ErrInvalidPassword
 	}
 	return &commands.CreateUser{
-		FullName: fullname,
+		FullName: fullName,
 		Nickname: message.NickName,
 		Email:    email,
 		Password: password,

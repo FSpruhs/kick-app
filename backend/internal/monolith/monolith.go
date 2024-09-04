@@ -1,12 +1,13 @@
 package monolith
 
 import (
-	"github.com/FSpruhs/kick-app/backend/internal/config"
-	"github.com/FSpruhs/kick-app/backend/internal/ddd"
-	"github.com/FSpruhs/kick-app/backend/internal/waiter"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
+
+	"github.com/FSpruhs/kick-app/backend/internal/config"
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
+	"github.com/FSpruhs/kick-app/backend/internal/waiter"
 )
 
 type Monolith interface {

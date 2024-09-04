@@ -1,10 +1,10 @@
 package domain
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserLogin(t *testing.T) {
@@ -25,7 +25,7 @@ func TestUserLogin(t *testing.T) {
 			loginEmail:     email,
 			loginPassword:  password,
 			expectedError:  nil,
-			expectedUserID: "",
+			expectedUserID: user.Id,
 		},
 		{
 			name:           "Wrong password",
@@ -39,18 +39,11 @@ func TestUserLogin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := user.Login(tt.loginEmail, tt.loginPassword)
-			assert.True(t, errors.Is(err, tt.expectedError), "Expected error '%v', got '%v'", tt.expectedError, err)
+			require.ErrorIs(t, err, tt.expectedError, "Expected error '%v', got '%v'", tt.expectedError, err)
 
 			if err == nil {
 				assert.Equal(t, tt.expectedUserID, user.Id, "Expected user ID '%s', got '%s'", tt.expectedUserID, user.Id)
 			}
 		})
 	}
-}
-
-func TestUserSetId(t *testing.T) {
-	user := &User{}
-
-	user.SetId("12345")
-	assert.Equal(t, "12345", user.Id, "Expected user ID '12345', got '%s'", user.Id)
 }

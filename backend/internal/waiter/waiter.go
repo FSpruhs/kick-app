@@ -2,10 +2,11 @@ package waiter
 
 import (
 	"context"
-	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type WaitFunc func(ctx context.Context) error

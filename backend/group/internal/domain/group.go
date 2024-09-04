@@ -3,9 +3,10 @@ package domain
 import (
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
-	"github.com/google/uuid"
 )
 
 var ErrGroupNotFound = errors.New("could not find group with given id")

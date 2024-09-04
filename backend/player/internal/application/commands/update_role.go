@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/FSpruhs/kick-app/backend/internal/ddd"
+
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 )
 
@@ -14,14 +14,12 @@ type UpdateRole struct {
 
 type UpdateRoleHandler struct {
 	domain.PlayerRepository
-	ddd.EventPublisher[ddd.AggregateEvent]
 }
 
 func NewUpdateRoleHandler(
 	players domain.PlayerRepository,
-	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
 ) UpdateRoleHandler {
-	return UpdateRoleHandler{players, eventPublisher}
+	return UpdateRoleHandler{players}
 }
 
 func (h UpdateRoleHandler) UpdateRole(cmd *UpdateRole) error {
@@ -39,12 +37,9 @@ func (h UpdateRoleHandler) UpdateRole(cmd *UpdateRole) error {
 		return fmt.Errorf("updating role from player %s: %w", playerToUpdate.ID(), err)
 	}
 
-	if err := h.PlayerRepository.Save(playerToUpdate); err != nil {
+	playersToSave := []*domain.Player{playerToUpdate, updatingPlayer}
+	if err := h.PlayerRepository.SaveAll(playersToSave); err != nil {
 		return fmt.Errorf("saving player %s: %w", playerToUpdate.ID(), err)
-	}
-
-	if err := h.Publish(playerToUpdate.Events()...); err != nil {
-		return fmt.Errorf("publishing events from player %s: %w", playerToUpdate.ID(), err)
 	}
 
 	return nil

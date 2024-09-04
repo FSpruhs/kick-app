@@ -3,9 +3,10 @@ package commands
 import (
 	"testing"
 
-	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
 func TestLoginUserHandler_SuccessfulLogin(t *testing.T) {

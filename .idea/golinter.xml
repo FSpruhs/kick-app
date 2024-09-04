@@ -6,7 +6,6 @@
       <list>
         <option value="exportloopref" />
         <option value="intrange" />
-        <option value="gci" />
         <option value="loggercheck" />
         <option value="gocognit" />
         <option value="nestif" />

@@ -3,6 +3,7 @@ package domain
 import (
 	"crypto/sha256"
 	"fmt"
+
 	"github.com/google/uuid"
 )
 

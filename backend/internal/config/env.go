@@ -4,8 +4,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 	"github.com/joho/godotenv"
+
+	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 )
 
 type AppConfig struct {

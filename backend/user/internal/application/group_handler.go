@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
-	"github.com/google/uuid"
 )
 
 type GroupHandler[T ddd.AggregateEvent] struct {

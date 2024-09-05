@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
@@ -21,7 +22,7 @@ func NewMessageReadHandler(messages domain.MessageRepository) MessageReadHandler
 }
 
 func (h MessageReadHandler) MessageRead(cmd *MessageRead) error {
-	message, err := h.MessageRepository.FindById(cmd.MessageID)
+	message, err := h.MessageRepository.FindByID(cmd.MessageID)
 	if err != nil {
 		return fmt.Errorf("finding message with id %s: %w", cmd.MessageID, err)
 	}
@@ -31,6 +32,8 @@ func (h MessageReadHandler) MessageRead(cmd *MessageRead) error {
 	}
 
 	message.Read = cmd.Read
+
+	h.MessageRepository.Save(message)
 
 	return nil
 }

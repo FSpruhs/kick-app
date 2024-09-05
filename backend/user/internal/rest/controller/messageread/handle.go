@@ -1,11 +1,13 @@
 package messageread
 
 import (
-	"github.com/FSpruhs/kick-app/backend/user/internal/application"
-	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"net/http"
+
+	"github.com/FSpruhs/kick-app/backend/user/internal/application"
+	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 )
 
 func Handle(app application.App) gin.HandlerFunc {

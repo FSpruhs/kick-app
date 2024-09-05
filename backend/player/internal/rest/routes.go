@@ -1,12 +1,13 @@
 package rest
 
 import (
-	"github.com/FSpruhs/kick-app/backend/player/internal/mongodb"
-	"github.com/FSpruhs/kick-app/backend/player/internal/rest/controller/createPlayer"
 	"github.com/gin-gonic/gin"
+
+	"github.com/FSpruhs/kick-app/backend/player/internal/application"
+	"github.com/FSpruhs/kick-app/backend/player/internal/rest/controller/updateplayerrole"
 )
 
-func PlayerRoutes(router *gin.Engine, repository mongodb.PlayerRepository) {
-	router.POST("/player", createPlayer.Handle(repository))
+func PlayerRoutes(router *gin.Engine, app application.App) {
 	router.GET("/player")
+	router.PUT("/player/role", updateplayerrole.Handle(app))
 }

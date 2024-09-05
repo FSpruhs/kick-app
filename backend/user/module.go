@@ -14,7 +14,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 	users := mongodb.NewUserRepository(mono.DB(), "user.users")
 	messages := mongodb.NewMessageRepository(mono.DB(), "user.messages")
 
-	app := application.New(users)
+	app := application.New(users, messages)
 
 	groupEventHandler := application.NewGroupHandler(messages)
 

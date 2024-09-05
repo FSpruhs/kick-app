@@ -37,7 +37,7 @@ func (m *MessageRepository) Create(message domain.Message) error {
 
 	messageDoc := MessageDocument{
 		ID:         message.ID,
-		UserID:     message.UserId,
+		UserID:     message.UserID,
 		Content:    message.Content,
 		Type:       message.Type,
 		OccurredAt: message.OccurredAt,

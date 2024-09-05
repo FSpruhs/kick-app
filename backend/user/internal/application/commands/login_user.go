@@ -19,7 +19,7 @@ func NewLoginUserHandler(users domain.UserRepository) LoginUserHandler {
 	return LoginUserHandler{users}
 }
 
-func (h LoginUserHandler) LoginUser(cmd LoginUser) (*domain.User, error) {
+func (h LoginUserHandler) LoginUser(cmd *LoginUser) (*domain.User, error) {
 	user, err := h.UserRepository.FindByEmail(cmd.Email)
 	if err != nil {
 		return nil, fmt.Errorf("while fetching db err: %w", err)

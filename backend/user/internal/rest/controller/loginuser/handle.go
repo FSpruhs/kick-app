@@ -48,7 +48,7 @@ func Handle(app application.App) gin.HandlerFunc {
 			Password: password,
 		}
 
-		result, err := app.LoginUser(loginUserCommand)
+		result, err := app.LoginUser(&loginUserCommand)
 		if err != nil && errors.Is(err, domain.ErrWrongPassword) {
 			c.JSON(http.StatusUnauthorized, c.Error(err))
 			return

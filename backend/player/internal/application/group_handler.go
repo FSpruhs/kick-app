@@ -69,5 +69,4 @@ func (h GroupHandler[T]) onUserAcceptedInvitationEvent(event ddd.Event) error {
 	}
 
 	return nil
-
 }

@@ -42,8 +42,30 @@ func (h GroupHandler[T]) onGroupCreatedEvent(event ddd.Event) error {
 
 	_, err := h.players.Create(&newPlayer)
 	if err != nil {
-		return fmt.Errorf("while creating db err: %w", err)
+		return fmt.Errorf("handling group created event: %w", err)
 	}
 
 	return nil
+}
+
+func (h GroupHandler[T]) onUserAcceptedInvitationEvent(event ddd.Event) error {
+	userAcceptedInvitation, ok := event.Payload().(grouppb.UserAcceptedInvitation)
+	if !ok {
+		return ddd.ErrInvalidEventPayload
+	}
+
+	newPlayer := domain.Player{
+		Aggregate: ddd.NewAggregate(uuid.New().String(), domain.PlayerAggregate),
+		GroupID:   userAcceptedInvitation.GroupID,
+		UserID:    userAcceptedInvitation.UserID,
+		Role:      domain.Member,
+	}
+
+	_, err := h.players.Create(&newPlayer)
+	if err != nil {
+		return fmt.Errorf("handling on user accepted invitation event: %w", err)
+	}
+
+	return nil
+
 }

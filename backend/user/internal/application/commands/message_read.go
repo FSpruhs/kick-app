@@ -33,7 +33,9 @@ func (h MessageReadHandler) MessageRead(cmd *MessageRead) error {
 
 	message.Read = cmd.Read
 
-	h.MessageRepository.Save(message)
+	if err := h.MessageRepository.Save(message); err != nil {
+		return fmt.Errorf("saving message with id %s: %w", cmd.MessageID, err)
+	}
 
 	return nil
 }

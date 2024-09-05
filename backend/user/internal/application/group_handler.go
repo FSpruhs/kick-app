@@ -43,7 +43,7 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 		Read:       false,
 	}
 
-	if err := h.messages.Create(message); err != nil {
+	if err := h.messages.Create(&message); err != nil {
 		return fmt.Errorf("while creating db err: %w", err)
 	}
 

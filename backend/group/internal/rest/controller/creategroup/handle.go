@@ -12,8 +12,6 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
-var validate = validator.New()
-
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var groupMessage Message
@@ -24,7 +22,7 @@ func Handle(app application.App) gin.HandlerFunc {
 			return
 		}
 
-		if validationErr := validate.Struct(&groupMessage); validationErr != nil {
+		if validationErr := validator.New().Struct(&groupMessage); validationErr != nil {
 			context.JSON(http.StatusBadRequest, context.Error(validationErr))
 
 			return

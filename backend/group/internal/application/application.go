@@ -14,6 +14,7 @@ type App interface {
 type Commands interface {
 	CreateGroup(cmd *commands.CreateGroup) (*domain.Group, error)
 	InviteUser(cmd *commands.InviteUser) error
+	InvitedUserResponse(cmd *commands.InvitedUserResponse) error
 }
 
 type Queries interface{}
@@ -23,6 +24,7 @@ type Application struct{ appCommands }
 type appCommands struct {
 	commands.CreateGroupHandler
 	commands.InviteUserHandler
+	commands.InvitedUserResponseHandler
 }
 
 var _ App = (*Application)(nil)
@@ -34,8 +36,9 @@ func New(
 ) *Application {
 	return &Application{
 		appCommands: appCommands{
-			CreateGroupHandler: commands.NewCreateGroupHandler(groups, eventPublisher),
-			InviteUserHandler:  commands.NewInviteUserHandler(groups, eventPublisher, players),
+			CreateGroupHandler:         commands.NewCreateGroupHandler(groups, eventPublisher),
+			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher, players),
+			InvitedUserResponseHandler: commands.NewInvitedUserResponseHandler(groups, eventPublisher),
 		},
 	}
 }

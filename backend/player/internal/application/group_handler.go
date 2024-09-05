@@ -22,6 +22,8 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 	switch event.EventName() {
 	case grouppb.GroupCreatedEvent:
 		return h.onGroupCreatedEvent(event)
+	case grouppb.UserAcceptedInvitationEvent:
+		return h.onUserAcceptedInvitationEvent(event)
 	}
 
 	return nil

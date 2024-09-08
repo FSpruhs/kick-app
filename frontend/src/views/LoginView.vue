@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import type { VForm } from 'vuetify/components';
 import { useRouter } from 'vue-router';
-import userService from '@/services/userRestService';
 import { useUserStore } from '@/store/UserStore';
 import type { User } from '@/model/user';
+import { postLogin } from '@/services/userRestService';
 
 const email = ref('');
 const password = ref('');
@@ -13,21 +13,20 @@ const router = useRouter();
 const userStore = useUserStore();
 
 const emailRule = ref([
-  (v: string) => !!v || 'First name is required',
-  (v: string) => (v && v.length <= 40) || 'First name must be less than 40 characters'
+  (v: string) => !!v || 'Email is required',
+  (v: string) => (v && v.length <= 40) || 'Email must be less than 40 characters'
 ]);
 
 const passwordRule = ref([
-  (v: string) => !!v || 'Last name is required',
-  (v: string) => (v && v.length <= 40) || 'Last name must be less than 40 characters'
+  (v: string) => !!v || 'Password is required',
+  (v: string) => (v && v.length <= 40) || 'Password must be less than 40 characters'
 ]);
 const submit = async () => {
   if (!loginForm.value) return;
   const { valid } = await loginForm.value.validate();
   if (!valid) return;
 
-  await userService
-    .postLogin({ email: email.value, password: password.value })
+  await postLogin({ email: email.value, password: password.value })
     .then((response) => {
       const user: User = {
         firstName: response.data.firstName,
@@ -73,6 +72,9 @@ const submit = async () => {
                 :rules="passwordRule"
                 label="Passwort"
               ></v-text-field>
+              <v-btn variant="text" color="secondary" :to="{ name: 'Registration' }"
+                >Register</v-btn
+              >
               <v-btn class="mt-2" type="submit" block>Submit</v-btn>
             </v-form>
           </v-card-text>

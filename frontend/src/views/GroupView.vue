@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type { VForm } from 'vuetify/components';
 import { ref } from 'vue';
+import { postGroup } from '@/services/groupRestService';
+import { useUserStore } from '@/store/UserStore';
+import { useRouter } from 'vue-router';
 
+const userStore = useUserStore();
+const router = useRouter();
 const groupForm = ref<VForm | null>(null);
 const groupName = ref('');
 const groupNameRule = ref([
@@ -10,10 +15,24 @@ const groupNameRule = ref([
 ]);
 
 const submit = async () => {
+  console.log(groupForm);
   if (!groupForm.value) return;
+  console.log('here');
   const { valid } = await groupForm.value.validate();
   if (!valid) return;
   console.log('submit');
+  const payload = {
+    name: groupName.value,
+    userId: userStore.getUser().id
+  };
+  await postGroup(payload)
+    .then((response) => {
+      console.log(response);
+      router.push({ name: 'Home' });
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 };
 </script>
 
@@ -26,7 +45,7 @@ const submit = async () => {
             <span class="headline">Neue Gruppe</span>
           </v-card-title>
           <v-card-text>
-            <v-form ref="loginForm" @submit.prevent="submit">
+            <v-form ref="groupForm" @submit.prevent="submit">
               <v-text-field
                 color="primary"
                 v-model="groupName"

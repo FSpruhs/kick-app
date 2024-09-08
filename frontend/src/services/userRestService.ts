@@ -1,4 +1,3 @@
-import axios, { type AxiosInstance } from 'axios';
 import { apiClient } from '@/services/axiosService';
 
 interface LoginUserPayload {
@@ -15,8 +14,27 @@ interface LoginUserResponse {
   groups: string[];
 }
 
-export default {
-  async postLogin(payload: LoginUserPayload) {
-    return await apiClient.post<LoginUserResponse>('user/login', payload);
-  }
-};
+interface RegisterPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  nickName: string;
+}
+
+interface RegisterResponse {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  nickName: string;
+  groups: string[];
+}
+
+export async function postLogin(payload: LoginUserPayload) {
+  return await apiClient.post<LoginUserResponse>('user/login', payload);
+}
+
+export async function postRegister(payload: RegisterPayload) {
+  return await apiClient.post<RegisterResponse>('user', payload);
+}

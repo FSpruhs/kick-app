@@ -72,7 +72,7 @@ func (g GroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
 		return nil, fmt.Errorf("while creating group err: %w", err)
 	}
 
-	return newGroup, fmt.Errorf("while creating group err: %w", err)
+	return newGroup, nil
 }
 
 func toDocument(group *domain.Group) *GroupDocument {

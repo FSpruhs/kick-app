@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/FSpruhs/kick-app/backend/cmd/docs"
 	"net"
 	"os"
 	"time"
@@ -23,6 +24,8 @@ import (
 	"github.com/FSpruhs/kick-app/backend/internal/waiter"
 	"github.com/FSpruhs/kick-app/backend/player"
 	"github.com/FSpruhs/kick-app/backend/user"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 )
 
 type app struct {
@@ -182,6 +185,9 @@ func initRpc(_ rpc.Config) *grpc.Server {
 func initRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(ginconfig.CorsMiddleware())
+
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
 }

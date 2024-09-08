@@ -11,6 +11,14 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
+// @Summary ping example
+// @Schemes
+// @Description do ping
+// @Tags example
+// @Accept json
+// @Produce json
+// @Success 200 {string} Helloworld
+// @Router /user [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 

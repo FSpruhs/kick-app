@@ -2,6 +2,7 @@ package application
 
 import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
+	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 )
@@ -17,14 +18,23 @@ type Commands interface {
 	InvitedUserResponse(cmd *commands.InvitedUserResponse) error
 }
 
-type Queries interface{}
+type Queries interface {
+	GetGroups(cmd *queries.GetGroups) ([]*domain.Group, error)
+}
 
-type Application struct{ appCommands }
+type Application struct {
+	appCommands
+	appQueries
+}
 
 type appCommands struct {
 	commands.CreateGroupHandler
 	commands.InviteUserHandler
 	commands.InvitedUserResponseHandler
+}
+
+type appQueries struct {
+	queries.GetGroupsHandler
 }
 
 var _ App = (*Application)(nil)
@@ -39,6 +49,9 @@ func New(
 			CreateGroupHandler:         commands.NewCreateGroupHandler(groups, eventPublisher),
 			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher, players),
 			InvitedUserResponseHandler: commands.NewInvitedUserResponseHandler(groups, eventPublisher),
+		},
+		appQueries: appQueries{
+			GetGroupsHandler: queries.NewGetGroupsHandler(groups),
 		},
 	}
 }

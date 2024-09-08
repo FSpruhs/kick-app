@@ -56,8 +56,11 @@ func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, erro
 
 	playerDoc := toDocument(newPlayer)
 	_, err := p.collection.InsertOne(ctx, playerDoc)
+	if err != nil {
+		return nil, fmt.Errorf("while creating player err: %w", err)
+	}
 
-	return newPlayer, fmt.Errorf("while creating player err: %w", err)
+	return newPlayer, nil
 }
 
 func (p PlayerRepository) Save(player *domain.Player) error {

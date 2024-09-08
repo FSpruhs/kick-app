@@ -5,11 +5,15 @@ interface GroupPayload {
   userId: string;
 }
 
-interface GroupResponse {
+export interface GroupResponse {
   id: string;
   name: string;
 }
 
 export async function postGroup(payload: GroupPayload) {
   return await apiClient.post<GroupResponse>('group', payload);
+}
+
+export async function getGroups(userId: string) {
+  return await apiClient.get<GroupResponse[]>(`group/${userId}`);
 }

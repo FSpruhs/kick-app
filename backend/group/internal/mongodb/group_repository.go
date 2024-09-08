@@ -75,6 +75,34 @@ func (g GroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
 	return newGroup, nil
 }
 
+func (g GroupRepository) FindAllByUserID(userID string) ([]*domain.Group, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	filter := bson.M{"userids": bson.M{"$in": []string{userID}}}
+	cursor, err := g.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("while finding groups: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var groupDocs []*GroupDocument
+	if err := cursor.All(ctx, &groupDocs); err != nil {
+		return nil, fmt.Errorf("while finding groups: %w", err)
+	}
+
+	groups := make([]*domain.Group, len(groupDocs))
+	for i, groupDoc := range groupDocs {
+		group, err := toDomain(groupDoc)
+		if err != nil {
+			return nil, fmt.Errorf("while finding groups: %w", err)
+		}
+		groups[i] = group
+	}
+
+	return groups, nil
+}
+
 func toDocument(group *domain.Group) *GroupDocument {
 	return &GroupDocument{
 		ID:             group.ID(),
@@ -88,7 +116,7 @@ func toDocument(group *domain.Group) *GroupDocument {
 func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 	name, err := domain.NewName(groupDoc.Name)
 	if err != nil {
-		return nil, fmt.Errorf("while creating group: %w", err)
+		return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 	}
 
 	group := domain.NewGroup(groupDoc.ID)

@@ -1,12 +1,12 @@
 package rest
 
 import (
-	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/getgroups"
-	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteduserresponse"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/creategroup"
+	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/getgroups"
+	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteduserresponse"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteuser"
 )
 

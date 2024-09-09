@@ -3,17 +3,19 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/FSpruhs/kick-app/backend/cmd/docs"
 	"net"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/FSpruhs/kick-app/backend/cmd/docs"
 	"github.com/FSpruhs/kick-app/backend/group"
 	"github.com/FSpruhs/kick-app/backend/internal/config"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
@@ -24,8 +26,6 @@ import (
 	"github.com/FSpruhs/kick-app/backend/internal/waiter"
 	"github.com/FSpruhs/kick-app/backend/player"
 	"github.com/FSpruhs/kick-app/backend/user"
-	"github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 )
 
 type app struct {

@@ -1,11 +1,13 @@
 package getgroups
 
 import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
-	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func Handle(app application.App) gin.HandlerFunc {

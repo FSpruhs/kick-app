@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 )

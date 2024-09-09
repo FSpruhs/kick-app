@@ -6,6 +6,7 @@ option go_package = "github.com/FSpruhs/kick-app/backend/player/playerspb";
 
 service PlayersService {
   rpc ConfirmPlayer(ConfirmPlayerRequest) returns (ConfirmPlayerResponse);
+  rpc ConfirmGroupLeavingUser(ConfirmGroupLeavingUserRequest) returns (ConfirmGroupLeavingUserResponse);
 }
 
 message ConfirmPlayerRequest {
@@ -15,3 +16,10 @@ message ConfirmPlayerRequest {
 }
 
 message ConfirmPlayerResponse {}
+
+message ConfirmGroupLeavingUserRequest {
+  string userId = 1;
+  string groupId = 2;
+}
+
+message ConfirmGroupLeavingUserResponse {}

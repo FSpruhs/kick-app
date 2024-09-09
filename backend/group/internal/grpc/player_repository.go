@@ -29,3 +29,12 @@ func (r *PlayerRepository) ConfirmPlayer(playerID, groupID string, inviteLevel i
 
 	return fmt.Errorf("failed to confirm player: %w", err)
 }
+
+func (r *PlayerRepository) ConfirmUserLeavingGroup(userID, groupID string) error {
+	_, err := r.client.ConfirmGroupLeavingUser(context.Background(), &playerspb.ConfirmGroupLeavingUserRequest{
+		UserId:  userID,
+		GroupId: groupID,
+	})
+
+	return fmt.Errorf("failed to confirm user leaving group: %w", err)
+}

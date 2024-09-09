@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 
@@ -82,6 +83,17 @@ func (g *Group) containsInvitedUser(userID string) bool {
 			return true
 		}
 	}
+
+	return false
+}
+
+func (g *Group) containsUser(userID string) bool {
+	for _, id := range g.UserIDs {
+		if id == userID {
+			return true
+		}
+	}
+
 	return false
 }
 
@@ -91,5 +103,26 @@ func (g *Group) removeInvitedUser(userID string) []string {
 			return append(g.InvitedUserIDs[:i], g.InvitedUserIDs[i+1:]...)
 		}
 	}
+
 	return g.InvitedUserIDs
+}
+
+func (g *Group) removeUser(userID string) []string {
+	for i, id := range g.UserIDs {
+		if id == userID {
+			return append(g.UserIDs[:i], g.UserIDs[i+1:]...)
+		}
+	}
+
+	return g.InvitedUserIDs
+}
+
+func (g *Group) UserLeavesGroup(userID string) error {
+	if !g.containsUser(userID) {
+		return fmt.Errorf("user %s is not in group %s", userID, g.ID())
+	}
+
+	g.UserIDs = g.removeUser(userID)
+
+	return nil
 }

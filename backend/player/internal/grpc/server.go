@@ -38,3 +38,14 @@ func (s server) ConfirmPlayer(
 
 	return &playerspb.ConfirmPlayerResponse{}, nil
 }
+
+func (s server) ConfirmGroupLeavingUser(
+	_ context.Context,
+	request *playerspb.ConfirmGroupLeavingUserRequest,
+) (*playerspb.ConfirmGroupLeavingUserResponse, error) {
+	if err := s.app.ConfirmUserLeavingGroup(request.PlayerId, request.GroupId); err != nil {
+		return nil, fmt.Errorf("while confirming user leaving group: %w", err)
+	}
+
+	return &playerspb.ConfirmGroupLeavingUserResponse{}, nil
+}

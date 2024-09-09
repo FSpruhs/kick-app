@@ -4,7 +4,6 @@
     <option name="customProjectDir" value="$PROJECT_DIR$/backend" />
     <option name="enabledLinters">
       <list>
-        <option value="exportloopref" />
         <option value="intrange" />
         <option value="loggercheck" />
         <option value="gocognit" />

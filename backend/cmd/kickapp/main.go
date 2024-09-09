@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"time"
@@ -65,35 +66,40 @@ func (a *app) Waiter() waiter.Waiter {
 }
 
 func (a *app) waitForWeb(ctx context.Context) error {
+	const timeoutDuration = 5 * time.Second
 	ginGroup, gCtx := errgroup.WithContext(ctx)
 	ginGroup.Go(func() error {
 		if err := a.router.Run(); err != nil {
-			return err
+			return fmt.Errorf("starting web server: %w", err)
 		}
+
 		return nil
 	})
 	ginGroup.Go(func() error {
 		<-gCtx.Done()
-		_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+		_, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 		defer cancel()
+
 		return nil
 	})
 
 	return ginGroup.Wait()
 }
 
-func (a *app) waitForRpc(ctx context.Context) error {
+func (a *app) waitForRPC(ctx context.Context) error {
 	listener, err := net.Listen("tcp", a.cfg.RPC.Address())
 	if err != nil {
-		return err
+		return fmt.Errorf("listen to %s: %w", a.cfg.RPC.Address(), err)
 	}
 
 	grpcGroup, gCtx := errgroup.WithContext(ctx)
 	grpcGroup.Go(func() error {
-		fmt.Println("rpc server started")
-		defer fmt.Println("rpc server stopped")
+		log.Println("rpc server started")
+		defer log.Println("rpc server stopped")
+
 		if err := a.RPC().Serve(listener); err != nil {
-			return err
+			return fmt.Errorf("rpc server starts listening: %w", err)
 		}
 
 		return nil
@@ -101,17 +107,22 @@ func (a *app) waitForRpc(ctx context.Context) error {
 
 	grpcGroup.Go(func() error {
 		<-gCtx.Done()
-		fmt.Println("shutting down rpc server")
+		log.Println("shutting down rpc server")
+
+		const timeoutDuration = 5 * time.Second
+
 		stopped := make(chan struct{})
 		go func() {
 			a.RPC().GracefulStop()
 			close(stopped)
 		}()
-		timeout := time.NewTimer(5 * time.Second)
+
+		timeout := time.NewTimer(timeoutDuration)
 		select {
 		case <-timeout.C:
 			a.RPC().Stop()
-			return fmt.Errorf("rpc server failed to stop gracefully")
+
+			return fmt.Errorf("rpc server failed to stop gracefully: %w", ctx.Err())
 
 		case <-stopped:
 			return nil
@@ -123,7 +134,7 @@ func (a *app) waitForRpc(ctx context.Context) error {
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 		os.Exit(1)
 	}
 }
@@ -131,12 +142,12 @@ func main() {
 func run() error {
 	conf := config.InitConfig()
 
-	db := mongodb.ConnectMongoDB(conf.EnvMongoURI, conf.DatabaseName)
+	mongoDB := mongodb.ConnectMongoDB(conf.EnvMongoURI, conf.DatabaseName)
 
 	eventDispatcher := ddd.NewEventDispatcher[ddd.AggregateEvent]()
 	newWaiter := waiter.New(waiter.CatchSignals())
 	router := initRouter()
-	newRpc := initRpc(conf.RPC)
+	newRPC := initRPC(conf.RPC)
 
 	modules := []monolith.Module{
 		&player.Module{},
@@ -144,27 +155,26 @@ func run() error {
 		&group.Module{},
 	}
 
-	m := app{
+	application := app{
 		cfg:             conf,
 		modules:         modules,
-		db:              db,
+		db:              mongoDB,
 		router:          router,
 		eventDispatcher: eventDispatcher,
-		rpc:             newRpc,
+		rpc:             newRPC,
 		waiter:          newWaiter,
 	}
-	m.startupModules()
+	application.startupModules()
 
-	fmt.Println("Started KickApp")
-	defer fmt.Println("Stopped KickApp")
+	log.Println("Started KickApp")
+	defer log.Println("Stopped KickApp")
 
-	m.waiter.Add(
-		m.waitForWeb,
-		m.waitForRpc,
+	application.waiter.Add(
+		application.waitForWeb,
+		application.waitForRPC,
 	)
 
-	return m.waiter.Wait()
-
+	return application.waiter.Wait()
 }
 
 func (a *app) startupModules() {
@@ -175,7 +185,7 @@ func (a *app) startupModules() {
 	}
 }
 
-func initRpc(_ rpc.Config) *grpc.Server {
+func initRPC(_ rpc.Config) *grpc.Server {
 	server := grpc.NewServer()
 	reflection.Register(server)
 
@@ -187,6 +197,7 @@ func initRouter() *gin.Engine {
 	router.Use(ginconfig.CorsMiddleware())
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
+
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router

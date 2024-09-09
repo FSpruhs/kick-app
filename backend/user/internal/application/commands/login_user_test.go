@@ -28,7 +28,7 @@ func TestLoginUserHandler_SuccessfulLogin(t *testing.T) {
 		Email:    mockUser.Email,
 		Password: mockUser.Password,
 	}
-	user, err := handler.LoginUser(cmd)
+	user, err := handler.LoginUser(&cmd)
 
 	assert.NoError(t, err, "Expected no error during successful login, but got %v", err)
 	assert.NotNil(t, user, "Expected user object to be returned, but got nil")
@@ -49,7 +49,7 @@ func TestLoginUserHandler_UserNotFound(t *testing.T) {
 		Email:    email,
 		Password: password,
 	}
-	user, err := handler.LoginUser(cmd)
+	user, err := handler.LoginUser(&cmd)
 
 	assert.ErrorIs(t, err, domain.ErrEmailInvalid, "Expected error due to user not found")
 	assert.Nil(t, user, "Expected no user object to be returned when user is not found")
@@ -77,7 +77,7 @@ func TestLoginUserHandler_WrongPassword(t *testing.T) {
 		Email:    mockUser.Email,
 		Password: wrongPassword,
 	}
-	user, err := handler.LoginUser(cmd)
+	user, err := handler.LoginUser(&cmd)
 
 	assert.ErrorIs(t, err, domain.ErrWrongPassword, "Expected error due to wrong password")
 	assert.Nil(t, user, "Expected no user object to be returned when password is wrong")

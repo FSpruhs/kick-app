@@ -16,7 +16,12 @@ import (
 
 type MockApp struct{}
 
-func (m MockApp) LoginUser(cmd commands.LoginUser) (*domain.User, error) {
+func (m MockApp) MessageRead(cmd *commands.MessageRead) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m MockApp) LoginUser(cmd *commands.LoginUser) (*domain.User, error) {
 	panic("just a mock, not implemented")
 }
 

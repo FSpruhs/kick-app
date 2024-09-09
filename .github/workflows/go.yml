@@ -24,6 +24,9 @@ jobs:
     - name: Change directory
       run: cd backend
 
+    - name: Install Dependencies
+      run: go mod tidy
+
     - name: Build
       run: go build -v ./...
 

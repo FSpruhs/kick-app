@@ -27,6 +27,25 @@ type PlayerRepository struct {
 	collection *mongo.Collection
 }
 
+func (p PlayerRepository) FindByUserIDAndGroupID(userID, groupID string) (*domain.Player, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	var playerDoc PlayerDocument
+	if err := p.collection.FindOne(ctx, bson.M{"userId": userID, "groupId": groupID}).Decode(&playerDoc); err != nil {
+		return nil, fmt.Errorf("while finding player err: %w", err)
+	}
+
+	player := domain.Player{
+		Aggregate: ddd.NewAggregate(playerDoc.ID, domain.PlayerAggregate),
+		GroupID:   playerDoc.GroupID,
+		UserID:    playerDoc.UserID,
+		Role:      domain.PlayerRole(playerDoc.Role),
+	}
+
+	return &player, nil
+}
+
 func NewPlayerRepository(database *mongo.Database, collectionName string) PlayerRepository {
 	return PlayerRepository{collection: database.Collection(collectionName)}
 }

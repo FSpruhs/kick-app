@@ -43,7 +43,13 @@ func (s server) ConfirmGroupLeavingUser(
 	_ context.Context,
 	request *playerspb.ConfirmGroupLeavingUserRequest,
 ) (*playerspb.ConfirmGroupLeavingUserResponse, error) {
-	if err := s.app.ConfirmUserLeavingGroup(request.PlayerId, request.GroupId); err != nil {
+
+	command := commands.ConfirmGroupLeavingUser{
+		UserID:  request.UserId,
+		GroupID: request.GroupId,
+	}
+
+	if err := s.app.ConfirmGroupLeavingUser(&command); err != nil {
 		return nil, fmt.Errorf("while confirming user leaving group: %w", err)
 	}
 

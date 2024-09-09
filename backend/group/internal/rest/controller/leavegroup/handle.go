@@ -2,6 +2,7 @@ package leavegroup
 
 import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
+	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"net/http"
@@ -22,7 +23,10 @@ func Handle(app application.App) gin.HandlerFunc {
 			return
 		}
 
-		command := {}
+		command := commands.LeaveGroup{
+			GroupID: message.GroupID,
+			UserID:  message.UserID,
+		}
 
 		if err := app.LeaveGroup(&command); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

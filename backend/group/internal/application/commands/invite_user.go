@@ -30,7 +30,7 @@ func NewInviteUserHandler(
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
 	group, err := h.GroupRepository.FindByID(cmd.GroupID)
 	if err != nil {
-		return domain.ErrGroupNotFound
+		return fmt.Errorf("invite user %s to group %s: %w", cmd.UserID, cmd.GroupID, err)
 	}
 
 	if err := h.PlayerRepository.ConfirmPlayer(cmd.PayerID, cmd.GroupID, group.InviteLevel); err != nil {

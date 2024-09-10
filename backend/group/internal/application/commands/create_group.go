@@ -25,15 +25,18 @@ func NewCreateGroupHandler(
 }
 
 func (h CreateGroupHandler) CreateGroup(cmd *CreateGroup) (*domain.Group, error) {
-	newGroup := domain.CreateNewGroup(cmd.UserID, cmd.Name)
+	newGroup, err := domain.CreateNewGroup(cmd.UserID, cmd.Name)
+	if err != nil {
+		return nil, fmt.Errorf("creating new group: %w", err)
+	}
 
 	result, err := h.GroupRepository.Create(newGroup)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create group: %w", err)
+		return nil, fmt.Errorf("creating group: %w", err)
 	}
 
 	if err := h.Publish(newGroup.Events()...); err != nil {
-		return nil, fmt.Errorf("failed to publish events: %w", err)
+		return nil, fmt.Errorf("publish group created: %w", err)
 	}
 
 	return result, nil

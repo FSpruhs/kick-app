@@ -1,7 +1,6 @@
 package creategroup
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +11,15 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
+// CreateGroup godoc
+// @Summary      creates a new Group
+// @Description  user creates a new Group with a new name
+// @Accept       json
+// @Produce      json
+// @Success      201  {object}  model.Account
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /group [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var groupMessage Message
@@ -35,16 +43,9 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		result, err := app.CreateGroup(&groupCommand)
 		if err != nil {
-			switch {
-			case errors.Is(err, domain.ErrInvalidName):
-				context.JSON(http.StatusBadRequest, context.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
-				return
-			default:
-				context.JSON(http.StatusInternalServerError, context.Error(err))
-
-				return
-			}
+			return
 		}
 
 		context.JSON(http.StatusCreated, toResponse(result))

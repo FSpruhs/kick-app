@@ -5,6 +5,7 @@
     <option name="enabledLinters">
       <list>
         <option value="intrange" />
+        <option value="gci" />
         <option value="loggercheck" />
         <option value="gocognit" />
         <option value="nestif" />
@@ -20,9 +21,9 @@
         <option value="nosprintfhostport" />
         <option value="rowserrcheck" />
         <option value="testpackage" />
-        <option value="unused" />
         <option value="tagalign" />
         <option value="unconvert" />
+        <option value="unused" />
         <option value="canonicalheader" />
         <option value="gosimple" />
         <option value="predeclared" />
@@ -36,8 +37,8 @@
         <option value="nlreturn" />
         <option value="durationcheck" />
         <option value="gochecknoglobals" />
-        <option value="govet" />
         <option value="dupl" />
+        <option value="govet" />
         <option value="forbidigo" />
         <option value="gochecksumtype" />
         <option value="ireturn" />

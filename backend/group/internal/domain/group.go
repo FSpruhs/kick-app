@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrGroupNotFound         = errors.New("could not find group with given id")
+	ErrUserNotInGroup        = errors.New("user is not in group")
 	ErrUserNotInvitedInGroup = errors.New("user is not invited in group")
 )
 
@@ -31,10 +32,10 @@ func NewGroup(id string) *Group {
 	}
 }
 
-func CreateNewGroup(userID, name string) *Group {
+func CreateNewGroup(userID, name string) (*Group, error) {
 	newName, err := NewName(name)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("create name: %w", err)
 	}
 
 	newGroup := &Group{
@@ -49,7 +50,7 @@ func CreateNewGroup(userID, name string) *Group {
 		UserIDs: newGroup.UserIDs,
 	})
 
-	return newGroup
+	return newGroup, nil
 }
 
 func (g *Group) InviteUser(userID string) {
@@ -62,24 +63,24 @@ func (g *Group) InviteUser(userID string) {
 }
 
 func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
-	if !g.containsInvitedUser(userID) {
+	if !contains(g.InvitedUserIDs, userID) {
 		return ErrUserNotInvitedInGroup
 	}
 
 	if accept {
 		g.UserIDs = append(g.UserIDs, userID)
-		g.InvitedUserIDs = g.removeInvitedUser(userID)
+		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
 		g.AddEvent(grouppb.UserAcceptedInvitationEvent, grouppb.UserAcceptedInvitation{GroupID: g.ID(), UserID: userID})
 	} else {
-		g.InvitedUserIDs = g.removeInvitedUser(userID)
+		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
 	}
 
 	return nil
 }
 
-func (g *Group) containsInvitedUser(userID string) bool {
-	for _, id := range g.InvitedUserIDs {
-		if id == userID {
+func contains(array []string, value string) bool {
+	for _, v := range array {
+		if v == value {
 			return true
 		}
 	}
@@ -87,42 +88,22 @@ func (g *Group) containsInvitedUser(userID string) bool {
 	return false
 }
 
-func (g *Group) containsUser(userID string) bool {
-	for _, id := range g.UserIDs {
-		if id == userID {
-			return true
+func remove(array []string, value string) []string {
+	for i, v := range array {
+		if v == value {
+			return append(array[:i], array[i+1:]...)
 		}
 	}
 
-	return false
-}
-
-func (g *Group) removeInvitedUser(userID string) []string {
-	for i, id := range g.InvitedUserIDs {
-		if id == userID {
-			return append(g.InvitedUserIDs[:i], g.InvitedUserIDs[i+1:]...)
-		}
-	}
-
-	return g.InvitedUserIDs
-}
-
-func (g *Group) removeUser(userID string) []string {
-	for i, id := range g.UserIDs {
-		if id == userID {
-			return append(g.UserIDs[:i], g.UserIDs[i+1:]...)
-		}
-	}
-
-	return g.InvitedUserIDs
+	return array
 }
 
 func (g *Group) UserLeavesGroup(userID string) error {
-	if !g.containsUser(userID) {
-		return fmt.Errorf("user %s is not in group %s", userID, g.ID())
+	if !contains(g.UserIDs, userID) {
+		return ErrUserNotInGroup
 	}
 
-	g.UserIDs = g.removeUser(userID)
+	g.UserIDs = remove(g.UserIDs, userID)
 
 	return nil
 }

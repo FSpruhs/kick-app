@@ -8,9 +8,9 @@ import (
 )
 
 type InvitedUserResponse struct {
-	GroupID string
-	UserID  string
-	Accept  bool
+	GroupID  string
+	UserID   string
+	Accepted bool
 }
 
 type InvitedUserResponseHandler struct {
@@ -31,7 +31,7 @@ func (h InvitedUserResponseHandler) InvitedUserResponse(cmd *InvitedUserResponse
 		return fmt.Errorf("handle invited user response: %w", err)
 	}
 
-	if err := group.HandleInvitedUserResponse(cmd.UserID, cmd.Accept); err != nil {
+	if err := group.HandleInvitedUserResponse(cmd.UserID, cmd.Accepted); err != nil {
 		return fmt.Errorf("handle invited user response: %w", err)
 	}
 

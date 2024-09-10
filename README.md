@@ -15,3 +15,8 @@ gci write -s standard -s default -s "prefix(github.com/FSpruhs/kick-app)" ./back
 cd backend/player/playerspb
 protoc --go_out=. --go_opt=module=github.com/FSpruhs/kick-app/backend/player/playerspb --go-grpc_out=. --go-grpc_opt=module=github.com/FSpruhs/kick-app/backend/player/playerspb api.proto
 ```
+
+## Run golangci-lint
+```sh
+golangci-lint run ./backend/...
+```

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
@@ -33,5 +34,9 @@ func (h LeaveGroupHandler) LeaveGroup(cmd *LeaveGroup) error {
 		return fmt.Errorf("user is leaving a group: %w", err)
 	}
 
-	return h.GroupRepository.Save(group)
+	if err := h.GroupRepository.Save(group); err != nil {
+		return fmt.Errorf("user is leaving a group: %w", err)
+	}
+
+	return nil
 }

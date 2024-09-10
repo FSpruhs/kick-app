@@ -1,7 +1,6 @@
 package inviteuser
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,9 +8,17 @@ import (
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
-	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
+// InviteUser godoc
+// @Summary      invite a user to a group
+// @Description  invite a user to a group
+// @Accept       json
+// @Produce      json
+// @Success      201  {object}  model.Account
+// @Failure      400  {object}  httputil.HTTPError
+// @Failure      500  {object}  httputil.HTTPError
+// @Router       /group [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var message Message
@@ -35,16 +42,9 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		if err := app.InviteUser(&inviteUserCommand); err != nil {
-			switch {
-			case errors.Is(err, domain.ErrGroupNotFound):
-				context.JSON(http.StatusNotFound, context.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
-				return
-			default:
-				context.JSON(http.StatusInternalServerError, context.Error(err))
-
-				return
-			}
+			return
 		}
 
 		context.JSON(http.StatusCreated, nil)

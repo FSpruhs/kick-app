@@ -1,7 +1,7 @@
 package group
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/grpc"
@@ -14,11 +14,10 @@ type Module struct{}
 
 func (m *Module) Startup(mono monolith.Monolith) error {
 	groups := mongodb.NewGroupRepository(mono.DB(), "group.groups")
+
 	conn, err := grpc.NewClient(mono.Config().RPC.Address())
 	if err != nil {
-		log.Fatalf("failed to connect to rpc server: %v", err)
-
-		return err
+		return fmt.Errorf("connect to rpc server: %w", err)
 	}
 
 	players := grpc.NewPlayerRepository(conn)

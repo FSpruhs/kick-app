@@ -67,6 +67,7 @@ func (a *app) Waiter() waiter.Waiter {
 
 func (a *app) waitForWeb(ctx context.Context) error {
 	const timeoutDuration = 5 * time.Second
+
 	ginGroup, gCtx := errgroup.WithContext(ctx)
 
 	ginGroup.Go(func() error {

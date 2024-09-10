@@ -13,7 +13,7 @@ import (
 // InviteUser godoc
 // @Summary      user leaves a group
 // @Description  user leaves a group
-// @Accept       json
+// @Accepted       json
 // @Produce      json
 // @Success      201  {object}  model.Account
 // @Failure      400  {object}  httputil.HTTPError

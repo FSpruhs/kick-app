@@ -27,7 +27,7 @@ func (m MockApp) LoginUser(cmd *commands.LoginUser) (*domain.User, error) {
 
 func (m MockApp) CreateUser(cmd *commands.CreateUser) (*domain.User, error) {
 	return &domain.User{
-		Id:       "123",
+		ID:       "123",
 		FullName: cmd.FullName,
 		Email:    cmd.Email,
 		NickName: cmd.Nickname,

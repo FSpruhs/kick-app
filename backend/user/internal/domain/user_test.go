@@ -25,7 +25,7 @@ func TestUserLogin(t *testing.T) {
 			loginEmail:     email,
 			loginPassword:  password,
 			expectedError:  nil,
-			expectedUserID: user.Id,
+			expectedUserID: user.ID,
 		},
 		{
 			name:           "Wrong password",
@@ -42,7 +42,7 @@ func TestUserLogin(t *testing.T) {
 			require.ErrorIs(t, err, tt.expectedError, "Expected error '%v', got '%v'", tt.expectedError, err)
 
 			if err == nil {
-				assert.Equal(t, tt.expectedUserID, user.Id, "Expected user ID '%s', got '%s'", tt.expectedUserID, user.Id)
+				assert.Equal(t, tt.expectedUserID, user.ID, "Expected user ID '%s', got '%s'", tt.expectedUserID, user.ID)
 			}
 		})
 	}

@@ -107,6 +107,7 @@ func (p PlayerRepository) SaveAll(players []*domain.Player) error {
 				if err := session.AbortTransaction(sessionContext); err != nil {
 					return fmt.Errorf("while aborting transaction: %w", err)
 				}
+
 				return fmt.Errorf("while saving player %s: %w", player.ID(), err)
 			}
 		}

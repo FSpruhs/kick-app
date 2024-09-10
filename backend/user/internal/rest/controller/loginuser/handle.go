@@ -75,7 +75,7 @@ func Handle(app application.App) gin.HandlerFunc {
 
 func toResponse(result *domain.User) *Response {
 	return &Response{
-		ID:        result.Id,
+		ID:        result.ID,
 		FirstName: result.FullName.FirstName(),
 		LastName:  result.FullName.LastName(),
 		Email:     result.Email.Value(),

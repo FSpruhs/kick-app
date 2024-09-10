@@ -33,7 +33,8 @@ func (p Password) Hash() string {
 }
 
 func isPasswordValid(password string) bool {
-	if len(password) < 6 {
+	const minPasswordLength = 6
+	if len(password) < minPasswordLength {
 		return false
 	}
 

@@ -13,7 +13,7 @@ import (
 // GetGroups godoc
 // @Summary      get groups by user id
 // @Description  get groups by user id
-// @Accept       json
+// @Accepted       json
 // @Produce      json
 // @Success      200  {array}  	model.Account
 // @Failure      400  {object}  httputil.HTTPError

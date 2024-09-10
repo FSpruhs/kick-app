@@ -14,7 +14,7 @@ import (
 // CreateGroup godoc
 // @Summary      creates a new Group
 // @Description  user creates a new Group with a new name
-// @Accept       json
+// @Accepted       json
 // @Produce      json
 // @Success      201  {object}  model.Account
 // @Failure      400  {object}  httputil.HTTPError

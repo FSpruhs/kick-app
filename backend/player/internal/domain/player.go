@@ -60,7 +60,6 @@ func validateUpdateRolePermission(updatingPlayer, targetPlayer *Player, newRole 
 	case Member:
 		if updatingPlayer.Role != Master {
 			return ErrMasterDowngrade
-
 		}
 	case Master:
 		if updatingPlayer.Role != Master {

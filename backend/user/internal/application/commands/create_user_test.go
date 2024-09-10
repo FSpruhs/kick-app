@@ -16,7 +16,7 @@ func TestCreateUserHandler_CreateUser(t *testing.T) {
 
 	mockRepo := new(MockUserRepository)
 	mockRepo.On("CountByEmail", email).Return(0, nil)
-	mockRepo.On("Create", mock.AnythingOfType("*domain.User")).Return(&domain.User{Id: "123"}, nil)
+	mockRepo.On("Create", mock.AnythingOfType("*domain.User")).Return(&domain.User{ID: "123"}, nil)
 
 	handler := NewCreateUserHandler(mockRepo)
 	cmd := &CreateUser{
@@ -30,7 +30,7 @@ func TestCreateUserHandler_CreateUser(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, createdUser)
-	assert.Equal(t, "123", createdUser.Id)
+	assert.Equal(t, "123", createdUser.ID)
 
 	mockRepo.AssertExpectations(t)
 }

@@ -23,8 +23,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 	rest.PlayerRoutes(mono.Router(), app)
 
 	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
-
-		return fmt.Errorf("register server: %v", err)
+		return fmt.Errorf("register server: %w", err)
 	}
 
 	return nil

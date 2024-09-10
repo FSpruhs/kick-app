@@ -1,7 +1,7 @@
 package inviteduserresponse
 
 type Message struct {
-	GroupID string `json:"group_id" validate:"required"`
-	UserID  string `json:"user_id"  validate:"required"`
-	Accept  bool   `json:"accept"   validate:"required"`
+	GroupID  string `json:"groupId"     validate:"required"`
+	UserID   string `json:"userId"     validate:"required"`
+	Accepted bool   `json:"accepted"   validate:"required"`
 }

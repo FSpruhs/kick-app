@@ -15,7 +15,7 @@ var (
 )
 
 type User struct {
-	Id       string
+	ID       string
 	FullName *FullName
 	NickName string
 	Email    *Email
@@ -25,7 +25,7 @@ type User struct {
 
 func NewUser(fullName *FullName, nickName string, password *Password, email *Email) *User {
 	return &User{
-		Id:       uuid.New().String(),
+		ID:       uuid.New().String(),
 		FullName: fullName,
 		NickName: nickName,
 		Email:    email,

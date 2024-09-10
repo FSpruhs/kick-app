@@ -13,14 +13,13 @@ import (
 // InvitedUserResponse godoc
 // @Summary      handels invited user response
 // @Description  handels if a user accepts or declines an invite to a group
-// @Accept       json
+// @Accepted       json
 // @Produce      json
 // @Success      200  {object}  model.Account
 // @Failure      400  {object}  httputil.HTTPError
 // @Router       /group/user [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var message Message
 
 		if err := c.BindJSON(&message); err != nil {
@@ -38,7 +37,7 @@ func Handle(app application.App) gin.HandlerFunc {
 		command := commands.InvitedUserResponse{
 			UserID:   message.UserID,
 			GroupID:  message.GroupID,
-			Accepted: message.Accept,
+			Accepted: message.Accepted,
 		}
 
 		if err := app.InvitedUserResponse(&command); err != nil {

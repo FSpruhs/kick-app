@@ -14,7 +14,7 @@ func TestLoginUserHandler_SuccessfulLogin(t *testing.T) {
 	var password, _ = domain.NewPassword("Password123")
 	var email, _ = domain.NewEmail("john.doe@example.com")
 	mockUser := &domain.User{
-		Id:       "123",
+		ID:       "123",
 		FullName: fullName,
 		Email:    email,
 		Password: password,
@@ -32,7 +32,7 @@ func TestLoginUserHandler_SuccessfulLogin(t *testing.T) {
 
 	assert.NoError(t, err, "Expected no error during successful login, but got %v", err)
 	assert.NotNil(t, user, "Expected user object to be returned, but got nil")
-	assert.Equal(t, mockUser.Id, user.Id, "Expected user ID '%s', but got '%s'", mockUser.Id, user.Id)
+	assert.Equal(t, mockUser.ID, user.ID, "Expected user ID '%s', but got '%s'", mockUser.ID, user.ID)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -62,7 +62,7 @@ func TestLoginUserHandler_WrongPassword(t *testing.T) {
 	var password, _ = domain.NewPassword("Password123")
 	var email, _ = domain.NewEmail("john.doe@example.com")
 	mockUser := &domain.User{
-		Id:       "123",
+		ID:       "123",
 		FullName: fullName,
 		Email:    email,
 		Password: password,

@@ -38,7 +38,6 @@ func NewUserRepository(database *mongo.Database, collectionName string) (*UserRe
 	_, err := collection.Indexes().CreateOne(context.Background(), indexModel)
 	if err != nil {
 		return nil, fmt.Errorf("creating email as user index: %w", err)
-
 	}
 
 	return &UserRepository{collection: collection}, nil
@@ -49,7 +48,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 	defer cancel()
 
 	userDoc := UserDocument{
-		ID:        newUser.Id,
+		ID:        newUser.ID,
 		FirstName: newUser.FullName.FirstName(),
 		LastName:  newUser.FullName.LastName(),
 		NickName:  newUser.NickName,
@@ -58,8 +57,11 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 		Groups:    newUser.Groups,
 	}
 	_, err := u.collection.InsertOne(ctx, userDoc)
+	if err != nil {
+		return nil, fmt.Errorf("inserting user: %w", err)
+	}
 
-	return newUser, err
+	return newUser, nil
 }
 
 func (u UserRepository) CountByEmail(email *domain.Email) (int, error) {
@@ -110,7 +112,7 @@ func toDomain(userDoc *UserDocument) (*domain.User, error) {
 	password := domain.NewHashedPassword(userDoc.Password)
 
 	return &domain.User{
-		Id:       userDoc.ID,
+		ID:       userDoc.ID,
 		FullName: fullName,
 		NickName: userDoc.NickName,
 		Email:    email,

@@ -8,6 +8,9 @@ import (
 )
 
 func PlayerRoutes(router *gin.Engine, app application.App) {
-	router.GET("/player")
-	router.PUT("/player/role", updateplayerrole.Handle(app))
+	api := router.Group("/api/v1")
+	{
+		api.GET("/player")
+		api.PUT("/player/role", updateplayerrole.Handle(app))
+	}
 }

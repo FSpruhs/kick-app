@@ -27,27 +27,22 @@ type PlayerRepository struct {
 	collection *mongo.Collection
 }
 
+func NewPlayerRepository(database *mongo.Database, collectionName string) PlayerRepository {
+	return PlayerRepository{collection: database.Collection(collectionName)}
+}
+
 func (p PlayerRepository) FindByUserIDAndGroupID(userID, groupID string) (*domain.Player, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	var playerDoc PlayerDocument
 	if err := p.collection.FindOne(ctx, bson.M{"userId": userID, "groupId": groupID}).Decode(&playerDoc); err != nil {
-		return nil, fmt.Errorf("while finding player err: %w", err)
+		return nil, fmt.Errorf("finding player by user id and group id: %w", err)
 	}
 
-	player := domain.Player{
-		Aggregate: ddd.NewAggregate(playerDoc.ID, domain.PlayerAggregate),
-		GroupID:   playerDoc.GroupID,
-		UserID:    playerDoc.UserID,
-		Role:      domain.PlayerRole(playerDoc.Role),
-	}
+	player := toPlayer(&playerDoc)
 
-	return &player, nil
-}
-
-func NewPlayerRepository(database *mongo.Database, collectionName string) PlayerRepository {
-	return PlayerRepository{collection: database.Collection(collectionName)}
+	return player, nil
 }
 
 func (p PlayerRepository) FindByID(id string) (*domain.Player, error) {
@@ -56,17 +51,12 @@ func (p PlayerRepository) FindByID(id string) (*domain.Player, error) {
 
 	var playerDoc PlayerDocument
 	if err := p.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&playerDoc); err != nil {
-		return nil, fmt.Errorf("while finding player err: %w", err)
+		return nil, fmt.Errorf("finding player by id: %w", err)
 	}
 
-	player := domain.Player{
-		Aggregate: ddd.NewAggregate(playerDoc.ID, domain.PlayerAggregate),
-		GroupID:   playerDoc.GroupID,
-		UserID:    playerDoc.UserID,
-		Role:      domain.PlayerRole(playerDoc.Role),
-	}
+	player := toPlayer(&playerDoc)
 
-	return &player, nil
+	return player, nil
 }
 
 func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, error) {
@@ -74,9 +64,10 @@ func (p PlayerRepository) Create(newPlayer *domain.Player) (*domain.Player, erro
 	defer cancel()
 
 	playerDoc := toDocument(newPlayer)
+
 	_, err := p.collection.InsertOne(ctx, playerDoc)
 	if err != nil {
-		return nil, fmt.Errorf("while creating player err: %w", err)
+		return nil, fmt.Errorf("creating player in db: %w", err)
 	}
 
 	return newPlayer, nil
@@ -89,8 +80,11 @@ func (p PlayerRepository) Save(player *domain.Player) error {
 	playerDoc := toDocument(player)
 
 	_, err := p.collection.ReplaceOne(ctx, bson.M{"_id": player.ID()}, playerDoc)
+	if err != nil {
+		return fmt.Errorf("saving player in db: %w", err)
+	}
 
-	return fmt.Errorf("while saving group err: %w", err)
+	return nil
 }
 
 func (p PlayerRepository) SaveAll(players []*domain.Player) error {
@@ -103,23 +97,21 @@ func (p PlayerRepository) SaveAll(players []*domain.Player) error {
 	}
 	defer session.EndSession(ctx)
 
-	err = session.StartTransaction()
-	if err != nil {
+	if err := session.StartTransaction(); err != nil {
 		return fmt.Errorf("starting transaction: %w", err)
 	}
 
-	if err := mongo.WithSession(ctx, session, func(sc mongo.SessionContext) error {
+	if err := mongo.WithSession(ctx, session, func(sessionContext mongo.SessionContext) error {
 		for _, player := range players {
-			playerDoc := toDocument(player)
-			_, err := p.collection.ReplaceOne(sc, bson.M{"_id": player.ID()}, playerDoc)
-			if err != nil {
-				if err := session.AbortTransaction(sc); err != nil {
+			if err := p.savePlayerInTransaction(sessionContext, player); err != nil {
+				if err := session.AbortTransaction(sessionContext); err != nil {
 					return fmt.Errorf("while aborting transaction: %w", err)
 				}
 				return fmt.Errorf("while saving player %s: %w", player.ID(), err)
 			}
 		}
-		return session.CommitTransaction(sc)
+
+		return session.CommitTransaction(sessionContext)
 	}); err != nil {
 		return fmt.Errorf("transaction failed: %w", err)
 	}
@@ -127,11 +119,30 @@ func (p PlayerRepository) SaveAll(players []*domain.Player) error {
 	return nil
 }
 
-func toDocument(player *domain.Player) PlayerDocument {
-	return PlayerDocument{
+func (p PlayerRepository) savePlayerInTransaction(sessionContext mongo.SessionContext, player *domain.Player) error {
+	playerDoc := toDocument(player)
+	_, err := p.collection.ReplaceOne(sessionContext, bson.M{"_id": player.ID()}, playerDoc)
+	if err != nil {
+		return fmt.Errorf("saving player in db: %w", err)
+	}
+
+	return nil
+}
+
+func toDocument(player *domain.Player) *PlayerDocument {
+	return &PlayerDocument{
 		ID:      player.ID(),
 		GroupID: player.GroupID,
 		UserID:  player.UserID,
 		Role:    int(player.Role),
+	}
+}
+
+func toPlayer(playerDoc *PlayerDocument) *domain.Player {
+	return &domain.Player{
+		Aggregate: ddd.NewAggregate(playerDoc.ID, domain.PlayerAggregate),
+		GroupID:   playerDoc.GroupID,
+		UserID:    playerDoc.UserID,
+		Role:      domain.PlayerRole(playerDoc.Role),
 	}
 }

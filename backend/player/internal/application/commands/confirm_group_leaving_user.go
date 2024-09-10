@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 )
+
+var ErrMasterCanNotLeaveGroup = errors.New("master cannot leave group")
 
 type ConfirmGroupLeavingUser struct {
 	UserID  string
@@ -22,11 +25,11 @@ func NewConfirmGroupLeavingUserHandler(players domain.PlayerRepository) ConfirmG
 func (h ConfirmGroupLeavingUserHandler) ConfirmGroupLeavingUser(cmd *ConfirmGroupLeavingUser) error {
 	player, err := h.PlayerRepository.FindByUserIDAndGroupID(cmd.UserID, cmd.GroupID)
 	if err != nil {
-		return fmt.Errorf("player not found err: %w", err)
+		return fmt.Errorf("confirm group leaving user: %w", err)
 	}
 
 	if player.Role == domain.Master {
-		return fmt.Errorf("master cannot leave group: %w", err)
+		return ErrMasterCanNotLeaveGroup
 	}
 
 	return nil

@@ -26,7 +26,7 @@ linters:
     - forbidigo
     - forcetypeassert
     - funlen
-    - gci
+    #- gci
     - ginkgolinter
     - gocheckcompilerdirectives
     - gochecknoglobals

@@ -9,7 +9,14 @@ import (
 
 const PlayerAggregate = "player.PlayerAggregate"
 
-var ErrUpdatingRole = errors.New("error updating role")
+var (
+	ErrDifferentGroups            = errors.New("players are not in the same group")
+	ErrInsufficientPermissions    = errors.New("updating player has to be at least an admin")
+	ErrSelfUpdate                 = errors.New("player cannot update their own role")
+	ErrMasterDowngrade            = errors.New("only master can downgrade to member")
+	ErrMasterUpdate               = errors.New("only master can update to master")
+	ErrMasterDowngradeByNonMaster = errors.New("only master can downgrade a master")
+)
 
 type Player struct {
 	ddd.Aggregate
@@ -30,7 +37,7 @@ func (p *Player) UpdateRole(updatingPlayer *Player, newRole PlayerRole) error {
 	}
 
 	if err := updatingPlayer.UpdateRole(p, Admin); err != nil {
-		return fmt.Errorf("error updating role: %w", err)
+		return fmt.Errorf("updating role of updating player: %w", err)
 	}
 
 	return nil
@@ -38,29 +45,30 @@ func (p *Player) UpdateRole(updatingPlayer *Player, newRole PlayerRole) error {
 
 func validateUpdateRolePermission(updatingPlayer, targetPlayer *Player, newRole PlayerRole) error {
 	if targetPlayer.GroupID != updatingPlayer.GroupID {
-		return fmt.Errorf("players are not in the same group: %w", ErrUpdatingRole)
+		return ErrDifferentGroups
 	}
 
 	if updatingPlayer.Role == Member {
-		return fmt.Errorf("updating player has to be at least an admin: %w", ErrUpdatingRole)
+		return ErrInsufficientPermissions
 	}
 
 	if updatingPlayer.ID() == targetPlayer.ID() {
-		return fmt.Errorf("player cannot update their own role: %w", ErrUpdatingRole)
+		return ErrSelfUpdate
 	}
 
 	switch newRole {
 	case Member:
 		if updatingPlayer.Role != Master {
-			return fmt.Errorf("only master can downgrade to member: %w", ErrUpdatingRole)
+			return ErrMasterDowngrade
+
 		}
 	case Master:
 		if updatingPlayer.Role != Master {
-			return fmt.Errorf("only master can update to master: %w", ErrUpdatingRole)
+			return ErrMasterUpdate
 		}
 	case Admin:
 		if targetPlayer.Role == Master && updatingPlayer.Role != Master {
-			return fmt.Errorf("only master can downgrade a master: %w", ErrUpdatingRole)
+			return ErrMasterDowngradeByNonMaster
 		}
 	}
 

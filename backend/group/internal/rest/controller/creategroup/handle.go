@@ -22,23 +22,23 @@ import (
 // @Router       /group [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		var groupMessage Message
+		var message Message
 
-		if err := context.BindJSON(&groupMessage); err != nil {
+		if err := context.BindJSON(&message); err != nil {
 			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
-		if validationErr := validator.New().Struct(&groupMessage); validationErr != nil {
+		if validationErr := validator.New().Struct(&message); validationErr != nil {
 			context.JSON(http.StatusBadRequest, context.Error(validationErr))
 
 			return
 		}
 
 		groupCommand := commands.CreateGroup{
-			Name:   groupMessage.Name,
-			UserID: groupMessage.UserID,
+			Name:   message.Name,
+			UserID: message.UserID,
 		}
 
 		result, err := app.CreateGroup(&groupCommand)

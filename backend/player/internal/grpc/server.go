@@ -29,11 +29,11 @@ func (s server) ConfirmPlayer(
 	request *playerspb.ConfirmPlayerRequest,
 ) (*playerspb.ConfirmPlayerResponse, error) {
 	if err := s.app.ConfirmPlayer(&commands.ConfirmPlayer{
-		PlayerID:    request.PlayerId,
-		GroupID:     request.GroupId,
-		InviteLevel: int(request.InviteLevel),
+		PlayerID:    request.GetPlayerId(),
+		GroupID:     request.GetGroupId(),
+		InviteLevel: int(request.GetInviteLevel()),
 	}); err != nil {
-		return nil, fmt.Errorf("while confirming player: %w", err)
+		return nil, fmt.Errorf("confirm player: %w", err)
 	}
 
 	return &playerspb.ConfirmPlayerResponse{}, nil
@@ -43,14 +43,13 @@ func (s server) ConfirmGroupLeavingUser(
 	_ context.Context,
 	request *playerspb.ConfirmGroupLeavingUserRequest,
 ) (*playerspb.ConfirmGroupLeavingUserResponse, error) {
-
 	command := commands.ConfirmGroupLeavingUser{
-		UserID:  request.UserId,
-		GroupID: request.GroupId,
+		UserID:  request.GetUserId(),
+		GroupID: request.GetGroupId(),
 	}
 
 	if err := s.app.ConfirmGroupLeavingUser(&command); err != nil {
-		return nil, fmt.Errorf("while confirming user leaving group: %w", err)
+		return nil, fmt.Errorf("confirm user leaving group: %w", err)
 	}
 
 	return &playerspb.ConfirmGroupLeavingUserResponse{}, nil

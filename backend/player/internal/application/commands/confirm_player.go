@@ -29,14 +29,14 @@ func NewConfirmPlayerHandler(players domain.PlayerRepository) ConfirmPlayerHandl
 func (h ConfirmPlayerHandler) ConfirmPlayer(cmd *ConfirmPlayer) error {
 	player, err := h.PlayerRepository.FindByID(cmd.PlayerID)
 	if err != nil {
-		return fmt.Errorf("player not found err: %w", err)
+		return fmt.Errorf("confirm player: %w", err)
 	}
 
 	if player.GroupID != cmd.GroupID {
 		return ErrPlayerNotInGroup
 	}
 
-	if player.Role > domain.PlayerRole(cmd.InviteLevel) {
+	if player.Role < domain.PlayerRole(cmd.InviteLevel) {
 		return ErrInviteLevelTooLow
 	}
 

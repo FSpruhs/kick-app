@@ -44,7 +44,7 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 	}
 
 	if err := h.messages.Create(&message); err != nil {
-		return fmt.Errorf("while creating db err: %w", err)
+		return fmt.Errorf("creating user invited message: %w", err)
 	}
 
 	return nil

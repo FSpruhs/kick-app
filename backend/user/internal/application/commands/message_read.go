@@ -7,6 +7,8 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
+var ErrMessageDoesNotBelongToUser = errors.New("message does not belong to user")
+
 type MessageRead struct {
 	UserID    string
 	MessageID string
@@ -28,7 +30,7 @@ func (h MessageReadHandler) MessageRead(cmd *MessageRead) error {
 	}
 
 	if message.UserID != cmd.UserID {
-		return errors.New("message does not belong to user")
+		return ErrMessageDoesNotBelongToUser
 	}
 
 	message.Read = cmd.Read

@@ -68,6 +68,7 @@ func (a *app) Waiter() waiter.Waiter {
 func (a *app) waitForWeb(ctx context.Context) error {
 	const timeoutDuration = 5 * time.Second
 	ginGroup, gCtx := errgroup.WithContext(ctx)
+
 	ginGroup.Go(func() error {
 		if err := a.router.Run(); err != nil {
 			return fmt.Errorf("starting web server: %w", err)

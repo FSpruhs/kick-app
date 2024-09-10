@@ -1,18 +1,21 @@
 package domain
 
-import "fmt"
+import (
+	"errors"
+)
 
 type FullName struct {
 	firstName string
 	lastName  string
 }
 
-var ErrInvalidFullName = fmt.Errorf("invalid full name")
+var ErrInvalidFullName = errors.New("invalid full name")
 
 func NewFullName(firstName, lastName string) (*FullName, error) {
 	if !isFullNameValid(firstName, lastName) {
 		return nil, ErrInvalidFullName
 	}
+
 	return &FullName{firstName: firstName, lastName: lastName}, nil
 }
 

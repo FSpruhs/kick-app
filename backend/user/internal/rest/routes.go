@@ -10,8 +10,11 @@ import (
 )
 
 func UserRoutes(router *gin.Engine, app application.App) {
-	router.POST("/user", createuser.Handle(app))
-	router.GET("/user")
-	router.POST("/user/login", loginuser.Handle(app))
-	router.PUT("/message/read", messageread.Handle(app))
+	api := router.Group("/api/v1")
+	{
+		api.POST("/user", createuser.Handle(app))
+		api.GET("/user")
+		api.POST("/user/login", loginuser.Handle(app))
+		api.PUT("/message/read", messageread.Handle(app))
+	}
 }

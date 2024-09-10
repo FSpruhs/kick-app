@@ -16,6 +16,7 @@ func NewPassword(clear string) (*Password, error) {
 	if !isPasswordValid(clear) {
 		return nil, ErrInvalidPassword
 	}
+
 	return &Password{clear: clear, hash: hashString(clear)}, nil
 }
 

@@ -67,6 +67,7 @@ func (w *waiter) Wait() error {
 
 	for _, fn := range w.fns {
 		fn := fn
+
 		g.Go(func() error { return fn(ctx) })
 	}
 

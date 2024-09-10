@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
 	"github.com/FSpruhs/kick-app/backend/user/internal/handler"
@@ -11,7 +12,11 @@ import (
 type Module struct{}
 
 func (m *Module) Startup(mono monolith.Monolith) error {
-	users := mongodb.NewUserRepository(mono.DB(), "user.users")
+	users, err := mongodb.NewUserRepository(mono.DB(), "user.users")
+	if err != nil {
+		return fmt.Errorf("creating user repository: %w", err)
+	}
+
 	messages := mongodb.NewMessageRepository(mono.DB(), "user.messages")
 
 	app := application.New(users, messages)

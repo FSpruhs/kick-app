@@ -2,14 +2,16 @@ package domain
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 )
 
 var (
-	ErrEmailAlreadyExists = fmt.Errorf("email already exists")
-	ErrWrongPassword      = fmt.Errorf("wrong password")
+	ErrEmailAlreadyExists = errors.New("email already exists")
+	ErrWrongPassword      = errors.New("wrong password")
+	ErrInvalidEmail       = errors.New("invalid email")
 )
 
 type User struct {
@@ -36,14 +38,17 @@ func (u *User) Login(email *Email, password *Password) error {
 	if u.Password.Hash() != password.Hash() {
 		return ErrWrongPassword
 	}
+
 	if u.Email.Value() != email.Value() {
-		return fmt.Errorf("invalid email")
+		return ErrInvalidEmail
 	}
+
 	return nil
 }
 
 func hashString(input string) string {
 	hash := sha256.New()
 	hash.Write([]byte(input))
+
 	return fmt.Sprintf("%x", hash.Sum(nil))
 }

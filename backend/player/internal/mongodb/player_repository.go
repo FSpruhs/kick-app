@@ -121,6 +121,7 @@ func (p PlayerRepository) SaveAll(players []*domain.Player) error {
 
 func (p PlayerRepository) savePlayerInTransaction(sessionContext mongo.SessionContext, player *domain.Player) error {
 	playerDoc := toDocument(player)
+
 	_, err := p.collection.ReplaceOne(sessionContext, bson.M{"_id": player.ID()}, playerDoc)
 	if err != nil {
 		return fmt.Errorf("saving player in db: %w", err)

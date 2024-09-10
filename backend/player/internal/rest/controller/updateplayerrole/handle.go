@@ -28,31 +28,31 @@ func Handle(app application.App) gin.HandlerFunc {
 		var message Message
 
 		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		}
 
 		command, err := toCommand(&message)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		}
 
 		err = app.UpdateRole(command)
 		if errors.Is(err, domain.InvalidPlayerRoleError{}) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		} else if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, c.Error(err))
 
 			return
 		}

@@ -22,12 +22,12 @@ func NewLoginUserHandler(users domain.UserRepository) LoginUserHandler {
 func (h LoginUserHandler) LoginUser(cmd *LoginUser) (*domain.User, error) {
 	user, err := h.UserRepository.FindByEmail(cmd.Email)
 	if err != nil {
-		return nil, fmt.Errorf("while fetching db err: %w", err)
+		return nil, fmt.Errorf("login user: %w", err)
 	}
 
 	err = user.Login(cmd.Email, cmd.Password)
 	if err != nil {
-		return nil, fmt.Errorf("while using domain: %w", err)
+		return nil, fmt.Errorf("login user: %w", err)
 	}
 
 	return user, nil

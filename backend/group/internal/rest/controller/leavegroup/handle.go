@@ -24,13 +24,13 @@ func Handle(app application.App) gin.HandlerFunc {
 		var message Message
 
 		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, c.Error(err))
 
 			return
 		}
@@ -41,7 +41,7 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		if err := app.LeaveGroup(&command); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, c.Error(err))
 
 			return
 		}

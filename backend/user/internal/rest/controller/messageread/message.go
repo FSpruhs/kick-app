@@ -1,7 +1,7 @@
 package messageread
 
 type Message struct {
-	UserID    string `json:"user_id" binding:"required"`
-	MessageID string `json:"message_id" binding:"required"`
-	Read      bool   `json:"read" binding:"required"`
+	UserID    string `json:"user_id"    validate:"required"`
+	MessageID string `json:"message_id" validate:"required"`
+	Read      bool   `json:"read"       validate:"required"`
 }

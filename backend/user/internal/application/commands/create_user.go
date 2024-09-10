@@ -23,7 +23,7 @@ func NewCreateUserHandler(users domain.UserRepository) CreateUserHandler {
 
 func (h CreateUserHandler) CreateUser(cmd *CreateUser) (*domain.User, error) {
 	if emailCount, err := h.UserRepository.CountByEmail(cmd.Email); err != nil {
-		return nil, fmt.Errorf("while counting email err: %w", err)
+		return nil, fmt.Errorf("counting email: %w", err)
 	} else if emailCount > 0 {
 		return nil, domain.ErrEmailAlreadyExists
 	}
@@ -32,7 +32,7 @@ func (h CreateUserHandler) CreateUser(cmd *CreateUser) (*domain.User, error) {
 
 	result, err := h.UserRepository.Create(newUser)
 	if err != nil {
-		return nil, fmt.Errorf("while creating db err: %w", err)
+		return nil, fmt.Errorf("creating user: %w", err)
 	}
 
 	return result, nil

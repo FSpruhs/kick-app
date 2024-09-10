@@ -36,14 +36,7 @@ func (m *MessageRepository) Create(message *domain.Message) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	messageDoc := MessageDocument{
-		ID:         message.ID,
-		UserID:     message.UserID,
-		Content:    message.Content,
-		Type:       message.Type,
-		OccurredAt: message.OccurredAt,
-		Read:       message.Read,
-	}
+	messageDoc := toDocument(message)
 
 	_, err := m.collection.InsertOne(ctx, messageDoc)
 	if err != nil {
@@ -78,14 +71,7 @@ func (m *MessageRepository) Save(message *domain.Message) error {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	messageDoc := MessageDocument{
-		ID:         message.ID,
-		UserID:     message.UserID,
-		Content:    message.Content,
-		Type:       message.Type,
-		OccurredAt: message.OccurredAt,
-		Read:       message.Read,
-	}
+	messageDoc := toDocument(message)
 
 	_, err := m.collection.ReplaceOne(ctx, bson.M{"_id": message.ID}, messageDoc)
 	if err != nil {
@@ -93,4 +79,15 @@ func (m *MessageRepository) Save(message *domain.Message) error {
 	}
 
 	return nil
+}
+
+func toDocument(message *domain.Message) *MessageDocument {
+	return &MessageDocument{
+		ID:         message.ID,
+		UserID:     message.UserID,
+		Content:    message.Content,
+		Type:       message.Type,
+		OccurredAt: message.OccurredAt,
+		Read:       message.Read,
+	}
 }

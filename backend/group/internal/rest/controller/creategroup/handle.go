@@ -14,11 +14,12 @@ import (
 // CreateGroup godoc
 // @Summary      creates a new Group
 // @Description  user creates a new Group with a new name
+// @Tags         group
 // @Accepted       json
 // @Produce      json
-// @Success      201  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
+// @Success      201  {object}  Response
+// @Failure      400
+// @Failure      500
 // @Router       /group [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {

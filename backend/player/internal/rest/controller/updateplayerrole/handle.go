@@ -16,11 +16,12 @@ import (
 // UpdatePlayerRole godoc
 // @Summary      updates role of a player
 // @Description  updates role of a player
+// @Tags         player
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
+// @Success      200
+// @Failure      400
+// @Failure      500
 // @Router       /player/role [put]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {

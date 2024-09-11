@@ -22,7 +22,7 @@ export async function postGroup(payload: GroupPayload) {
 }
 
 export async function getGroups(userId: string) {
-  return await apiClient.get<GroupResponse[]>(`api/v1/group/${userId}`);
+  return await apiClient.get<GroupResponse[]>(`api/v1/group/user/${userId}`);
 }
 
 export async function getGroupDetails(groupId: string) {

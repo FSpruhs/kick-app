@@ -13,12 +13,13 @@ import (
 // InviteUser godoc
 // @Summary      user leaves a group
 // @Description  user leaves a group
+// @Tags         group
 // @Accepted       json
 // @Produce      json
-// @Success      201  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
-// @Router       /group/user [delte]
+// @Success      201
+// @Failure      400
+// @Failure      500
+// @Router       /group/user [delete]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var message Message

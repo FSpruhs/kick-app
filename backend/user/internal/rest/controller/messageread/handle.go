@@ -13,11 +13,12 @@ import (
 // MessageRead godoc
 // @Summary      reads a message
 // @Description  reads a message
+// @Tags         user
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Router       /user/login [post]
+// @Success      200
+// @Failure      400
+// @Router       /user/login [put]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var message Message

@@ -2,7 +2,7 @@
 
 ## Create Swagger Documentation
 ```sh
-swag init -g ./backend/cmd/kickapp/main.go -o backend/cmd/docs
+swag init -g ./backend/cmd/kickapp/main.go -o ./backend/cmd/docs
 ```
 
 ## Sort Imports

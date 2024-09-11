@@ -15,11 +15,12 @@ import (
 // CreateUser godoc
 // @Summary      creates new user
 // @Description  creates new user
+// @Tags         user
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Failure      500  {object}  httputil.HTTPError
+// @Success      201  {object}  Response
+// @Failure      400
+// @Failure      500
 // @Router       /user [post]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {

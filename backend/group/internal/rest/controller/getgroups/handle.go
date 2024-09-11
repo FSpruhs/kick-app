@@ -13,11 +13,12 @@ import (
 // GetGroups godoc
 // @Summary      get groups by user id
 // @Description  get groups by user id
+// @Tags         group
 // @Accepted       json
 // @Produce      json
-// @Success      200  {array}  	model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Router       /group/{userId} [get]
+// @Success      200  {array}  	Response
+// @Failure      400
+// @Router       /group/user/{userId} [get]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 

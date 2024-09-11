@@ -13,11 +13,12 @@ import (
 // InvitedUserResponse godoc
 // @Summary      handels invited user response
 // @Description  handels if a user accepts or declines an invite to a group
+// @Tags         group
 // @Accepted       json
 // @Produce      json
-// @Success      200  {object}  model.Account
-// @Failure      400  {object}  httputil.HTTPError
-// @Router       /group/user [post]
+// @Success      200
+// @Failure      400
+// @Router       /group/user [put]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var message Message

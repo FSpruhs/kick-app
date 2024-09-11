@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router';
+import { RouterView, useRouter } from 'vue-router';
+
+const router = useRouter();
+
+function navigateToHome() {
+  router.push({ name: 'Home' });
+}
 </script>
 
 <template>
@@ -8,7 +14,7 @@ import { RouterView } from 'vue-router';
       <template v-slot:prepend>
         <v-app-bar-nav-icon></v-app-bar-nav-icon>
       </template>
-      <v-app-bar-title>Kick App</v-app-bar-title>
+      <v-app-bar-title @click="navigateToHome" style="cursor: pointer">Kick App</v-app-bar-title>
       <v-spacer></v-spacer>
       <v-btn><v-icon>mdi-bell-outline</v-icon> <span class="notification-counter">5</span></v-btn>
       <v-btn><v-icon>mdi-logout</v-icon></v-btn>

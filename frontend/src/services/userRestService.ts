@@ -32,9 +32,9 @@ interface RegisterResponse {
 }
 
 export async function postLogin(payload: LoginUserPayload) {
-  return await apiClient.post<LoginUserResponse>('user/login', payload);
+  return await apiClient.post<LoginUserResponse>('api/v1/user/login', payload);
 }
 
 export async function postRegister(payload: RegisterPayload) {
-  return await apiClient.post<RegisterResponse>('user', payload);
+  return await apiClient.post<RegisterResponse>('api/v1/user', payload);
 }

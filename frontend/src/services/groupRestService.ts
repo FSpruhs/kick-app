@@ -10,10 +10,21 @@ export interface GroupResponse {
   name: string;
 }
 
+export interface GroupDetailResponse {
+  id: string;
+  name: string;
+  users: string[];
+  inviteLevel: number;
+}
+
 export async function postGroup(payload: GroupPayload) {
-  return await apiClient.post<GroupResponse>('group', payload);
+  return await apiClient.post<GroupResponse>('api/v1/group', payload);
 }
 
 export async function getGroups(userId: string) {
-  return await apiClient.get<GroupResponse[]>(`group/${userId}`);
+  return await apiClient.get<GroupResponse[]>(`api/v1/group/${userId}`);
+}
+
+export async function getGroupDetails(groupId: string) {
+  return await apiClient.get<GroupDetailResponse>(`api/v1/group/${groupId}`);
 }

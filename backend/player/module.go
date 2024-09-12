@@ -2,6 +2,7 @@ package player
 
 import (
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/player/internal/application"
 	"github.com/FSpruhs/kick-app/backend/player/internal/grpc"
@@ -23,7 +24,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 	rest.PlayerRoutes(mono.Router(), app)
 
 	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
-		return fmt.Errorf("register server: %w", err)
+		return fmt.Errorf("register player server: %w", err)
 	}
 
 	return nil

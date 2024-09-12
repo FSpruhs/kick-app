@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	ErrGroupNotFound         = errors.New("could not find group with given id")
 	ErrUserNotInGroup        = errors.New("user is not in group")
 	ErrUserNotInvitedInGroup = errors.New("user is not invited in group")
 )

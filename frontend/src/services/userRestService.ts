@@ -31,6 +31,14 @@ interface RegisterResponse {
   groups: string[];
 }
 
+interface UserInfo {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  nickName: string;
+}
+
 export async function postLogin(payload: LoginUserPayload) {
   return await apiClient.post<LoginUserResponse>('api/v1/user/login', payload);
 }

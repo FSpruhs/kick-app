@@ -21,8 +21,9 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 	}
 
 	players := grpc.NewPlayerRepository(conn)
+	users := grpc.NewUserRepository(conn)
 
-	app := application.New(groups, mono.EventDispatcher(), players)
+	app := application.New(groups, users, players, mono.EventDispatcher())
 
 	rest.GroupRouter(mono.Router(), app)
 

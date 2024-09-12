@@ -2,8 +2,10 @@ package user
 
 import (
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
+	"github.com/FSpruhs/kick-app/backend/user/internal/grpc"
 	"github.com/FSpruhs/kick-app/backend/user/internal/handler"
 	"github.com/FSpruhs/kick-app/backend/user/internal/mongodb"
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest"
@@ -25,6 +27,10 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 
 	handler.RegisterGroupHandler(groupEventHandler, mono.EventDispatcher())
 	rest.UserRoutes(mono.Router(), app)
+
+	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
+		return fmt.Errorf("register user server: %w", err)
+	}
 
 	return nil
 }

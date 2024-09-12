@@ -21,6 +21,7 @@ type Commands interface {
 
 type Queries interface {
 	GetGroups(cmd *queries.GetGroups) ([]*domain.Group, error)
+	GetGroup(cmd *queries.GetGroup) (*domain.GroupDetails, error)
 }
 
 type Application struct {
@@ -37,14 +38,16 @@ type appCommands struct {
 
 type appQueries struct {
 	queries.GetGroupsHandler
+	queries.GetGroupHandler
 }
 
 var _ App = (*Application)(nil)
 
 func New(
 	groups domain.GroupRepository,
-	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+	users domain.UserRepository,
 	players domain.PlayerRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
 ) *Application {
 	return &Application{
 		appCommands: appCommands{
@@ -55,6 +58,7 @@ func New(
 		},
 		appQueries: appQueries{
 			GetGroupsHandler: queries.NewGetGroupsHandler(groups),
+			GetGroupHandler:  queries.NewGetGroupHandler(groups, users),
 		},
 	}
 }

@@ -1,8 +1,13 @@
 package getgroupdetails
 
 import (
-	"github.com/FSpruhs/kick-app/backend/group/internal/application"
+	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+
+	"github.com/FSpruhs/kick-app/backend/group/internal/application"
+	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
 )
 
 // GetGroupDetails godoc
@@ -16,5 +21,36 @@ import (
 // @Router       /group/{groupId} [get]
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		groupID := c.Param("groupId")
+
+		command := &queries.GetGroup{GroupID: groupID}
+
+		group, err := app.GetGroup(command)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, c.Error(err))
+
+			return
+		}
+
+		groupDetails := toGroupDetails(group)
+
+		c.JSON(http.StatusOK, groupDetails)
+	}
+}
+
+func toGroupDetails(group *domain.GroupDetails) *Response {
+	users := make([]*User, len(group.Users()))
+	for i, u := range group.Users() {
+		users[i] = &User{
+			ID:   u.ID(),
+			Name: u.Name(),
+		}
+	}
+
+	return &Response{
+		ID:          group.ID(),
+		Name:        group.Name(),
+		InviteLevel: group.InviteLevel(),
+		Users:       users,
 	}
 }

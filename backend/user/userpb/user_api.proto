@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package userpb;
+
+option go_package = "github.com/FSpruhs/kick-app/backend/user/userpb";
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetUserAll(GetUserAllRequest) returns (GetUserAllResponse);
+}
+
+message GetUserRequest {
+  string userId = 1;
+}
+
+message GetUserResponse {
+  string userId = 1;
+  string nickName = 2;
+}
+
+message GetUserAllRequest {
+  repeated string userIds = 1;
+}
+
+message User {
+  string userId = 1;
+  string nickName = 2;
+}
+
+message GetUserAllResponse {
+  repeated User users = 1;
+}

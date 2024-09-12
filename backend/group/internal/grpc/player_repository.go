@@ -26,8 +26,12 @@ func (r *PlayerRepository) ConfirmPlayer(playerID, groupID string, inviteLevel i
 		GroupId:     groupID,
 		InviteLevel: int32(inviteLevel),
 	})
+	if err != nil {
+		return fmt.Errorf("confirm player %s: %w", playerID, err)
 
-	return fmt.Errorf("confirm player %s: %w", playerID, err)
+	}
+
+	return nil
 }
 
 func (r *PlayerRepository) ConfirmUserLeavingGroup(userID, groupID string) error {
@@ -35,6 +39,9 @@ func (r *PlayerRepository) ConfirmUserLeavingGroup(userID, groupID string) error
 		UserId:  userID,
 		GroupId: groupID,
 	})
+	if err != nil {
+		return fmt.Errorf("confirm user leaving group: %w", err)
+	}
 
-	return fmt.Errorf("confirm user leaving group: %w", err)
+	return nil
 }

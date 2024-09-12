@@ -56,6 +56,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 		Password:  newUser.Password.Hash(),
 		Groups:    newUser.Groups,
 	}
+
 	_, err := u.collection.InsertOne(ctx, userDoc)
 	if err != nil {
 		return nil, fmt.Errorf("inserting user: %w", err)
@@ -96,6 +97,58 @@ func (u UserRepository) FindByEmail(email *domain.Email) (*domain.User, error) {
 	}
 
 	return user, nil
+}
+
+func (u UserRepository) FindByID(id string) (*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"_id": id}
+
+	var userDoc UserDocument
+
+	if err := u.collection.FindOne(ctx, filter).Decode(&userDoc); err != nil {
+		return nil, fmt.Errorf("finding user by id: %w", err)
+	}
+
+	user, err := toDomain(&userDoc)
+	if err != nil {
+		return nil, fmt.Errorf("converting user document to domain: %w", err)
+	}
+
+	return user, nil
+}
+
+func (u UserRepository) FindByIDs(ids []string) ([]*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+
+	cursor, err := u.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, fmt.Errorf("finding users by ids: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var userDocs []UserDocument
+
+	if err := cursor.All(ctx, &userDocs); err != nil {
+		return nil, fmt.Errorf("iterating over users: %w", err)
+	}
+
+	users := make([]*domain.User, len(userDocs))
+
+	for index, userDoc := range userDocs {
+		user, err := toDomain(&userDoc)
+		if err != nil {
+			return nil, fmt.Errorf("converting user document to domain: %w", err)
+		}
+
+		users[index] = user
+	}
+
+	return users, nil
 }
 
 func toDomain(userDoc *UserDocument) (*domain.User, error) {

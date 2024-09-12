@@ -13,8 +13,13 @@ export interface GroupResponse {
 export interface GroupDetailResponse {
   id: string;
   name: string;
-  users: string[];
+  users: GroupUserResponse[];
   inviteLevel: number;
+}
+
+export interface GroupUserResponse {
+  id: string;
+  name: string;
 }
 
 export async function postGroup(payload: GroupPayload) {

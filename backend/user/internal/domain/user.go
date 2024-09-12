@@ -46,6 +46,10 @@ func (u *User) Login(email *Email, password *Password) error {
 	return nil
 }
 
+func (u *User) JoinGroup(groupID string) {
+	u.Groups = append(u.Groups, groupID)
+}
+
 func hashString(input string) string {
 	hash := sha256.New()
 	hash.Write([]byte(input))

@@ -25,6 +25,11 @@ const routes = [
     path: '/group/:id',
     name: 'GroupDetail',
     component: () => import('../views/GroupDetailView.vue')
+  },
+  {
+    path: '/group/:id/invite',
+    name: 'GroupInvite',
+    component: () => import('../views/GroupInviteView.vue')
   }
 ];
 

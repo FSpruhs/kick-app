@@ -10,4 +10,5 @@ func RegisterGroupHandler(
 	domainSubscriber ddd.EventSubscriber[ddd.AggregateEvent],
 ) {
 	domainSubscriber.Subscribe(grouppb.GroupCreatedEvent, groupHandler)
+	domainSubscriber.Subscribe(grouppb.UserAcceptedInvitationEvent, groupHandler)
 }

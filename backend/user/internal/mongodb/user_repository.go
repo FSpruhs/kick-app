@@ -47,15 +47,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	userDoc := UserDocument{
-		ID:        newUser.ID,
-		FirstName: newUser.FullName.FirstName(),
-		LastName:  newUser.FullName.LastName(),
-		NickName:  newUser.NickName,
-		Email:     newUser.Email.Value(),
-		Password:  newUser.Password.Hash(),
-		Groups:    newUser.Groups,
-	}
+	userDoc := toUserDocument(newUser)
 
 	_, err := u.collection.InsertOne(ctx, userDoc)
 	if err != nil {
@@ -97,6 +89,20 @@ func (u UserRepository) FindByEmail(email *domain.Email) (*domain.User, error) {
 	}
 
 	return user, nil
+}
+
+func (u UserRepository) Save(user *domain.User) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	userDoc := toUserDocument(user)
+
+	_, err := u.collection.ReplaceOne(ctx, bson.M{"_id": user.ID}, userDoc)
+	if err != nil {
+		return fmt.Errorf("saving user in db: %w", err)
+	}
+
+	return nil
 }
 
 func (u UserRepository) FindByID(id string) (*domain.User, error) {
@@ -172,4 +178,16 @@ func toDomain(userDoc *UserDocument) (*domain.User, error) {
 		Password: password,
 		Groups:   userDoc.Groups,
 	}, nil
+}
+
+func toUserDocument(user *domain.User) *UserDocument {
+	return &UserDocument{
+		ID:        user.ID,
+		FirstName: user.FullName.FirstName(),
+		LastName:  user.FullName.LastName(),
+		NickName:  user.NickName,
+		Email:     user.Email.Value(),
+		Password:  user.Password.Hash(),
+		Groups:    user.Groups,
+	}
 }

@@ -9,7 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
@@ -152,7 +151,7 @@ func (u UserRepository) FindByIDs(ids []string) ([]*domain.User, error) {
 	return users, nil
 }
 
-func (u UserRepository) FindAll(filter *queries.Filter) ([]*domain.User, error) {
+func (u UserRepository) FindAll(filter *domain.Filter) ([]*domain.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

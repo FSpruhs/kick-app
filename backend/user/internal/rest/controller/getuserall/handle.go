@@ -23,7 +23,7 @@ import (
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		filter := &queries.Filter{
+		filter := &domain.Filter{
 			ExceptGroupID: c.Param("exceptGroupID"),
 		}
 

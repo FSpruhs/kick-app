@@ -23,7 +23,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 
 	app := application.New(users, messages)
 
-	groupEventHandler := application.NewGroupHandler(messages)
+	groupEventHandler := application.NewGroupHandler(messages, users)
 
 	handler.RegisterGroupHandler(groupEventHandler, mono.EventDispatcher())
 	rest.UserRoutes(mono.Router(), app)

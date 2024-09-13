@@ -38,7 +38,7 @@ func (s server) GetUser(_ context.Context, request *userpb.GetUserRequest) (*use
 func (s server) GetUserAll(_ context.Context, request *userpb.GetUserAllRequest) (*userpb.GetUserAllResponse, error) {
 	query := &queries.GetUsersByIDs{UserIDs: request.GetUserIds()}
 
-	user, err := s.app.GetUserAll(query)
+	user, err := s.app.GetUsersByIDs(query)
 	if err != nil {
 		return nil, fmt.Errorf("get user all: %w", err)
 	}

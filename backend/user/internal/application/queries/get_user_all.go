@@ -7,11 +7,7 @@ import (
 )
 
 type GetUserAll struct {
-	Filter *Filter
-}
-
-type Filter struct {
-	ExceptGroupID string
+	Filter *domain.Filter
 }
 
 type GetUserAllHandler struct {

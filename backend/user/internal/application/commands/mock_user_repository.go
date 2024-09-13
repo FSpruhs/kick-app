@@ -10,6 +10,26 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
+func (m *MockUserRepository) Save(user *domain.User) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockUserRepository) FindByID(id string) (*domain.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockUserRepository) FindByIDs(ids []string) ([]*domain.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (m *MockUserRepository) FindAll(filter *domain.Filter) ([]*domain.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *MockUserRepository) FindByEmail(email *domain.Email) (*domain.User, error) {
 	args := m.Called(email)
 	if args.Get(0) == nil {

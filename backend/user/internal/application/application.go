@@ -19,6 +19,7 @@ type Commands interface {
 
 type Queries interface {
 	GetUser(cmd *queries.GetUser) (*domain.User, error)
+	GetUsersByIDs(cmd *queries.GetUsersByIDs) ([]*domain.User, error)
 	GetUserAll(cmd *queries.GetUserAll) ([]*domain.User, error)
 }
 
@@ -35,6 +36,7 @@ type appCommands struct {
 
 type appQueries struct {
 	queries.GetUserHandler
+	queries.GetUsersByIDsHandler
 	queries.GetUserAllHandler
 }
 
@@ -48,8 +50,9 @@ func New(users domain.UserRepository, messages domain.MessageRepository) *Applic
 			MessageReadHandler: commands.NewMessageReadHandler(messages),
 		},
 		appQueries: appQueries{
-			GetUserHandler:    queries.NewGetUserHandler(users),
-			GetUserAllHandler: queries.NewGetUserAllHandler(users),
+			GetUserHandler:       queries.NewGetUserHandler(users),
+			GetUsersByIDsHandler: queries.NewGetUsersByIDsHandler(users),
+			GetUserAllHandler:    queries.NewGetUserAllHandler(users),
 		},
 	}
 }

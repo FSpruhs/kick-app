@@ -10,7 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
-// GetGroups godoc
+// GetGroupsByUser godoc
 // @Summary      get groups by user id
 // @Description  get groups by user id
 // @Tags         group
@@ -24,7 +24,7 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		userID := c.Param("userId")
 
-		command := &queries.GetGroups{
+		command := &queries.GetGroupsByUser{
 			UserID: userID,
 		}
 

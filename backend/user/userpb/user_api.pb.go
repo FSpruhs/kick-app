@@ -332,9 +332,9 @@ var file_user_api_proto_goTypes = []any{
 var file_user_api_proto_depIdxs = []int32{
 	3, // 0: userpb.GetUserAllResponse.users:type_name -> userpb.User
 	0, // 1: userpb.UserService.GetUser:input_type -> userpb.GetUserRequest
-	2, // 2: userpb.UserService.GetUserAll:input_type -> userpb.GetUserAllRequest
+	2, // 2: userpb.UserService.GetUsersByIDs:input_type -> userpb.GetUserAllRequest
 	1, // 3: userpb.UserService.GetUser:output_type -> userpb.GetUserResponse
-	4, // 4: userpb.UserService.GetUserAll:output_type -> userpb.GetUserAllResponse
+	4, // 4: userpb.UserService.GetUsersByIDs:output_type -> userpb.GetUserAllResponse
 	3, // [3:5] is the sub-list for method output_type
 	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

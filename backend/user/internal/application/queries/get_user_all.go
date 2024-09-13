@@ -7,7 +7,11 @@ import (
 )
 
 type GetUserAll struct {
-	UserIDs []string
+	Filter *Filter
+}
+
+type Filter struct {
+	ExceptGroupID string
 }
 
 type GetUserAllHandler struct {
@@ -18,10 +22,11 @@ func NewGetUserAllHandler(users domain.UserRepository) GetUserAllHandler {
 	return GetUserAllHandler{users}
 }
 
-func (h GetUserAllHandler) GetUserAll(cmd *GetUserAll) ([]*domain.User, error) {
-	users, err := h.UserRepository.FindByIDs(cmd.UserIDs)
+func (h *GetUserAllHandler) GetUserAll(cmd *GetUserAll) ([]*domain.User, error) {
+
+	users, err := h.UserRepository.FindAll(cmd.Filter)
 	if err != nil {
-		return nil, fmt.Errorf("getting users: %w", err)
+		return nil, fmt.Errorf("get all users: %w", err)
 	}
 
 	return users, nil

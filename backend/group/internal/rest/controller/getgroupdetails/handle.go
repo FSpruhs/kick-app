@@ -1,13 +1,13 @@
 package getgroupdetails
 
 import (
-	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
+	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
 // GetGroupDetails godoc

@@ -20,7 +20,7 @@ type Commands interface {
 }
 
 type Queries interface {
-	GetGroups(cmd *queries.GetGroups) ([]*domain.Group, error)
+	GetGroups(cmd *queries.GetGroupsByUser) ([]*domain.Group, error)
 	GetGroup(cmd *queries.GetGroup) (*domain.GroupDetails, error)
 }
 
@@ -37,7 +37,7 @@ type appCommands struct {
 }
 
 type appQueries struct {
-	queries.GetGroupsHandler
+	queries.GetGroupsByUserHandler
 	queries.GetGroupHandler
 }
 
@@ -57,8 +57,8 @@ func New(
 			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, players),
 		},
 		appQueries: appQueries{
-			GetGroupsHandler: queries.NewGetGroupsHandler(groups),
-			GetGroupHandler:  queries.NewGetGroupHandler(groups, users),
+			GetGroupsByUserHandler: queries.NewGetGroupsByUserHandler(groups),
+			GetGroupHandler:        queries.NewGetGroupHandler(groups, users),
 		},
 	}
 }

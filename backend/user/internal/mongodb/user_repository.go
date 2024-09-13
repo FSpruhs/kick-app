@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
@@ -143,15 +144,39 @@ func (u UserRepository) FindByIDs(ids []string) ([]*domain.User, error) {
 		return nil, fmt.Errorf("iterating over users: %w", err)
 	}
 
-	users := make([]*domain.User, len(userDocs))
+	users, err := toDomains(userDocs)
+	if err != nil {
+		return nil, fmt.Errorf("converting user documents to domains: %w", err)
+	}
 
-	for index, userDoc := range userDocs {
-		user, err := toDomain(&userDoc)
-		if err != nil {
-			return nil, fmt.Errorf("converting user document to domain: %w", err)
-		}
+	return users, nil
+}
 
-		users[index] = user
+func (u UserRepository) FindAll(filter *queries.Filter) ([]*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var userDocs []UserDocument
+
+	bsonFilter := bson.M{}
+
+	if filter.ExceptGroupID != "" {
+		bsonFilter["groups"] = bson.M{"$ne": filter.ExceptGroupID}
+	}
+
+	cursor, err := u.collection.Find(ctx, bsonFilter)
+	if err != nil {
+		return nil, fmt.Errorf("finding all users: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &userDocs); err != nil {
+		return nil, fmt.Errorf("iterating over users: %w", err)
+	}
+
+	users, err := toDomains(userDocs)
+	if err != nil {
+		return nil, fmt.Errorf("converting user documents to domains: %w", err)
 	}
 
 	return users, nil
@@ -190,4 +215,19 @@ func toUserDocument(user *domain.User) *UserDocument {
 		Password:  user.Password.Hash(),
 		Groups:    user.Groups,
 	}
+}
+
+func toDomains(userDocs []UserDocument) ([]*domain.User, error) {
+	users := make([]*domain.User, len(userDocs))
+
+	for index, userDoc := range userDocs {
+		user, err := toDomain(&userDoc)
+		if err != nil {
+			return nil, fmt.Errorf("converting user document to domain: %w", err)
+		}
+
+		users[index] = user
+	}
+
+	return users, nil
 }

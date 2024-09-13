@@ -6,19 +6,19 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
-type GetGroups struct {
+type GetGroupsByUser struct {
 	UserID string
 }
 
-type GetGroupsHandler struct {
+type GetGroupsByUserHandler struct {
 	domain.GroupRepository
 }
 
-func NewGetGroupsHandler(groups domain.GroupRepository) GetGroupsHandler {
-	return GetGroupsHandler{groups}
+func NewGetGroupsByUserHandler(groups domain.GroupRepository) GetGroupsByUserHandler {
+	return GetGroupsByUserHandler{groups}
 }
 
-func (h GetGroupsHandler) GetGroups(cmd *GetGroups) ([]*domain.Group, error) {
+func (h GetGroupsByUserHandler) GetGroups(cmd *GetGroupsByUser) ([]*domain.Group, error) {
 	groups, err := h.GroupRepository.FindAllByUserID(cmd.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("getting groups for user %s: %w", cmd.UserID, err)

@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	UserService_GetUser_FullMethodName    = "/userpb.UserService/GetUser"
-	UserService_GetUserAll_FullMethodName = "/userpb.UserService/GetUserAll"
+	UserService_GetUserAll_FullMethodName = "/userpb.UserService/GetUsersByIDs"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -80,7 +80,7 @@ func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) 
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserAll(context.Context, *GetUserAllRequest) (*GetUserAllResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserAll not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByIDs not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -151,7 +151,7 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUser_Handler,
 		},
 		{
-			MethodName: "GetUserAll",
+			MethodName: "GetUsersByIDs",
 			Handler:    _UserService_GetUserAll_Handler,
 		},
 	},

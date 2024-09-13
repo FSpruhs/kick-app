@@ -24,7 +24,7 @@ func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		filter := &domain.Filter{
-			ExceptGroupID: c.Param("exceptGroupID"),
+			ExceptGroupID: c.Query("exceptGroupID"),
 		}
 
 		command := &queries.GetUserAll{Filter: filter}

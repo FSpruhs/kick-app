@@ -31,10 +31,8 @@ interface RegisterResponse {
   groups: string[];
 }
 
-interface UserInfo {
+export interface UserInfo {
   id: string;
-  firstName: string;
-  lastName: string;
   email: string;
   nickName: string;
 }
@@ -45,4 +43,8 @@ export async function postLogin(payload: LoginUserPayload) {
 
 export async function postRegister(payload: RegisterPayload) {
   return await apiClient.post<RegisterResponse>('api/v1/user', payload);
+}
+
+export async function getUserAll(groupId: string) {
+  return await apiClient.get<UserInfo[]>('api/v1/user?exceptGroupID=' + groupId);
 }

@@ -10,6 +10,8 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
+var _ domain.UserRepository = (*MockUserRepository)(nil)
+
 func (m *MockUserRepository) Save(user *domain.User) error {
 	//TODO implement me
 	panic("implement me")

@@ -3,6 +3,7 @@ package createuser
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,8 +17,20 @@ import (
 
 type MockApp struct{}
 
+func (m MockApp) GetUserAll(cmd *queries.GetUserAll) ([]*domain.User, error) {
+	panic("implement me")
+}
+
 func (m MockApp) MessageRead(cmd *commands.MessageRead) error {
 	//TODO implement me
+	panic("implement me")
+}
+
+func (m MockApp) GetUser(cmd *queries.GetUser) (*domain.User, error) {
+	panic("implement me")
+}
+
+func (m MockApp) GetUsersByIDs(cmd *queries.GetUsersByIDs) ([]*domain.User, error) {
 	panic("implement me")
 }
 

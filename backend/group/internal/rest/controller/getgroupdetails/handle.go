@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
+// Handle
 // GetGroupDetails godoc
 // @Summary      get group details by group id
 // @Description  get group details by group id
@@ -18,23 +19,23 @@ import (
 // @Produce      json
 // @Success      200  {object}  	Response
 // @Failure      400
-// @Router       /group/{groupId} [get]
+// @Router       /group/{groupId} [get].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		groupID := c.Param("groupId")
+	return func(context *gin.Context) {
+		groupID := context.Param("groupId")
 
 		command := &queries.GetGroup{GroupID: groupID}
 
 		group, err := app.GetGroup(command)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		groupDetails := toGroupDetails(group)
 
-		c.JSON(http.StatusOK, groupDetails)
+		context.JSON(http.StatusOK, groupDetails)
 	}
 }
 

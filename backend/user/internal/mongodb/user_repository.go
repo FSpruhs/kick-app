@@ -58,7 +58,7 @@ func (u UserRepository) Create(newUser *domain.User) (*domain.User, error) {
 }
 
 func (u UserRepository) CountByEmail(email *domain.Email) (int, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	filter := bson.M{"email": email.Value()}
@@ -72,7 +72,7 @@ func (u UserRepository) CountByEmail(email *domain.Email) (int, error) {
 }
 
 func (u UserRepository) FindByEmail(email *domain.Email) (*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	filter := bson.M{"email": email.Value()}
@@ -92,7 +92,7 @@ func (u UserRepository) FindByEmail(email *domain.Email) (*domain.User, error) {
 }
 
 func (u UserRepository) Save(user *domain.User) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	userDoc := toUserDocument(user)
@@ -106,7 +106,7 @@ func (u UserRepository) Save(user *domain.User) error {
 }
 
 func (u UserRepository) FindByID(id string) (*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	filter := bson.M{"_id": id}
@@ -126,7 +126,7 @@ func (u UserRepository) FindByID(id string) (*domain.User, error) {
 }
 
 func (u UserRepository) FindByIDs(ids []string) ([]*domain.User, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	filter := bson.M{"_id": bson.M{"$in": ids}}

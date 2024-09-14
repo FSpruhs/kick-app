@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 )
 
+// Handle
 // InviteUser godoc
 // @Summary      user leaves a group
 // @Description  user leaves a group
@@ -19,19 +20,19 @@ import (
 // @Success      201
 // @Failure      400
 // @Failure      500
-// @Router       /group/user [delete]
+// @Router       /group/user [delete].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		var message Message
 
-		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+		if err := context.BindJSON(&message); err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
@@ -42,11 +43,11 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		if err := app.LeaveGroup(&command); err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
 			return
 		}
 
-		c.JSON(http.StatusOK, nil)
+		context.JSON(http.StatusOK, nil)
 	}
 }

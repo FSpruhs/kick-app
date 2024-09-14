@@ -111,7 +111,6 @@ func (g GroupRepository) FindAllByUserID(userID string) ([]*domain.Group, error)
 }
 
 func toDocument(group *domain.Group) *GroupDocument {
-
 	players := make([]*PlayerDocument, len(group.Players))
 	for i, p := range group.Players {
 		players[i] = &PlayerDocument{

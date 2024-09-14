@@ -19,7 +19,6 @@ func NewGetUserAllHandler(users domain.UserRepository) GetUserAllHandler {
 }
 
 func (h *GetUserAllHandler) GetUserAll(cmd *GetUserAll) ([]*domain.User, error) {
-
 	users, err := h.UserRepository.FindAll(cmd.Filter)
 	if err != nil {
 		return nil, fmt.Errorf("get all users: %w", err)

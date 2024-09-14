@@ -3,7 +3,6 @@ package createuser
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
+	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 

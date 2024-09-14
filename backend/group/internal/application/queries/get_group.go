@@ -30,7 +30,7 @@ func (h GetGroupHandler) GetGroup(cmd *GetGroup) (*domain.GroupDetails, error) {
 
 	users, err := h.UserRepository.GetUserAll(group.UserIDs())
 	if err != nil {
-		return nil, fmt.Errorf("getting users %v: %w", group.UserIDs, err)
+		return nil, fmt.Errorf("getting users %s: %w", group.UserIDs(), err)
 	}
 
 	groupDetails := domain.NewGroupDetails(group, users)

@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"fmt"
+	"errors"
 	"regexp"
 )
 
@@ -10,7 +10,7 @@ type Password struct {
 	hash  string
 }
 
-var ErrInvalidPassword = fmt.Errorf("invalid password")
+var ErrInvalidPassword = errors.New("invalid password")
 
 func NewPassword(clear string) (*Password, error) {
 	if !isPasswordValid(clear) {

@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 )
 
+// Handle
 // InviteUser godoc
 // @Summary      invite a user to a group
 // @Description  invite a user to a group
@@ -19,7 +20,7 @@ import (
 // @Success      201
 // @Failure      400
 // @Failure      500
-// @Router       /group/user [post]
+// @Router       /group/user [post].
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var message Message

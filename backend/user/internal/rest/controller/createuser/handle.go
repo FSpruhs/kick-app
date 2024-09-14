@@ -12,6 +12,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
+// Handle
 // CreateUser godoc
 // @Summary      creates new user
 // @Description  creates new user
@@ -21,39 +22,38 @@ import (
 // @Success      201  {object}  Response
 // @Failure      400
 // @Failure      500
-// @Router       /user [post]
+// @Router       /user [post].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
-
+	return func(context *gin.Context) {
 		var message Message
 
-		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+		if err := context.BindJSON(&message); err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		command, err := toCommand(&message)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		user, err := app.CreateUser(command)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
 			return
 		}
 
-		c.JSON(http.StatusCreated, toResponse(user))
+		context.JSON(http.StatusCreated, toResponse(user))
 	}
 }
 

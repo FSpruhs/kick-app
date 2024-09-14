@@ -3,12 +3,14 @@ package getusermessages
 import (
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
 	"github.com/FSpruhs/kick-app/backend/user/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
-	"github.com/gin-gonic/gin"
 )
 
+// Handle
 // GetUserMessages godoc
 // @Summary      gets all messages from a user
 // @Description  gets all messages from a user
@@ -18,12 +20,12 @@ import (
 // @Success      200  {object}  Response
 // @Failure      400
 // @Failure      500
-// @Router       /message {userId} [get]
+// @Router       /message {userId} [get].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID := c.Param("userId")
+	return func(context *gin.Context) {
+		userID := context.Param("userId")
 		if userID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "missing userId"})
+			context.JSON(http.StatusBadRequest, gin.H{"error": "missing userId"})
 
 			return
 		}
@@ -32,12 +34,12 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		messages, err := app.GetUserMessages(command)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
 			return
 		}
 
-		c.JSON(http.StatusOK, toResponse(messages))
+		context.JSON(http.StatusOK, toResponse(messages))
 	}
 }
 

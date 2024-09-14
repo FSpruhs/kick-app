@@ -74,7 +74,6 @@ func (g *Group) findPlayerByUserID(userID string) (*Player, error) {
 }
 
 func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
-
 	invitingPlayer, err := g.findPlayerByUserID(invitingUserID)
 	if err != nil {
 		return err

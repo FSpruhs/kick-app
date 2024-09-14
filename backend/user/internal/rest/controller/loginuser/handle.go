@@ -12,6 +12,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
+// Handle
 // LoginUser godoc
 // @Summary      logs in user
 // @Description  logs in user
@@ -21,33 +22,33 @@ import (
 // @Success      200  {object}  Response
 // @Failure      400
 // @Failure      500
-// @Router       /message/read [post]
+// @Router       /message/read [post].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		var message Message
 
-		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+		if err := context.BindJSON(&message); err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		email, err := domain.NewEmail(message.Email)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		password, err := domain.NewPassword(message.Password)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
@@ -59,18 +60,18 @@ func Handle(app application.App) gin.HandlerFunc {
 
 		result, err := app.LoginUser(&loginUserCommand)
 		if err != nil && errors.Is(err, domain.ErrWrongPassword) {
-			c.JSON(http.StatusUnauthorized, c.Error(err))
+			context.JSON(http.StatusUnauthorized, context.Error(err))
 
 			return
 		} else if err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
 			return
 		}
 
 		response := toResponse(result)
 
-		c.JSON(http.StatusOK, response)
+		context.JSON(http.StatusOK, response)
 	}
 }
 

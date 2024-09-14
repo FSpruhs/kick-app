@@ -1,12 +1,12 @@
 package rest
 
 import (
-	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/getusermessages"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/createuser"
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/getuserall"
+	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/getusermessages"
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/loginuser"
 	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/messageread"
 )

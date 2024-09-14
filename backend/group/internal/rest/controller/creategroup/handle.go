@@ -11,6 +11,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
+// Handle
 // CreateGroup godoc
 // @Summary      creates a new Group
 // @Description  user creates a new Group with a new name
@@ -20,7 +21,7 @@ import (
 // @Success      201  {object}  Response
 // @Failure      400
 // @Failure      500
-// @Router       /group [post]
+// @Router       /group [post].
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		var message Message

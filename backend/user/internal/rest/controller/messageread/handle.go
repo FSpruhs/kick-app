@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/application/commands"
 )
 
+// Handle
 // MessageRead godoc
 // @Summary      reads a message
 // @Description  reads a message
@@ -18,19 +19,19 @@ import (
 // @Produce      json
 // @Success      200
 // @Failure      400
-// @Router       /user/login [put]
+// @Router       /user/login [put].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	return func(context *gin.Context) {
 		var message Message
 
-		if err := c.BindJSON(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+		if err := context.BindJSON(&message); err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
 		if err := validator.New().Struct(&message); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
@@ -42,11 +43,11 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		if err := app.MessageRead(&command); err != nil {
-			c.JSON(http.StatusBadRequest, c.Error(err))
+			context.JSON(http.StatusBadRequest, context.Error(err))
 
 			return
 		}
 
-		c.JSON(http.StatusOK, nil)
+		context.JSON(http.StatusOK, nil)
 	}
 }

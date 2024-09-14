@@ -28,7 +28,6 @@ func (r *PlayerRepository) ConfirmPlayer(playerID, groupID string, inviteLevel i
 	})
 	if err != nil {
 		return fmt.Errorf("confirm player %s: %w", playerID, err)
-
 	}
 
 	return nil

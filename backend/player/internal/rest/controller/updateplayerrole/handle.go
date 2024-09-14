@@ -13,6 +13,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/player/internal/domain"
 )
 
+// Handle
 // UpdatePlayerRole godoc
 // @Summary      updates role of a player
 // @Description  updates role of a player
@@ -22,10 +23,9 @@ import (
 // @Success      200
 // @Failure      400
 // @Failure      500
-// @Router       /player/role [put]
+// @Router       /player/role [put].
 func Handle(app application.App) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var message Message
 
 		if err := c.BindJSON(&message); err != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
+// Handle
 // GetUserAll godoc
 // @Summary      gets all users
 // @Description  gets all users
@@ -19,24 +20,23 @@ import (
 // @Success      200  {object}  Response
 // @Failure      400
 // @Failure      500
-// @Router       /user [get]
+// @Router       /user [get].
 func Handle(app application.App) gin.HandlerFunc {
-	return func(c *gin.Context) {
-
+	return func(context *gin.Context) {
 		filter := &domain.Filter{
-			ExceptGroupID: c.Query("exceptGroupID"),
+			ExceptGroupID: context.Query("exceptGroupID"),
 		}
 
 		command := &queries.GetUserAll{Filter: filter}
 
 		users, err := app.GetUserAll(command)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, c.Error(err))
+			context.JSON(http.StatusInternalServerError, context.Error(err))
 
 			return
 		}
 
-		c.JSON(http.StatusOK, toResponse(users))
+		context.JSON(http.StatusOK, toResponse(users))
 	}
 }
 

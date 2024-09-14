@@ -30,6 +30,10 @@ func (m MockApp) GetUser(cmd *queries.GetUser) (*domain.User, error) {
 	panic("implement me")
 }
 
+func (m MockApp) GetUserMessages(cmd *queries.GetUserMessages) ([]*domain.Message, error) {
+	panic("implement me")
+}
+
 func (m MockApp) GetUsersByIDs(cmd *queries.GetUsersByIDs) ([]*domain.User, error) {
 	panic("implement me")
 }

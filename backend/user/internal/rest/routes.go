@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/FSpruhs/kick-app/backend/user/internal/rest/controller/getusermessages"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/user/internal/application"
@@ -17,5 +18,6 @@ func UserRoutes(router *gin.Engine, app application.App) {
 		api.GET("/user", getuserall.Handle(app))
 		api.POST("/user/login", loginuser.Handle(app))
 		api.PUT("/message/read", messageread.Handle(app))
+		api.GET("/message/:userId", getusermessages.Handle(app))
 	}
 }

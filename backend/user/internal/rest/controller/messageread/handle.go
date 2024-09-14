@@ -13,7 +13,7 @@ import (
 // MessageRead godoc
 // @Summary      reads a message
 // @Description  reads a message
-// @Tags         user
+// @Tags         message
 // @Accept       json
 // @Produce      json
 // @Success      200

@@ -81,6 +81,37 @@ func (m *MessageRepository) Save(message *domain.Message) error {
 	return nil
 }
 
+func (m *MessageRepository) FindByUserID(userID string) ([]*domain.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	cursor, err := m.collection.Find(ctx, bson.M{"userId": userID})
+	if err != nil {
+		return nil, fmt.Errorf("finding messages by user id: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var messageDocs []*MessageDocument
+
+	if err := cursor.All(ctx, &messageDocs); err != nil {
+		return nil, fmt.Errorf("iterating over messages: %w", err)
+	}
+
+	messages := make([]*domain.Message, len(messageDocs))
+	for index, messageDoc := range messageDocs {
+		messages[index] = &domain.Message{
+			ID:         messageDoc.ID,
+			UserID:     messageDoc.UserID,
+			Content:    messageDoc.Content,
+			Type:       messageDoc.Type,
+			OccurredAt: messageDoc.OccurredAt,
+			Read:       messageDoc.Read,
+		}
+	}
+
+	return messages, nil
+}
+
 func toDocument(message *domain.Message) *MessageDocument {
 	return &MessageDocument{
 		ID:         message.ID,

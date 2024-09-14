@@ -4,7 +4,7 @@ type Response struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Users       []*User `json:"users"`
-	InviteLevel int     `json:"inviteLevel"`
+	InviteLevel string  `json:"inviteLevel"`
 }
 
 type User struct {

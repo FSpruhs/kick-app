@@ -28,7 +28,7 @@ func (h GetGroupHandler) GetGroup(cmd *GetGroup) (*domain.GroupDetails, error) {
 		return nil, fmt.Errorf("getting group %s: %w", cmd.GroupID, err)
 	}
 
-	users, err := h.UserRepository.GetUserAll(group.UserIDs)
+	users, err := h.UserRepository.GetUserAll(group.UserIDs())
 	if err != nil {
 		return nil, fmt.Errorf("getting users %v: %w", group.UserIDs, err)
 	}

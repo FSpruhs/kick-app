@@ -37,9 +37,9 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		inviteUserCommand := commands.InviteUser{
-			UserID:  message.UserID,
-			GroupID: message.GroupID,
-			PayerID: message.PlayerID,
+			InvitedUserID:  message.InvitedUserID,
+			InvitingUserID: message.InvitingUserID,
+			GroupID:        message.GroupID,
 		}
 
 		if err := app.InviteUser(&inviteUserCommand); err != nil {

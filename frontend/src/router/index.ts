@@ -30,6 +30,11 @@ const routes = [
     path: '/group/:id/invite',
     name: 'GroupInvite',
     component: () => import('../views/GroupInviteView.vue')
+  },
+  {
+    path: '/mailbox',
+    name: 'Mailbox',
+    component: () => import('../views/MailboxView.vue')
   }
 ];
 

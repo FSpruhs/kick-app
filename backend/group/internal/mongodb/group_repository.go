@@ -14,11 +14,17 @@ import (
 const timeout = 10 * time.Second
 
 type GroupDocument struct {
-	ID             string   `bson:"_id,omitempty"`
-	Name           string   `json:"name,omitempty"`
-	UserIDs        []string `json:"userIds,omitempty"`
-	InvitedUserIDs []string `json:"invitedUserIds,omitempty"`
-	InviteLevel    int      `json:"inviteLevel,omitempty"`
+	ID             string            `bson:"_id,omitempty"`
+	Name           string            `json:"name,omitempty"`
+	Players        []*PlayerDocument `json:"players,omitempty"`
+	InvitedUserIDs []string          `json:"invitedUserIds,omitempty"`
+	InviteLevel    string            `json:"inviteLevel,omitempty"`
+}
+
+type PlayerDocument struct {
+	UserID string `bson:"userId,omitempty"`
+	Role   string `json:"role,omitempty"`
+	Status string `json:"status,omitempty"`
 }
 
 type GroupRepository struct {
@@ -105,12 +111,22 @@ func (g GroupRepository) FindAllByUserID(userID string) ([]*domain.Group, error)
 }
 
 func toDocument(group *domain.Group) *GroupDocument {
+
+	players := make([]*PlayerDocument, len(group.Players))
+	for i, p := range group.Players {
+		players[i] = &PlayerDocument{
+			UserID: p.UserID(),
+			Role:   p.Role().String(),
+			Status: p.Status().String(),
+		}
+	}
+
 	return &GroupDocument{
 		ID:             group.ID(),
 		Name:           group.Name.Value(),
-		UserIDs:        group.UserIDs,
+		Players:        players,
 		InvitedUserIDs: group.InvitedUserIDs,
-		InviteLevel:    group.InviteLevel,
+		InviteLevel:    group.InviteLevel.String(),
 	}
 }
 
@@ -120,11 +136,32 @@ func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 		return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 	}
 
+	players := make([]*domain.Player, len(groupDoc.Players))
+	for i, p := range groupDoc.Players {
+		role, err := domain.ToRole(p.Role)
+		if err != nil {
+			return nil, fmt.Errorf("while mapping group document do domain: %w", err)
+		}
+
+		status, err := domain.ToStatus(p.Status)
+		if err != nil {
+			return nil, fmt.Errorf("while mapping group document do domain: %w", err)
+		}
+
+		player := domain.NewPlayer(p.UserID, status, role)
+		players[i] = player
+	}
+
+	inviteLevel, err := domain.ToRole(groupDoc.InviteLevel)
+	if err != nil {
+		return nil, fmt.Errorf("while mapping group document do domain: %w", err)
+	}
+
 	group := domain.NewGroup(groupDoc.ID)
 	group.Name = name
-	group.UserIDs = groupDoc.UserIDs
+	group.Players = players
 	group.InvitedUserIDs = groupDoc.InvitedUserIDs
-	group.InviteLevel = groupDoc.InviteLevel
+	group.InviteLevel = inviteLevel
 
 	return group, nil
 }

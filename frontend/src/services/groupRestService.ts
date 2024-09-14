@@ -22,6 +22,11 @@ export interface GroupUserResponse {
   name: string;
 }
 
+export interface GroupInvitePayload {
+  groupId: string;
+  userId: string;
+}
+
 export async function postGroup(payload: GroupPayload) {
   return await apiClient.post<GroupResponse>('api/v1/group', payload);
 }
@@ -32,4 +37,8 @@ export async function getGroups(userId: string) {
 
 export async function getGroupDetails(groupId: string) {
   return await apiClient.get<GroupDetailResponse>(`api/v1/group/${groupId}`);
+}
+
+export async function inviteUserToGroup(payload: GroupInvitePayload) {
+  return await apiClient.post(`api/v1/group/user`, payload);
 }

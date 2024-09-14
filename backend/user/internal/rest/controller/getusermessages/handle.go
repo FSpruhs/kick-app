@@ -26,7 +26,6 @@ func Handle(app application.App) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "missing userId"})
 
 			return
-
 		}
 
 		command := &queries.GetUserMessages{UserID: userID}

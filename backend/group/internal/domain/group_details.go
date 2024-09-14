@@ -4,7 +4,7 @@ type GroupDetails struct {
 	id          string
 	groupName   *Name
 	users       []*User
-	inviteLevel int
+	inviteLevel string
 }
 
 func NewGroupDetails(group *Group, users []*User) *GroupDetails {
@@ -12,7 +12,7 @@ func NewGroupDetails(group *Group, users []*User) *GroupDetails {
 		id:          group.ID(),
 		groupName:   group.Name,
 		users:       users,
-		inviteLevel: group.InviteLevel,
+		inviteLevel: group.InviteLevel.String(),
 	}
 }
 
@@ -28,6 +28,6 @@ func (g GroupDetails) Users() []*User {
 	return g.users
 }
 
-func (g GroupDetails) InviteLevel() int {
+func (g GroupDetails) InviteLevel() string {
 	return g.inviteLevel
 }

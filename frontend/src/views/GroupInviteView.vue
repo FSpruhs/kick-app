@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { getUserAll, type UserInfo } from '@/services/userRestService';
+import { inviteUserToGroup } from '@/services/groupRestService';
 
 const router = useRouter();
 const groupId = router.currentRoute.value.params.id;
@@ -13,6 +14,15 @@ onMounted(() => {
     console.log(response.data);
   });
 });
+
+const inviteUser = (userId: string) => {
+  inviteUserToGroup({
+    groupId: groupId,
+    userId: userId
+  }).then(() => {
+    router.push({ name: 'GroupDetail', params: { id: groupId } });
+  });
+};
 </script>
 
 <template>
@@ -31,6 +41,7 @@ onMounted(() => {
         <td>{{ item.id }}</td>
         <td>{{ item.email }}</td>
         <td>{{ item.nickName }}</td>
+        <td><v-btn color="primary" @click="inviteUser(item.id)">Einladen</v-btn></td>
       </tr>
     </tbody>
   </v-table>

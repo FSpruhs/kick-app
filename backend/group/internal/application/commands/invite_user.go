@@ -8,9 +8,9 @@ import (
 )
 
 type InviteUser struct {
-	GroupID string
-	UserID  string
-	PayerID string
+	GroupID        string
+	InvitedUserID  string
+	InvitingUserID string
 }
 
 type InviteUserHandler struct {
@@ -30,14 +30,10 @@ func NewInviteUserHandler(
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
 	group, err := h.GroupRepository.FindByID(cmd.GroupID)
 	if err != nil {
-		return fmt.Errorf("invite user %s to group %s: %w", cmd.UserID, cmd.GroupID, err)
+		return fmt.Errorf("invite user %s to group %s: %w", cmd.InvitedUserID, cmd.GroupID, err)
 	}
 
-	if err := h.PlayerRepository.ConfirmPlayer(cmd.PayerID, cmd.GroupID, group.InviteLevel); err != nil {
-		return fmt.Errorf("confirm player: %w", err)
-	}
-
-	group.InviteUser(cmd.UserID)
+	group.InviteUser(cmd.InvitedUserID, cmd.InvitingUserID)
 
 	if err := h.GroupRepository.Save(group); err != nil {
 		return fmt.Errorf("save group: %w", err)

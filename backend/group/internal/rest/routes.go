@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/updateplayerrole"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
@@ -21,5 +22,6 @@ func GroupRouter(router *gin.Engine, app application.App) {
 		api.PUT("/group/user", inviteduserresponse.Handle(app))
 		api.DELETE("/group/user", leavegroup.Handle(app))
 		api.GET("/group/:groupId", getgroupdetails.Handle(app))
+		api.PUT("/group/player/role", updateplayerrole.Handle(app))
 	}
 }

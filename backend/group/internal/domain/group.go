@@ -11,9 +11,14 @@ import (
 )
 
 var (
-	ErrUserNotInGroup           = errors.New("user is not in group")
-	ErrUserNotInvitedInGroup    = errors.New("user is not invited in group")
-	ErrInvitingPlayerRoleTooLow = errors.New("inviting player role is too low")
+	ErrUserNotInGroup                     = errors.New("user is not in group")
+	ErrUserNotInvitedInGroup              = errors.New("user is not invited in group")
+	ErrInvitingPlayerRoleTooLow           = errors.New("inviting player role is too low")
+	ErrUserCanNotSelfeUpgrade             = errors.New("user can not selfe update role")
+	ErrMemberCanNotUpdateRole             = errors.New("members can not update role")
+	ErrOnlyMasterCanDownGradeRoleToMember = errors.New("only master can downgrade role to member")
+	ErrOnlyMasterCanUpdateToMaster        = errors.New("only master can update to master")
+	ErrMasterCanNotDowngradeOtherMaster   = errors.New("master can not downgrade other master")
 )
 
 const GroupAggregate = "group.GroupAggregate"
@@ -105,6 +110,46 @@ func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
 	} else {
 		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
 	}
+
+	return nil
+}
+
+func (g *Group) UpdatePlayerRole(updatingUserID, updatedUserID string, newRole Role) error {
+	if updatingUserID == updatedUserID {
+		return ErrUserCanNotSelfeUpgrade
+	}
+
+	updatingPlayer, err := g.findPlayerByUserID(updatingUserID)
+	if err != nil {
+		return err
+	}
+
+	updatedPlayer, err := g.findPlayerByUserID(updatedUserID)
+	if err != nil {
+		return err
+	}
+
+	if updatingPlayer.Role() == Member {
+		return ErrMemberCanNotUpdateRole
+	}
+
+	switch newRole {
+	case Member:
+		if updatingPlayer.Role() != Master {
+			return ErrOnlyMasterCanDownGradeRoleToMember
+		}
+	case Master:
+		if updatingPlayer.Role() != Master {
+			return ErrOnlyMasterCanUpdateToMaster
+		}
+		updatingPlayer.role = Admin
+	case Admin:
+		if updatedPlayer.Role() == Master && updatingPlayer.Role() != Master {
+			return ErrMasterCanNotDowngradeOtherMaster
+		}
+	}
+
+	updatedPlayer.role = newRole
 
 	return nil
 }

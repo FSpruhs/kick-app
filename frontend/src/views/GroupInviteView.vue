@@ -3,8 +3,10 @@ import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { getUserAll, type UserInfo } from '@/services/userRestService';
 import { inviteUserToGroup } from '@/services/groupRestService';
+import { useUserStore } from '@/store/UserStore';
 
 const router = useRouter();
+const userStore = useUserStore();
 const groupId = router.currentRoute.value.params.id;
 const users = ref<UserInfo[], null>(null);
 
@@ -18,7 +20,8 @@ onMounted(() => {
 const inviteUser = (userId: string) => {
   inviteUserToGroup({
     groupId: groupId,
-    userId: userId
+    invitedUserId: userId,
+    invitingUserId: userStore.getUser().id
   }).then(() => {
     router.push({ name: 'GroupDetail', params: { id: groupId } });
   });

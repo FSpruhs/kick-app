@@ -24,7 +24,8 @@ export interface GroupUserResponse {
 
 export interface GroupInvitePayload {
   groupId: string;
-  userId: string;
+  invitedUserId: string;
+  invitingUserId: string;
 }
 
 export async function postGroup(payload: GroupPayload) {

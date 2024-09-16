@@ -88,14 +88,14 @@ func (g GroupRepository) FindAllByUserID(userID string) ([]*domain.Group, error)
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	filter := bson.M{"userids": bson.M{"$in": []string{userID}}}
+	filter := bson.M{"players.userId": userID}
 
 	cursor, err := g.collection.Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("while finding groups: %w", err)
 	}
 
-	defer cursor.Close(ctx)
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var groupDocs []*GroupDocument
 	if err := cursor.All(ctx, &groupDocs); err != nil {
@@ -136,19 +136,19 @@ func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 	}
 
 	players := make([]*domain.Player, len(groupDoc.Players))
-	for i, p := range groupDoc.Players {
-		role, err := domain.ToRole(p.Role)
+	for index, player := range groupDoc.Players {
+		role, err := domain.ToRole(player.Role)
 		if err != nil {
 			return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 		}
 
-		status, err := domain.ToStatus(p.Status)
+		status, err := domain.ToStatus(player.Status)
 		if err != nil {
 			return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 		}
 
-		player := domain.NewPlayer(p.UserID, status, role)
-		players[i] = player
+		player := domain.NewPlayer(player.UserID, status, role)
+		players[index] = player
 	}
 
 	inviteLevel, err := domain.ToRole(groupDoc.InviteLevel)

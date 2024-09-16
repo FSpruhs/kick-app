@@ -28,6 +28,12 @@ export interface GroupInvitePayload {
   invitingUserId: string;
 }
 
+export interface ResponseToGroupInvitation {
+  groupId: string;
+  userId: string;
+  accepted: boolean;
+}
+
 export async function postGroup(payload: GroupPayload) {
   return await apiClient.post<GroupResponse>('api/v1/group', payload);
 }
@@ -42,4 +48,8 @@ export async function getGroupDetails(groupId: string) {
 
 export async function inviteUserToGroup(payload: GroupInvitePayload) {
   return await apiClient.post(`api/v1/group/user`, payload);
+}
+
+export async function responseToGroupInvitation(payload: ResponseToGroupInvitation) {
+  return await apiClient.put(`api/v1/group/user`, payload);
 }

@@ -21,6 +21,7 @@ const passwordRule = ref([
   (v: string) => !!v || 'Password is required',
   (v: string) => (v && v.length <= 40) || 'Password must be less than 40 characters'
 ]);
+
 const submit = async () => {
   if (!loginForm.value) return;
   const { valid } = await loginForm.value.validate();
@@ -36,10 +37,8 @@ const submit = async () => {
         id: response.data.id,
         groups: response.data.groups
       };
-      console.log(user);
       userStore.saveUser(user);
       router.push({ name: 'Home' });
-      console.log(userStore.getUser());
       if (!loginForm.value) return;
       loginForm.value.reset();
     })

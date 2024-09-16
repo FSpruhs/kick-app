@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router';
 import { useUserStore } from '@/store/UserStore';
+import { useMessageStore } from '@/store/MessageStore';
 
 const router = useRouter();
-const store = useUserStore();
+const userStore = useUserStore();
+const messageStore = useMessageStore();
 
 function navigateToHome() {
   router.push({ name: 'Home' });
 }
 
 function logout() {
-  store.clearUser();
+  userStore.clearUser();
   router.push({ name: 'Login' });
 }
 </script>
@@ -23,7 +25,10 @@ function logout() {
       </template>
       <v-app-bar-title @click="navigateToHome" style="cursor: pointer">Kick App</v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn><v-icon>mdi-bell-outline</v-icon> <span class="notification-counter">5</span></v-btn>
+      <v-btn @click="router.push({ name: 'Mailbox' })"
+        ><v-icon>mdi-bell-outline</v-icon>
+        <span class="notification-counter">{{ messageStore.getUnreadMessageCount() }}</span></v-btn
+      >
       <v-btn @click="logout()"><v-icon>mdi-logout</v-icon></v-btn>
     </v-app-bar>
     <v-main>

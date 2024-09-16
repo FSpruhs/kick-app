@@ -1,41 +1,71 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { getUserMessages, type Message } from '@/services/messageRestService';
+import { computed, onMounted, ref } from 'vue';
+import { getUserMessages } from '@/services/messageRestService';
 import { useUserStore } from '@/store/UserStore';
+import { useMessageStore } from '@/store/MessageStore';
+import { responseToGroupInvitation } from '@/services/groupRestService';
 
-const mails = ref<Message>([]);
 const userStore = useUserStore();
+const messageStore = useMessageStore();
+const selectedMailIndex = ref<number | null>(null);
 
 onMounted(() => {
   getUserMessages(userStore.getUser().id).then((response) => {
-    mails.value = response.data;
+    messageStore.setMessages(response.data);
   });
 });
+
+const sendInvitationResponse = (accept: boolean) => {
+  responseToGroupInvitation({
+    groupId: selectedMail.value?.groupId ?? '',
+    userId: userStore.getUser().id,
+    accepted: accept
+  }).then(() => {
+    console.log('Invitation response sent: ' + accept);
+  });
+};
+
+const selectedMail = computed(() => {
+  if (selectedMailIndex.value !== null) {
+    return messageStore.getMessages()[selectedMailIndex.value];
+  }
+  return null;
+});
+
+function selectMail(index: number) {
+  selectedMailIndex.value = index;
+}
 </script>
 
 <template>
   <v-container>
     <v-row>
-      <!-- Mail Liste auf der linken Seite -->
       <v-col cols="4">
         <v-list dense>
-          <v-list-item v-for="(mail, index) in mails" :key="mail.id" @click="selectMail(index)">
+          <v-list-item
+            v-for="(mail, index) in messageStore.getMessages()"
+            :key="mail.id"
+            @click="selectMail(index)"
+          >
             <v-list-item-title :class="{ 'font-weight-bold': !mail.read }">
-              {{ mail.subject }}
+              {{ mail.type }}
             </v-list-item-title>
             <v-list-item-subtitle>
-              {{ mail.sender }}
+              {{ mail.content }}
             </v-list-item-subtitle>
           </v-list-item>
         </v-list>
       </v-col>
 
-      <!-- Mail Inhalt auf der rechten Seite -->
       <v-col cols="8">
         <div v-if="selectedMail">
-          <h3>{{ selectedMail.subject }}</h3>
-          <p><strong>From:</strong> {{ selectedMail.sender }}</p>
-          <p>{{ selectedMail.body }}</p>
+          <h3>{{ selectedMail.type }}</h3>
+          <p><strong>From:</strong> {{ selectedMail.type }}</p>
+          <p>{{ selectedMail.content }}</p>
+          <div v-if="selectedMail.type === 'groupInvitation'">
+            <v-btn @click="sendInvitationResponse(true)">Annehmen</v-btn>
+            <v-btn @click="sendInvitationResponse(false)">Ablehnen</v-btn>
+          </div>
         </div>
         <div v-else>
           <p>Wähle eine E-Mail aus</p>

@@ -16,6 +16,7 @@ const timeout = 10 * time.Second
 type MessageDocument struct {
 	ID         string             `bson:"_id,omitempty"`
 	UserID     string             `json:"userId,omitempty"`
+	GroupID    string             `json:"groupId,omitempty"`
 	Content    string             `json:"content,omitempty"`
 	Type       domain.MessageType `json:"type,omitempty"`
 	OccurredAt time.Time          `json:"occurredAt,omitempty"`
@@ -55,16 +56,9 @@ func (m *MessageRepository) FindByID(id string) (*domain.Message, error) {
 		return nil, fmt.Errorf("finding message by id: %w", err)
 	}
 
-	message := domain.Message{
-		ID:         messageDoc.ID,
-		UserID:     messageDoc.UserID,
-		Content:    messageDoc.Content,
-		Type:       messageDoc.Type,
-		OccurredAt: messageDoc.OccurredAt,
-		Read:       messageDoc.Read,
-	}
+	message := toMessageDomain(&messageDoc)
 
-	return &message, nil
+	return message, nil
 }
 
 func (m *MessageRepository) Save(message *domain.Message) error {
@@ -85,11 +79,12 @@ func (m *MessageRepository) FindByUserID(userID string) ([]*domain.Message, erro
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	cursor, err := m.collection.Find(ctx, bson.M{"userId": userID})
+	cursor, err := m.collection.Find(ctx, bson.M{"userid": userID})
 	if err != nil {
 		return nil, fmt.Errorf("finding messages by user id: %w", err)
 	}
-	defer cursor.Close(ctx)
+
+	defer func() { _ = cursor.Close(ctx) }()
 
 	var messageDocs []*MessageDocument
 
@@ -99,14 +94,7 @@ func (m *MessageRepository) FindByUserID(userID string) ([]*domain.Message, erro
 
 	messages := make([]*domain.Message, len(messageDocs))
 	for index, messageDoc := range messageDocs {
-		messages[index] = &domain.Message{
-			ID:         messageDoc.ID,
-			UserID:     messageDoc.UserID,
-			Content:    messageDoc.Content,
-			Type:       messageDoc.Type,
-			OccurredAt: messageDoc.OccurredAt,
-			Read:       messageDoc.Read,
-		}
+		messages[index] = toMessageDomain(messageDoc)
 	}
 
 	return messages, nil
@@ -116,9 +104,22 @@ func toDocument(message *domain.Message) *MessageDocument {
 	return &MessageDocument{
 		ID:         message.ID,
 		UserID:     message.UserID,
+		GroupID:    message.GroupID,
 		Content:    message.Content,
 		Type:       message.Type,
 		OccurredAt: message.OccurredAt,
 		Read:       message.Read,
+	}
+}
+
+func toMessageDomain(messageDoc *MessageDocument) *domain.Message {
+	return &domain.Message{
+		ID:         messageDoc.ID,
+		UserID:     messageDoc.UserID,
+		GroupID:    messageDoc.GroupID,
+		Content:    messageDoc.Content,
+		Type:       messageDoc.Type,
+		OccurredAt: messageDoc.OccurredAt,
+		Read:       messageDoc.Read,
 	}
 }

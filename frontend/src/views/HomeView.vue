@@ -3,10 +3,23 @@ import { useUserStore } from '@/store/UserStore';
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { getGroups, type GroupResponse } from '@/services/groupRestService';
+import { getUserMessages } from '@/services/messageRestService';
+import { useMessageStore } from '@/store/MessageStore';
 
 const userStore = useUserStore();
+const messageStore = useMessageStore();
 const router = useRouter();
 const groupData = ref<GroupResponse>([]);
+
+const fetchMessages = async () => {
+  getUserMessages(userStore.getUser().id)
+    .then((response) => {
+      messageStore.setMessages(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
 
 onMounted(() => {
   getGroups(userStore.getUser().id)
@@ -16,6 +29,7 @@ onMounted(() => {
     .catch((error) => {
       console.error(error);
     });
+  fetchMessages();
 });
 </script>
 

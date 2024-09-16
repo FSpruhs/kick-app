@@ -49,6 +49,7 @@ func toResponse(messages []*domain.Message) []*Response {
 		response[index] = &Response{
 			ID:         message.ID,
 			UserID:     message.UserID,
+			GroupID:    message.GroupID,
 			Content:    message.Content,
 			Type:       message.Type.String(),
 			OccurredAt: message.OccurredAt,

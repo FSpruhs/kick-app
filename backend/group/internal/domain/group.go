@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	ErrUserAlreadyInvited                 = errors.New("user is already invited")
 	ErrUserNotInGroup                     = errors.New("user is not in group")
 	ErrUserNotInvitedInGroup              = errors.New("user is not invited in group")
 	ErrInvitingPlayerRoleTooLow           = errors.New("inviting player role is too low")
@@ -79,6 +80,10 @@ func (g *Group) findPlayerByUserID(userID string) (*Player, error) {
 }
 
 func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
+	if contains(g.InvitedUserIDs, invitedUserID) {
+		return ErrUserAlreadyInvited
+	}
+
 	invitingPlayer, err := g.findPlayerByUserID(invitingUserID)
 	if err != nil {
 		return err

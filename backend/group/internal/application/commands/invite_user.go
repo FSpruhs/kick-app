@@ -33,7 +33,9 @@ func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {
 		return fmt.Errorf("invite user %s to group %s: %w", cmd.InvitedUserID, cmd.GroupID, err)
 	}
 
-	group.InviteUser(cmd.InvitedUserID, cmd.InvitingUserID)
+	if err := group.InviteUser(cmd.InvitedUserID, cmd.InvitingUserID); err != nil {
+		return fmt.Errorf("invite user %s to group %s: %w", cmd.InvitedUserID, cmd.GroupID, err)
+	}
 
 	if err := h.GroupRepository.Save(group); err != nil {
 		return fmt.Errorf("save group: %w", err)

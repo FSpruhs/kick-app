@@ -42,6 +42,7 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 	message := domain.Message{
 		ID:         uuid.New().String(),
 		UserID:     userInvited.UserID,
+		GroupID:    userInvited.GroupID,
 		Content:    fmt.Sprintf("You have been invited to %s!", userInvited.GroupName),
 		Type:       domain.GroupInvitation,
 		OccurredAt: time.Now(),

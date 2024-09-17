@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
-import { getUserMessages } from '@/services/messageRestService';
+import { getUserMessages, readMessage } from '@/services/messageRestService';
 import { useUserStore } from '@/store/UserStore';
 import { useMessageStore } from '@/store/MessageStore';
 import { responseToGroupInvitation } from '@/services/groupRestService';
@@ -34,6 +34,21 @@ const selectedMail = computed(() => {
 
 function selectMail(index: number) {
   selectedMailIndex.value = index;
+  const message = messageStore.getMessages()[selectedMailIndex.value];
+  if (message.read === false) {
+    message.read = true;
+    readMessage({
+      userId: userStore.getUser().id,
+      messageId: message.id,
+      read: true
+    })
+      .then(() => {
+        console.log('Message read: ' + message.id);
+      })
+      .catch((error) => {
+        console.error('Error reading message: ' + error);
+      });
+  }
 }
 </script>
 

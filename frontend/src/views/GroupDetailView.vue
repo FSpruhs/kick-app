@@ -22,7 +22,7 @@ onMounted(() => {
   <v-app>
     <v-container class="d-flex align-center justify-center">
       <v-sheet>
-        <v-card class="mx-auto pa-6" elevation="12" width="700" rounded>
+        <v-card class="mx-auto pa-6" elevation="12" width="900" rounded>
           <v-card-title class="text-center">
             <span class="headline">Gruppe: {{ groupDetail?.name }}</span>
           </v-card-title>
@@ -37,12 +37,24 @@ onMounted(() => {
                 <tr>
                   <th class="text-left">ID</th>
                   <th class="text-left">Name</th>
+                  <th class="text-left">Rolle</th>
+                  <th class="text-left">Status</th>
+                  <th class="text-left">Aktionen</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="item in groupDetail?.users" :key="item.id">
                   <td>{{ item.id }}</td>
                   <td>{{ item.name }}</td>
+                  <td>{{ item.role }}</td>
+                  <td>{{ item.status }}</td>
+                  <td>
+                    <v-btn
+                      color="primary"
+                      @click="router.push({ name: 'EditPlayer', params: { id: item.id } })"
+                      >Bearbeiten</v-btn
+                    >
+                  </td>
                 </tr>
               </tbody>
             </v-table>

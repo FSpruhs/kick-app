@@ -43,8 +43,10 @@ func toGroupDetails(group *domain.GroupDetails) *Response {
 	users := make([]*User, len(group.Users()))
 	for i, u := range group.Users() {
 		users[i] = &User{
-			ID:   u.ID(),
-			Name: u.Name(),
+			ID:     u.ID(),
+			Name:   u.Name(),
+			Role:   u.Role(),
+			Status: u.Status(),
 		}
 	}
 

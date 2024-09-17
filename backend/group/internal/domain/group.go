@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 
@@ -197,4 +198,13 @@ func (g *Group) UserLeavesGroup(userID string) error {
 	g.Players = removePlayer(g.Players, userID)
 
 	return nil
+}
+
+func (g *Group) UserForPlayerNotFound(userID string) {
+	player, err := g.findPlayerByUserID(userID)
+	if err != nil {
+		log.Printf("player not found: %s\n", userID)
+	}
+
+	player.status = NotFound
 }

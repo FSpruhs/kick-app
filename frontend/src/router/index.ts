@@ -35,6 +35,11 @@ const routes = [
     path: '/mailbox',
     name: 'Mailbox',
     component: () => import('../views/MailboxView.vue')
+  },
+  {
+    path: '/player/:id',
+    name: 'EditPlayer',
+    component: () => import('../views/EditPlayerView.vue')
   }
 ];
 

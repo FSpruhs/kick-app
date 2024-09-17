@@ -20,6 +20,8 @@ export interface GroupDetailResponse {
 export interface GroupUserResponse {
   id: string;
   name: string;
+  role: string;
+  status: string;
 }
 
 export interface GroupInvitePayload {

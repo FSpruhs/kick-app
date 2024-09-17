@@ -8,7 +8,7 @@ type User struct {
 }
 
 func NewUser(id, name string) *User {
-	return &User{id: id, name: name}
+	return &User{id: id, name: name, role: "", status: ""}
 }
 
 func (u *User) ID() string {

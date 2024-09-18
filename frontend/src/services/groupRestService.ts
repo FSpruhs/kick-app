@@ -36,6 +36,13 @@ export interface ResponseToGroupInvitation {
   accepted: boolean;
 }
 
+export interface UpdatePlayerRolePayload {
+  groupId: string;
+  updatedUserId: string;
+  updatingUserId: string;
+  newRole: string;
+}
+
 export async function postGroup(payload: GroupPayload) {
   return await apiClient.post<GroupResponse>('api/v1/group', payload);
 }
@@ -54,4 +61,8 @@ export async function inviteUserToGroup(payload: GroupInvitePayload) {
 
 export async function responseToGroupInvitation(payload: ResponseToGroupInvitation) {
   return await apiClient.put(`api/v1/group/user`, payload);
+}
+
+export async function updatePlayerRole(payload: UpdatePlayerRolePayload) {
+  return await apiClient.put(`api/v1/group/player/role`, payload);
 }

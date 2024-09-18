@@ -14,6 +14,9 @@ export const useGroupStore = defineStore('group', {
     },
     getPlayer(userId: string) {
       return this.group.players.find((player) => player.id === userId);
+    },
+    getGroup() {
+      return this.group;
     }
   }
 });

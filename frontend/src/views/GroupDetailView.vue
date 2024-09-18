@@ -2,15 +2,32 @@
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { getGroupDetails, type GroupDetailResponse } from '@/services/groupRestService';
+import { useGroupStore } from '@/store/GroupStore';
 
 const router = useRouter();
 const groupId = router.currentRoute.value.params.id;
 const groupDetail = ref<GroupDetailResponse | null>(null);
+const groupStore = useGroupStore();
 
 onMounted(() => {
   getGroupDetails(groupId)
     .then((response) => {
       groupDetail.value = response.data;
+      const players = response.data.users.map((user) => {
+        return {
+          id: user.id,
+          name: user.name,
+          role: user.role,
+          status: user.status
+        };
+      });
+      const group = {
+        id: response.data.id,
+        name: response.data.name,
+        players: players,
+        inviteLevel: response.data.inviteLevel
+      };
+      groupStore.saveGroup(group);
     })
     .catch((error) => {
       console.error(error);

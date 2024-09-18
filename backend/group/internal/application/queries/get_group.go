@@ -36,10 +36,14 @@ func (h GetGroupHandler) GetGroup(cmd *GetGroup) (*domain.GroupDetails, error) {
 	}
 
 	var notFoundUsers []string
+
 	for _, player := range group.Players {
 		user, err := findUser(users, player.UserID())
 		if errors.Is(ErrUserNotFound, err) {
 			notFoundUsers = append(notFoundUsers, player.UserID())
+
+			user.SetStatus("not found")
+
 			continue
 		}
 

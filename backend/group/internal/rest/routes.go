@@ -20,7 +20,7 @@ func GroupRouter(router *gin.Engine, app application.App) {
 		api.GET("/group/user/:userId", getgroups.Handle(app))
 		api.POST("/group/user", inviteuser.Handle(app))
 		api.PUT("/group/user", inviteduserresponse.Handle(app))
-		api.DELETE("/group/user", leavegroup.Handle(app))
+		api.DELETE("group/:groupId/user/:userId", leavegroup.Handle(app))
 		api.GET("/group/:groupId", getgroupdetails.Handle(app))
 		api.PUT("/group/player/role", updateplayerrole.Handle(app))
 	}

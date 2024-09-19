@@ -2,7 +2,7 @@
 import { useUserStore } from '@/store/UserStore';
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
-import { getGroups, type GroupResponse } from '@/services/groupRestService';
+import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupRestService';
 import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
 
@@ -15,6 +15,26 @@ const fetchMessages = async () => {
   getUserMessages(userStore.getUser().id)
     .then((response) => {
       messageStore.setMessages(response.data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+const leaveGroup = (groupId) => {
+  console.log('Leave Group: ' + groupId);
+  userLeaveGroup({
+    userId: userStore.getUser().id,
+    groupId: groupId
+  })
+    .then(() => {
+      getGroups(userStore.getUser().id)
+        .then((response) => {
+          groupData.value = response.data;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     })
     .catch((error) => {
       console.error(error);
@@ -54,7 +74,7 @@ onMounted(() => {
                   <td>{{ item.name }}</td>
                   <td>
                     <v-btn color="primary" @click="router.push('group/' + item.id)">Details</v-btn>
-                    <v-btn color="warning" @click="console.log('Leave group')">Verlassen</v-btn>
+                    <v-btn color="warning" @click="leaveGroup(item.id)">Verlassen</v-btn>
                   </td>
                 </tr>
               </tbody>

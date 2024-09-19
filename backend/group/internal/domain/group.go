@@ -12,6 +12,8 @@ import (
 )
 
 var (
+	ErrInvalidStatusForLeavingGroup       = errors.New("invalid status for leaving group")
+	ErrMasterCanNotLeaveGroup             = errors.New("master can not leave group")
 	ErrUserAlreadyInvited                 = errors.New("user is already invited")
 	ErrUserNotInGroup                     = errors.New("user is not in group")
 	ErrUserNotInvitedInGroup              = errors.New("user is not invited in group")
@@ -148,7 +150,9 @@ func (g *Group) UpdatePlayerRole(updatingUserID, updatedUserID string, newRole R
 		if updatingPlayer.Role() != Master {
 			return ErrOnlyMasterCanUpdateToMaster
 		}
+
 		updatingPlayer.role = Admin
+
 	case Admin:
 		if updatedPlayer.Role() == Master && updatingPlayer.Role() != Master {
 			return ErrMasterCanNotDowngradeOtherMaster
@@ -180,22 +184,21 @@ func remove(array []string, value string) []string {
 	return array
 }
 
-func removePlayer(players []*Player, userID string) []*Player {
-	for i, v := range players {
-		if v.UserID() == userID {
-			return append(players[:i], players[i+1:]...)
-		}
-	}
-
-	return players
-}
-
 func (g *Group) UserLeavesGroup(userID string) error {
-	if !contains(g.UserIDs(), userID) {
-		return ErrUserNotInGroup
+	player, err := g.findPlayerByUserID(userID)
+	if err != nil {
+		return err
 	}
 
-	g.Players = removePlayer(g.Players, userID)
+	if player.role == Master {
+		return ErrMasterCanNotLeaveGroup
+	}
+
+	if participatesInGroup(player) {
+		return ErrInvalidStatusForLeavingGroup
+
+	}
+	player.status = Leaved
 
 	return nil
 }
@@ -207,4 +210,22 @@ func (g *Group) UserForPlayerNotFound(userID string) {
 	}
 
 	player.status = NotFound
+}
+
+func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
+	player, err := g.findPlayerByUserID(userID)
+	if err != nil {
+		return false
+	}
+
+	if participatesInGroup(player) {
+		return false
+
+	}
+
+	return true
+}
+
+func participatesInGroup(player *Player) bool {
+	return player.Status() != Active && player.Status() != Inactive
 }

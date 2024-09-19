@@ -26,10 +26,6 @@ func (h LeaveGroupHandler) LeaveGroup(cmd *LeaveGroup) error {
 		return fmt.Errorf("user is leaving a group: %w", err)
 	}
 
-	if err := h.PlayerRepository.ConfirmUserLeavingGroup(cmd.UserID, cmd.GroupID); err != nil {
-		return fmt.Errorf("user is leaving a group: %w", err)
-	}
-
 	if err := group.UserLeavesGroup(cmd.UserID); err != nil {
 		return fmt.Errorf("user is leaving a group: %w", err)
 	}

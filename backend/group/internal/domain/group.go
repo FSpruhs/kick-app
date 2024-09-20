@@ -12,6 +12,8 @@ import (
 )
 
 var (
+	ErrMasterStatusIsAlwaysActive         = errors.New("master status is always active")
+	ErrInvalidStatus                      = errors.New("invalid status for player")
 	ErrInvalidStatusForLeavingGroup       = errors.New("invalid status for leaving group")
 	ErrMasterCanNotLeaveGroup             = errors.New("master can not leave group")
 	ErrUserAlreadyInvited                 = errors.New("user is already invited")
@@ -19,7 +21,7 @@ var (
 	ErrUserNotInvitedInGroup              = errors.New("user is not invited in group")
 	ErrInvitingPlayerRoleTooLow           = errors.New("inviting player role is too low")
 	ErrUserCanNotSelfeUpgrade             = errors.New("user can not selfe update role")
-	ErrMemberCanNotUpdateRole             = errors.New("members can not update role")
+	ErrMemberCanNotUpdate                 = errors.New("members can not update")
 	ErrOnlyMasterCanDownGradeRoleToMember = errors.New("only master can downgrade role to member")
 	ErrOnlyMasterCanUpdateToMaster        = errors.New("only master can update to master")
 	ErrMasterCanNotDowngradeOtherMaster   = errors.New("master can not downgrade other master")
@@ -122,11 +124,7 @@ func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
 	return nil
 }
 
-func (g *Group) UpdatePlayerRole(updatingUserID, updatedUserID string, newRole Role) error {
-	if updatingUserID == updatedUserID {
-		return ErrUserCanNotSelfeUpgrade
-	}
-
+func (g *Group) UpdatePlayer(updatingUserID, updatedUserID string, newRole Role, newStatus Status) error {
 	updatingPlayer, err := g.findPlayerByUserID(updatingUserID)
 	if err != nil {
 		return err
@@ -137,8 +135,50 @@ func (g *Group) UpdatePlayerRole(updatingUserID, updatedUserID string, newRole R
 		return err
 	}
 
+	if updatedPlayer.Role() != newRole {
+		if err := updatePlayerRole(newRole, updatingPlayer, updatedPlayer); err != nil {
+			return err
+		}
+	}
+
+	if updatedPlayer.Status() != newStatus {
+		if err := updatePlayerStatus(newStatus, updatedPlayer, updatingPlayer); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player) error {
+	if newStatus != Active && newStatus != Inactive {
+		return ErrInvalidStatus
+	}
+
+	if updatedPlayer.Status() != Active && updatedPlayer.Status() != Inactive {
+		return ErrInvalidStatus
+	}
+
+	if updatedPlayer.Role() == Master {
+		return ErrMasterStatusIsAlwaysActive
+	}
+
+	if updatingPlayer.UserID() != updatedPlayer.UserID() && updatingPlayer.Role() == Member {
+		return ErrMemberCanNotUpdate
+	}
+
+	updatedPlayer.status = newStatus
+
+	return nil
+}
+
+func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error {
+	if updatingPlayer.UserID() == updatedPlayer.UserID() {
+		return ErrUserCanNotSelfeUpgrade
+	}
+
 	if updatingPlayer.Role() == Member {
-		return ErrMemberCanNotUpdateRole
+		return ErrMemberCanNotUpdate
 	}
 
 	switch newRole {
@@ -198,6 +238,7 @@ func (g *Group) UserLeavesGroup(userID string) error {
 		return ErrInvalidStatusForLeavingGroup
 
 	}
+
 	player.status = Leaved
 
 	return nil
@@ -220,7 +261,6 @@ func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
 
 	if participatesInGroup(player) {
 		return false
-
 	}
 
 	return true

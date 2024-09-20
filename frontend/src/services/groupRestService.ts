@@ -36,11 +36,12 @@ export interface ResponseToGroupInvitation {
   accepted: boolean;
 }
 
-export interface UpdatePlayerRolePayload {
+export interface UpdatePlayerPayload {
   groupId: string;
   updatedUserId: string;
   updatingUserId: string;
-  newRole: string;
+  role: string;
+  status: string;
 }
 
 export interface UserLeaveGroupPayload {
@@ -68,8 +69,8 @@ export async function responseToGroupInvitation(payload: ResponseToGroupInvitati
   return await apiClient.put(`api/v1/group/user`, payload);
 }
 
-export async function updatePlayerRole(payload: UpdatePlayerRolePayload) {
-  return await apiClient.put(`api/v1/group/player/role`, payload);
+export async function updatePlayer(payload: UpdatePlayerPayload) {
+  return await apiClient.put(`api/v1/group/player`, payload);
 }
 
 export async function userLeaveGroup(payload: UserLeaveGroupPayload) {

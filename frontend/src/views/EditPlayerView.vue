@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import { useGroupStore } from '@/store/GroupStore';
 import type { VForm } from 'vuetify/components';
 import { ref } from 'vue';
-import { updatePlayerRole } from '@/services/groupRestService';
+import { updatePlayer } from '@/services/groupRestService';
 import { useUserStore } from '@/store/UserStore';
 
 const router = useRouter();
@@ -15,16 +15,13 @@ const selectedRole = ref(player?.role || '');
 const selectedStatus = ref(player?.status || '');
 
 const submit = () => {
-  if (player.status !== selectedStatus.value) {
-    console.log(selectedStatus.value);
-  }
-
-  if (player.role !== selectedRole.value) {
-    updatePlayerRole({
+  if (player.role !== selectedRole.value || player.status !== selectedStatus.value) {
+    updatePlayer({
       groupId: groupStore.getGroup().id,
       updatedUserId: player.id,
       updatingUserId: userStore.getUser().id,
-      newRole: selectedRole.value
+      role: selectedRole.value,
+      status: selectedStatus.value
     }).then(() => {
       console.log('Role updated');
     });

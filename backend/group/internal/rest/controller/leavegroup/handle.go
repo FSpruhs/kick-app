@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
-	"github.com/gin-gonic/gin"
 )
 
 var ErrRequiredGroupIDAndUserID = fmt.Errorf("groupId and userId are required")

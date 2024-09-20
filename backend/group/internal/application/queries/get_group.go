@@ -3,6 +3,7 @@ package queries
 import (
 	"errors"
 	"fmt"
+
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 

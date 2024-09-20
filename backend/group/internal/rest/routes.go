@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/updateplayerrole"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
@@ -11,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteduserresponse"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteuser"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/leavegroup"
+	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/updateplayer"
 )
 
 func GroupRouter(router *gin.Engine, app application.App) {
@@ -22,6 +22,6 @@ func GroupRouter(router *gin.Engine, app application.App) {
 		api.PUT("/group/user", inviteduserresponse.Handle(app))
 		api.DELETE("group/:groupId/user/:userId", leavegroup.Handle(app))
 		api.GET("/group/:groupId", getgroupdetails.Handle(app))
-		api.PUT("/group/player/role", updateplayerrole.Handle(app))
+		api.PUT("/group/player", updateplayer.Handle(app))
 	}
 }

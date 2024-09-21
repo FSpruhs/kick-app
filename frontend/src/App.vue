@@ -25,6 +25,7 @@ function logout() {
       </template>
       <v-app-bar-title @click="navigateToHome" style="cursor: pointer">Kick App</v-app-bar-title>
       <v-spacer></v-spacer>
+      <p>{{ userStore.getUser().nickname }}</p>
       <v-btn @click="router.push({ name: 'Mailbox' })"
         ><v-icon>mdi-bell-outline</v-icon>
         <span class="notification-counter">{{ messageStore.getUnreadMessageCount() }}</span></v-btn

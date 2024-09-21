@@ -1,13 +1,31 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
-import { getGroupDetails, type GroupDetailResponse } from '@/services/groupRestService';
+import {
+  getGroupDetails,
+  type GroupDetailResponse,
+  removePlayer
+} from '@/services/groupRestService';
 import { useGroupStore } from '@/store/GroupStore';
 
 const router = useRouter();
 const groupId = router.currentRoute.value.params.id;
 const groupDetail = ref<GroupDetailResponse | null>(null);
-const groupStore = useGroupStore();
+const userStore = useGroupStore();
+
+const handleRemovePlayer = (id: string) => {
+  removePlayer({
+    groupId: groupId,
+    removedUserId: id,
+    removingUserId: userStore.user?.id
+  })
+    .then((response) => {
+      console.log(response);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
 
 onMounted(() => {
   getGroupDetails(groupId)
@@ -27,7 +45,7 @@ onMounted(() => {
         players: players,
         inviteLevel: response.data.inviteLevel
       };
-      groupStore.saveGroup(group);
+      userStore.saveGroup(group);
     })
     .catch((error) => {
       console.error(error);
@@ -39,7 +57,7 @@ onMounted(() => {
   <v-app>
     <v-container class="d-flex align-center justify-center">
       <v-sheet>
-        <v-card class="mx-auto pa-6" elevation="12" width="900" rounded>
+        <v-card class="mx-auto pa-6" elevation="12" width="1000" rounded>
           <v-card-title class="text-center">
             <span class="headline">Gruppe: {{ groupDetail?.name }}</span>
           </v-card-title>
@@ -71,6 +89,7 @@ onMounted(() => {
                       @click="router.push({ name: 'EditPlayer', params: { id: item.id } })"
                       >Bearbeiten</v-btn
                     >
+                    <v-btn color="warning" @click="handleRemovePlayer(item.id)">Entfernen</v-btn>
                   </td>
                 </tr>
               </tbody>

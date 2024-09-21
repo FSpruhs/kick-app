@@ -18,6 +18,7 @@ type Commands interface {
 	InvitedUserResponse(cmd *commands.InvitedUserResponse) error
 	LeaveGroup(cmd *commands.LeaveGroup) error
 	UpdatePlayer(cmd *commands.UpdatePlayer) error
+	RemovePlayer(cmd *commands.RemovePlayer) error
 }
 
 type Queries interface {
@@ -36,6 +37,7 @@ type appCommands struct {
 	commands.InvitedUserResponseHandler
 	commands.LeaveGroupHandler
 	commands.UpdatePlayerHandler
+	commands.RemovePlayerHandler
 }
 
 type appQueries struct {
@@ -56,8 +58,9 @@ func New(
 			CreateGroupHandler:         commands.NewCreateGroupHandler(groups, eventPublisher),
 			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher, players),
 			InvitedUserResponseHandler: commands.NewInvitedUserResponseHandler(groups, eventPublisher),
-			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, players),
+			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, players, eventPublisher),
 			UpdatePlayerHandler:        commands.NewUpdatePlayerHandler(groups),
+			RemovePlayerHandler:        commands.NewRemovePlayerHandler(groups, eventPublisher),
 		},
 		appQueries: appQueries{
 			GetGroupsByUserHandler: queries.NewGetGroupsByUserHandler(groups),

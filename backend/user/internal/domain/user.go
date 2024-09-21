@@ -50,6 +50,15 @@ func (u *User) JoinGroup(groupID string) {
 	u.Groups = append(u.Groups, groupID)
 }
 
+func (u *User) LeaveGroup(groupID string) {
+	for i, id := range u.Groups {
+		if id == groupID {
+			u.Groups = append(u.Groups[:i], u.Groups[i+1:]...)
+			return
+		}
+	}
+}
+
 func hashString(input string) string {
 	hash := sha256.New()
 	hash.Write([]byte(input))

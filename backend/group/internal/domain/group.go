@@ -114,7 +114,13 @@ func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
 	}
 
 	if accept {
-		g.Players = append(g.Players, NewPlayer(userID, Active, Member))
+		player, err := g.findPlayerByUserID(userID)
+		if err != nil {
+			g.Players = append(g.Players, NewPlayer(userID, Active, Member))
+		} else {
+			player.status = Active
+		}
+
 		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
 		g.AddEvent(grouppb.UserAcceptedInvitationEvent, grouppb.UserAcceptedInvitation{GroupID: g.ID(), UserID: userID})
 	} else {
@@ -155,7 +161,7 @@ func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player)
 		return ErrInvalidStatus
 	}
 
-	if updatedPlayer.Status() != Active && updatedPlayer.Status() != Inactive {
+	if notParticipatesInGroup(updatedPlayer) {
 		return ErrInvalidStatus
 	}
 
@@ -234,12 +240,16 @@ func (g *Group) UserLeavesGroup(userID string) error {
 		return ErrMasterCanNotLeaveGroup
 	}
 
-	if participatesInGroup(player) {
+	if notParticipatesInGroup(player) {
 		return ErrInvalidStatusForLeavingGroup
-
 	}
 
 	player.status = Leaved
+
+	g.AddEvent(grouppb.PlayerLeavesGroupEvent, grouppb.UserLeavesGroup{
+		GroupID: g.ID(),
+		UserID:  userID,
+	})
 
 	return nil
 }
@@ -259,13 +269,39 @@ func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
 		return false
 	}
 
-	if participatesInGroup(player) {
+	if notParticipatesInGroup(player) {
 		return false
 	}
 
 	return true
 }
 
-func participatesInGroup(player *Player) bool {
+func notParticipatesInGroup(player *Player) bool {
 	return player.Status() != Active && player.Status() != Inactive
+}
+
+func (g *Group) RemovePlayer(removeUserID, removingUserID string) error {
+	removePlayer, err := g.findPlayerByUserID(removeUserID)
+	if err != nil {
+		return err
+	}
+
+	removingPlayer, err := g.findPlayerByUserID(removingUserID)
+	if err != nil {
+		return err
+	}
+
+	if removingPlayer.Role() <= removePlayer.Role() {
+		return ErrMemberCanNotUpdate
+	}
+
+	removePlayer.status = Removed
+
+	g.AddEvent(grouppb.PlayerRemovedFromGroupEvent, grouppb.PlayerRemovedFromGroup{
+		GroupID:   g.ID(),
+		UserID:    removeUserID,
+		GroupName: g.Name.Value(),
+	})
+
+	return nil
 }

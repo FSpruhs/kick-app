@@ -1,7 +1,7 @@
 package leavegroup
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,10 +10,9 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 )
 
-var ErrRequiredGroupIDAndUserID = fmt.Errorf("groupId and userId are required")
+var ErrRequiredGroupIDAndUserID = errors.New("groupId and userId are required")
 
-// Handle
-// InviteUser godoc
+// Handle InviteUser godoc
 // @Summary      user leaves a group
 // @Description  user leaves a group
 // @Tags         group

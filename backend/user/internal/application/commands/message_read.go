@@ -33,7 +33,7 @@ func (h MessageReadHandler) MessageRead(cmd *MessageRead) error {
 		return ErrMessageDoesNotBelongToUser
 	}
 
-	message.Read = cmd.Read
+	message.MarkAsRead()
 
 	if err := h.MessageRepository.Save(message); err != nil {
 		return fmt.Errorf("saving message with id %s: %w", cmd.MessageID, err)

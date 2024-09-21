@@ -10,6 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteduserresponse"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/inviteuser"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/leavegroup"
+	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/removeuser"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/updateplayer"
 )
 
@@ -23,5 +24,6 @@ func GroupRouter(router *gin.Engine, app application.App) {
 		api.DELETE("group/:groupId/user/:userId", leavegroup.Handle(app))
 		api.GET("/group/:groupId", getgroupdetails.Handle(app))
 		api.PUT("/group/player", updateplayer.Handle(app))
+		api.PUT("/group/player/status", removeuser.Handle(app))
 	}
 }

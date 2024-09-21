@@ -2,9 +2,6 @@ package application
 
 import (
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
@@ -28,6 +25,10 @@ func (h GroupHandler[T]) HandleEvent(event ddd.AggregateEvent) error {
 		return h.onUserAcceptedInvitationEvent(event)
 	case grouppb.GroupCreatedEvent:
 		return h.onGroupCreatedEvent(event)
+	case grouppb.PlayerLeavesGroupEvent:
+		return h.onPlayerLeavesGroupEvent(event)
+	case grouppb.PlayerRemovedFromGroupEvent:
+		return h.onPlayerRemovedFromGroupEvent(event)
 	}
 
 	return nil
@@ -39,17 +40,9 @@ func (h GroupHandler[T]) onUserInvitedEvent(event ddd.Event) error {
 		return ddd.ErrInvalidEventPayload
 	}
 
-	message := domain.Message{
-		ID:         uuid.New().String(),
-		UserID:     userInvited.UserID,
-		GroupID:    userInvited.GroupID,
-		Content:    fmt.Sprintf("You have been invited to %s!", userInvited.GroupName),
-		Type:       domain.GroupInvitation,
-		OccurredAt: time.Now(),
-		Read:       false,
-	}
+	message := domain.CreateGroupInvitationMessage(userInvited.UserID, userInvited.GroupID, userInvited.GroupName)
 
-	if err := h.messages.Create(&message); err != nil {
+	if err := h.messages.Create(message); err != nil {
 		return fmt.Errorf("creating user invited message: %w", err)
 	}
 
@@ -92,6 +85,52 @@ func (h GroupHandler[T]) addGroupToUser(userID, groupID string) error {
 
 	if err := h.users.Save(user); err != nil {
 		return fmt.Errorf("saving user: %w", err)
+	}
+
+	return nil
+}
+
+func (h GroupHandler[T]) onPlayerLeavesGroupEvent(event ddd.Event) error {
+	userLeavesGroup, ok := event.Payload().(grouppb.UserLeavesGroup)
+	if !ok {
+		return ddd.ErrInvalidEventPayload
+	}
+
+	user, err := h.users.FindByID(userLeavesGroup.UserID)
+	if err != nil {
+		return fmt.Errorf("finding user by id: %w", err)
+	}
+
+	user.LeaveGroup(userLeavesGroup.GroupID)
+
+	if err := h.users.Save(user); err != nil {
+		return fmt.Errorf("saving user: %w", err)
+	}
+
+	return nil
+}
+
+func (h GroupHandler[T]) onPlayerRemovedFromGroupEvent(event ddd.Event) error {
+	playerRemoved, ok := event.Payload().(grouppb.PlayerRemovedFromGroup)
+	if !ok {
+		return ddd.ErrInvalidEventPayload
+	}
+
+	user, err := h.users.FindByID(playerRemoved.UserID)
+	if err != nil {
+		return fmt.Errorf("finding user by id: %w", err)
+	}
+
+	user.LeaveGroup(playerRemoved.GroupID)
+
+	if err := h.users.Save(user); err != nil {
+		return fmt.Errorf("saving user: %w", err)
+	}
+
+	message := domain.CreateRemovedFromGroupMessage(playerRemoved.UserID, playerRemoved.GroupID, playerRemoved.GroupName)
+
+	if err := h.messages.Create(message); err != nil {
+		return fmt.Errorf("creating removed from group message: %w", err)
 	}
 
 	return nil

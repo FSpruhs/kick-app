@@ -7,17 +7,19 @@ import {
   removePlayer
 } from '@/services/groupRestService';
 import { useGroupStore } from '@/store/GroupStore';
+import { useUserStore } from '@/store/UserStore';
 
 const router = useRouter();
 const groupId = router.currentRoute.value.params.id;
 const groupDetail = ref<GroupDetailResponse | null>(null);
-const userStore = useGroupStore();
+const groupStore = useGroupStore();
+const userStore = useUserStore();
 
 const handleRemovePlayer = (id: string) => {
   removePlayer({
     groupId: groupId,
-    removedUserId: id,
-    removingUserId: userStore.user?.id
+    removeUserId: id,
+    removingUserId: userStore.getUser().id
   })
     .then((response) => {
       console.log(response);
@@ -45,7 +47,7 @@ onMounted(() => {
         players: players,
         inviteLevel: response.data.inviteLevel
       };
-      userStore.saveGroup(group);
+      groupStore.saveGroup(group);
     })
     .catch((error) => {
       console.error(error);

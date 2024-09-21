@@ -51,7 +51,7 @@ export interface UserLeaveGroupPayload {
 
 export interface RemovePlayerPayload {
   groupId: string;
-  removedUserId: string;
+  removeUserId: string;
   removingUserId: string;
 }
 
@@ -84,5 +84,5 @@ export async function userLeaveGroup(payload: UserLeaveGroupPayload) {
 }
 
 export async function removePlayer(payload: RemovePlayerPayload) {
-  return await apiClient.put(`api/v1/group/player/status`, { data: payload });
+  return await apiClient.put(`api/v1/group/player/status`, payload);
 }

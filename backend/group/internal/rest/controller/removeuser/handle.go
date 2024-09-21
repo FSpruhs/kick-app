@@ -10,7 +10,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/commands"
 )
 
-// Handle InviteUser godoc
+// Handle RemoveUser godoc
 // @Summary      removes user from a group
 // @Description  removes user from a group
 // @Tags         group

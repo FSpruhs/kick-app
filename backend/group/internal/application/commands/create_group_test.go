@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
@@ -14,29 +15,94 @@ func TestCreateGroupHandler_CreateGroup(t *testing.T) {
 	name, _ := domain.NewName("Group Name")
 	userID := "123"
 
+	someErr := errors.New("some error")
+
 	expectedGroup := createExpectedGroup(name, userID)
 
-	mockGroupRepo := setupMockGroupRepo(expectedGroup)
-	mockEventRepo := setupMockEventRepo()
-
-	handler := NewCreateGroupHandler(mockGroupRepo, mockEventRepo)
-
-	cmd := &CreateGroup{
-		UserID: userID,
-		Name:   name.Value(),
-	}
-
 	t.Run("Create Group Success", func(t *testing.T) {
+		mockGroupRepo := new(domain.MockGroupRepository)
+		mockGroupRepo.On("Create", mock.AnythingOfType("*domain.Group")).Return(expectedGroup, nil)
+
+		mockEventRepo := new(ddd.MockEventPublisher)
+		mockEventRepo.On("Publish", mock.AnythingOfType("[]ddd.AggregateEvent")).Return(nil)
+
+		handler := NewCreateGroupHandler(mockGroupRepo, mockEventRepo)
+
+		cmd := &CreateGroup{
+			UserID: userID,
+			Name:   name.Value(),
+		}
+
 		group, err := handler.CreateGroup(cmd)
 
 		assert.NoError(t, err)
 		assert.NotNil(t, group)
 
 		mockGroupRepo.AssertCalled(t, "Create", groupMatcher(name, userID))
-		mockEventRepo.AssertCalled(t, "Publish", eventMatcher(userID))
+		mockEventRepo.AssertCalled(t, "Publish", createEventMatcher(userID))
 
 		mockGroupRepo.AssertExpectations(t)
 		mockEventRepo.AssertExpectations(t)
+	})
+
+	t.Run("Create Group invalid group creating", func(t *testing.T) {
+		mockGroupRepo := new(domain.MockGroupRepository)
+		mockGroupRepo.On("Create", mock.AnythingOfType("*domain.Group")).Return(expectedGroup, nil)
+
+		mockEventRepo := new(ddd.MockEventPublisher)
+		mockEventRepo.On("Publish", mock.AnythingOfType("[]ddd.AggregateEvent")).Return(nil)
+
+		handler := NewCreateGroupHandler(mockGroupRepo, mockEventRepo)
+
+		cmd := &CreateGroup{
+			UserID: userID,
+			Name:   "",
+		}
+
+		group, err := handler.CreateGroup(cmd)
+
+		assert.Error(t, err)
+		assert.Nil(t, group)
+	})
+
+	t.Run("Create group with repo error", func(t *testing.T) {
+		mockGroupRepo := new(domain.MockGroupRepository)
+		mockGroupRepo.On("Create", mock.AnythingOfType("*domain.Group")).Return(nil, someErr)
+
+		mockEventRepo := new(ddd.MockEventPublisher)
+		mockEventRepo.On("Publish", mock.AnythingOfType("[]ddd.AggregateEvent")).Return(nil)
+
+		handler := NewCreateGroupHandler(mockGroupRepo, mockEventRepo)
+
+		cmd := &CreateGroup{
+			UserID: userID,
+			Name:   name.Value(),
+		}
+
+		group, err := handler.CreateGroup(cmd)
+
+		assert.Error(t, err)
+		assert.Nil(t, group)
+	})
+
+	t.Run("Create group with publisher error", func(t *testing.T) {
+		mockGroupRepo := new(domain.MockGroupRepository)
+		mockGroupRepo.On("Create", mock.AnythingOfType("*domain.Group")).Return(expectedGroup, nil)
+
+		mockEventRepo := new(ddd.MockEventPublisher)
+		mockEventRepo.On("Publish", mock.AnythingOfType("[]ddd.AggregateEvent")).Return(someErr)
+
+		handler := NewCreateGroupHandler(mockGroupRepo, mockEventRepo)
+
+		cmd := &CreateGroup{
+			UserID: userID,
+			Name:   name.Value(),
+		}
+
+		group, err := handler.CreateGroup(cmd)
+
+		assert.Error(t, err)
+		assert.Nil(t, group)
 	})
 }
 
@@ -48,18 +114,6 @@ func createExpectedGroup(name *domain.Name, userID string) *domain.Group {
 		InvitedUserIDs: make([]string, 0),
 		InviteLevel:    domain.Admin,
 	}
-}
-
-func setupMockGroupRepo(expectedGroup *domain.Group) *MockGroupRepository {
-	mockGroupRepo := new(MockGroupRepository)
-	mockGroupRepo.On("Create", mock.AnythingOfType("*domain.Group")).Return(expectedGroup, nil)
-	return mockGroupRepo
-}
-
-func setupMockEventRepo() *ddd.MockEventPublisher {
-	mockEventRepo := new(ddd.MockEventPublisher)
-	mockEventRepo.On("Publish", mock.AnythingOfType("[]ddd.AggregateEvent")).Return(nil)
-	return mockEventRepo
 }
 
 func groupMatcher(name *domain.Name, userID string) interface{} {
@@ -74,7 +128,7 @@ func groupMatcher(name *domain.Name, userID string) interface{} {
 	})
 }
 
-func eventMatcher(userID string) interface{} {
+func createEventMatcher(userID string) interface{} {
 	return mock.MatchedBy(func(events []ddd.AggregateEvent) bool {
 		if len(events) != 1 {
 			return false

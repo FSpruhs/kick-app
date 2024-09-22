@@ -56,7 +56,7 @@ func New(
 	return &Application{
 		appCommands: appCommands{
 			CreateGroupHandler:         commands.NewCreateGroupHandler(groups, eventPublisher),
-			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher, players),
+			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher),
 			InvitedUserResponseHandler: commands.NewInvitedUserResponseHandler(groups, eventPublisher),
 			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, players, eventPublisher),
 			UpdatePlayerHandler:        commands.NewUpdatePlayerHandler(groups),

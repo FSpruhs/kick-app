@@ -16,15 +16,13 @@ type InviteUser struct {
 type InviteUserHandler struct {
 	domain.GroupRepository
 	ddd.EventPublisher[ddd.AggregateEvent]
-	domain.PlayerRepository
 }
 
 func NewInviteUserHandler(
 	groups domain.GroupRepository,
 	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
-	players domain.PlayerRepository,
 ) InviteUserHandler {
-	return InviteUserHandler{groups, eventPublisher, players}
+	return InviteUserHandler{groups, eventPublisher}
 }
 
 func (h InviteUserHandler) InviteUser(cmd *InviteUser) error {

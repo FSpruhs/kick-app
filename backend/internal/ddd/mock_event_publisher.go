@@ -8,7 +8,7 @@ type MockEventPublisher struct {
 
 var _ EventPublisher[AggregateEvent] = (*MockEventPublisher)(nil)
 
-func (m MockEventPublisher) Publish(events ...AggregateEvent) error {
+func (m *MockEventPublisher) Publish(events ...AggregateEvent) error {
 	args := m.Called(events)
 	return args.Error(0)
 }

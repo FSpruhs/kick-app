@@ -21,7 +21,7 @@ func (m MockGroupRepository) Save(group *domain.Group) error {
 	panic("implement me")
 }
 
-func (m MockGroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
+func (m *MockGroupRepository) Create(newGroup *domain.Group) (*domain.Group, error) {
 	args := m.Called(newGroup)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

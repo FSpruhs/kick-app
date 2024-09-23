@@ -14,16 +14,14 @@ type LeaveGroup struct {
 
 type LeaveGroupHandler struct {
 	domain.GroupRepository
-	domain.PlayerRepository
 	eventPublisher ddd.EventPublisher[ddd.AggregateEvent]
 }
 
 func NewLeaveGroupHandler(
 	groups domain.GroupRepository,
-	players domain.PlayerRepository,
 	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
 ) LeaveGroupHandler {
-	return LeaveGroupHandler{groups, players, eventPublisher}
+	return LeaveGroupHandler{groups, eventPublisher}
 }
 
 func (h LeaveGroupHandler) LeaveGroup(cmd *LeaveGroup) error {

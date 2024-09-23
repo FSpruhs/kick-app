@@ -58,7 +58,7 @@ func New(
 			CreateGroupHandler:         commands.NewCreateGroupHandler(groups, eventPublisher),
 			InviteUserHandler:          commands.NewInviteUserHandler(groups, eventPublisher),
 			InvitedUserResponseHandler: commands.NewInvitedUserResponseHandler(groups, eventPublisher),
-			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, players, eventPublisher),
+			LeaveGroupHandler:          commands.NewLeaveGroupHandler(groups, eventPublisher),
 			UpdatePlayerHandler:        commands.NewUpdatePlayerHandler(groups),
 			RemovePlayerHandler:        commands.NewRemovePlayerHandler(groups, eventPublisher),
 		},

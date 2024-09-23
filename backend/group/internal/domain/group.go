@@ -20,7 +20,7 @@ var (
 	ErrUserNotInGroup                     = errors.New("user is not in group")
 	ErrUserNotInvitedInGroup              = errors.New("user is not invited in group")
 	ErrInvitingPlayerRoleTooLow           = errors.New("inviting player role is too low")
-	ErrUserCanNotSelfeUpgrade             = errors.New("user can not selfe update role")
+	ErrUserCanNotSelfUpgrade              = errors.New("user can not selfe update role")
 	ErrMemberCanNotUpdate                 = errors.New("members can not update")
 	ErrOnlyMasterCanDownGradeRoleToMember = errors.New("only master can downgrade role to member")
 	ErrOnlyMasterCanUpdateToMaster        = errors.New("only master can update to master")
@@ -99,6 +99,7 @@ func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
 	}
 
 	g.InvitedUserIDs = append(g.InvitedUserIDs, invitedUserID)
+
 	g.AddEvent(grouppb.UserInvitedEvent, grouppb.UserInvited{
 		GroupID:   g.ID(),
 		GroupName: g.Name.Value(),
@@ -141,6 +142,10 @@ func (g *Group) UpdatePlayer(updatingUserID, updatedUserID string, newRole Role,
 		return err
 	}
 
+	if notParticipatesInGroup(updatingPlayer) {
+		return ErrInvalidStatus
+	}
+
 	if updatedPlayer.Role() != newRole {
 		if err := updatePlayerRole(newRole, updatingPlayer, updatedPlayer); err != nil {
 			return err
@@ -180,7 +185,7 @@ func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player)
 
 func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error {
 	if updatingPlayer.UserID() == updatedPlayer.UserID() {
-		return ErrUserCanNotSelfeUpgrade
+		return ErrUserCanNotSelfUpgrade
 	}
 
 	if updatingPlayer.Role() == Member {
@@ -195,6 +200,10 @@ func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error
 	case Master:
 		if updatingPlayer.Role() != Master {
 			return ErrOnlyMasterCanUpdateToMaster
+		}
+
+		if notParticipatesInGroup(updatedPlayer) {
+			return ErrInvalidStatus
 		}
 
 		updatingPlayer.role = Admin

@@ -74,5 +74,6 @@ func findUser(users []*domain.User, userID string) (*domain.User, error) {
 			return user, nil
 		}
 	}
+
 	return nil, ErrUserNotFound
 }

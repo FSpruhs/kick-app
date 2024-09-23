@@ -50,7 +50,6 @@ var _ App = (*Application)(nil)
 func New(
 	groups domain.GroupRepository,
 	users domain.UserRepository,
-	players domain.PlayerRepository,
 	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
 ) *Application {
 	return &Application{

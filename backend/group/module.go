@@ -20,10 +20,9 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 		return fmt.Errorf("connect to rpc server: %w", err)
 	}
 
-	players := grpc.NewPlayerRepository(conn)
 	users := grpc.NewUserRepository(conn)
 
-	app := application.New(groups, users, players, mono.EventDispatcher())
+	app := application.New(groups, users, mono.EventDispatcher())
 
 	rest.GroupRouter(mono.Router(), app)
 

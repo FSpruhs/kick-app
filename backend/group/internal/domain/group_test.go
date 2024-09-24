@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -222,7 +223,7 @@ func TestUpdatePlayer_NewMaster(t *testing.T) {
 	assert.Equal(t, Role(Admin), group.Players[0].Role())
 }
 
-func TestUpdatePlayer_UserSetSelfeToInactive(t *testing.T) {
+func TestUpdatePlayer_UserSetSelfToInactive(t *testing.T) {
 	group, _ := CreateNewGroup("1", "test-group")
 	updatedPlayer := NewPlayer("2", Active, Member)
 	group.Players = append(group.Players, updatedPlayer)
@@ -231,4 +232,134 @@ func TestUpdatePlayer_UserSetSelfeToInactive(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, Status(Inactive), updatedPlayer.Status())
+}
+
+func TestUserLeavesGroup_Success(t *testing.T) {
+	leavingUserID := "2"
+	group, _ := CreateNewGroup("1", "test-group")
+	leavingPlayer := NewPlayer(leavingUserID, Active, Member)
+	group.Players = append(group.Players, leavingPlayer)
+
+	err := group.UserLeavesGroup(leavingUserID)
+
+	assert.NoError(t, err)
+	assert.Equal(t, Status(Leaved), leavingPlayer.Status())
+	assert.Equal(t, 2, len(group.Events()))
+	assert.Equal(t, group.ID(), group.Events()[1].Payload().(grouppb.UserLeavesGroup).GroupID)
+	assert.Equal(t, leavingUserID, group.Events()[1].Payload().(grouppb.UserLeavesGroup).UserID)
+}
+
+func TestUserLeavesGroup_UserNotInGroup(t *testing.T) {
+	group, _ := CreateNewGroup("1", "test-group")
+
+	err := group.UserLeavesGroup("2")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrUserNotInGroup, err)
+}
+
+func TestUserLeavesGroup_MasterCanNotLeaveGroup(t *testing.T) {
+	group, _ := CreateNewGroup("1", "test-group")
+	master := NewPlayer("1", Active, Master)
+	group.Players = append(group.Players, master)
+
+	err := group.UserLeavesGroup("1")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrMasterCanNotLeaveGroup, err)
+}
+
+func TestUserLeavesGroup_ErrWhenNotParticipatesInGroup(t *testing.T) {
+	group, _ := CreateNewGroup("1", "test-group")
+	player := NewPlayer("2", Removed, Member)
+	group.Players = append(group.Players, player)
+
+	err := group.UserLeavesGroup("2")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrInvalidStatusForLeavingGroup, err)
+}
+
+func TestIsUserParticipateInTheGroup(t *testing.T) {
+	tests := []struct {
+		status   Status
+		expected bool
+	}{
+		{Active, true},
+		{Inactive, true},
+		{Removed, false},
+		{Leaved, false},
+		{NotFound, false},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("TestIsUserParticipateInTheGroup: %s", test.status), func(t *testing.T) {
+			group, _ := CreateNewGroup("1", "test-group")
+			player := NewPlayer("2", test.status, Member)
+			group.Players = append(group.Players, player)
+
+			assert.Equal(t, test.expected, group.IsUserParticipateInTheGroup("2"))
+		})
+	}
+}
+
+func TestRemovePlayer_Success(t *testing.T) {
+	tests := []struct {
+		expectedErr  error
+		removeRole   Role
+		removingRole Role
+	}{
+		{nil, Member, Admin},
+		{ErrMemberCanNotUpdate, Member, Member},
+		{nil, Member, Master},
+		{ErrMemberCanNotUpdate, Admin, Admin},
+		{ErrMemberCanNotUpdate, Admin, Member},
+		{nil, Admin, Master},
+		{ErrMemberCanNotUpdate, Master, Admin},
+		{ErrMemberCanNotUpdate, Master, Member},
+		{ErrMemberCanNotUpdate, Master, Master},
+	}
+
+	for _, test := range tests {
+		t.Run(fmt.Sprintf("TestRemovePlayer: %s from Player: %s", test.removeRole, test.removingRole), func(t *testing.T) {
+			group, _ := CreateNewGroup("1", "test-group")
+			removePlayer := NewPlayer("2", Active, test.removeRole)
+			removingPlayer := NewPlayer("3", Active, test.removingRole)
+
+			group.Players = append(group.Players, removePlayer)
+			group.Players = append(group.Players, removingPlayer)
+
+			err := group.RemovePlayer("2", "3")
+
+			if test.expectedErr == nil {
+				assert.NoError(t, err)
+				assert.Equal(t, Status(Removed), removePlayer.Status())
+				assert.Equal(t, 2, len(group.Events()))
+				assert.Equal(t, group.ID(), group.Events()[1].Payload().(grouppb.PlayerRemovedFromGroup).GroupID)
+				assert.Equal(t, "2", group.Events()[1].Payload().(grouppb.PlayerRemovedFromGroup).UserID)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, test.expectedErr, err)
+			}
+
+		})
+	}
+}
+
+func TestRemovePlayer_RemoveUserNotInGroup(t *testing.T) {
+	group, _ := CreateNewGroup("1", "test-group")
+
+	err := group.RemovePlayer("2", "1")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrUserNotInGroup, err)
+}
+
+func TestRemovePlayer_RemovingUserNotInGroup(t *testing.T) {
+	group, _ := CreateNewGroup("1", "test-group")
+
+	err := group.RemovePlayer("1", "2")
+
+	assert.Error(t, err)
+	assert.Equal(t, ErrUserNotInGroup, err)
 }

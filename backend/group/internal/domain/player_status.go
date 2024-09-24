@@ -1,5 +1,7 @@
 package domain
 
+import "strings"
+
 type InvalidStatusError struct {
 	role string
 }
@@ -19,7 +21,7 @@ const (
 )
 
 func ToStatus(status string) (Status, error) {
-	switch status {
+	switch strings.ToLower(status) {
 	case "active":
 		return Active, nil
 	case "inactive":
@@ -28,7 +30,7 @@ func ToStatus(status string) (Status, error) {
 		return Leaved, nil
 	case "removed":
 		return Removed, nil
-	case "not found":
+	case "not_found":
 		return NotFound, nil
 	default:
 		return -1, InvalidStatusError{status}

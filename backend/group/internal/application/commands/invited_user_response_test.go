@@ -176,17 +176,17 @@ func TestInvitedUserResponseHandler_InvitedUserResponse(t *testing.T) {
 
 func inviteResponseTrueMatcher(invitedUserID string) interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.InvitedUserIDs) == 0 &&
-			len(group.Players) == 1 &&
-			group.Players[0].UserID() == invitedUserID &&
-			group.Players[0].Role() == domain.Member &&
-			group.Players[0].Status() == domain.Active
+		return len(group.InvitedUserIDs()) == 0 &&
+			len(group.Players()) == 1 &&
+			group.Players()[0].UserID() == invitedUserID &&
+			group.Players()[0].Role() == domain.Member &&
+			group.Players()[0].Status() == domain.Active
 	})
 }
 
 func inviteResponseFalseMatcher() interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.InvitedUserIDs) == 0 && len(group.Players) == 0
+		return len(group.InvitedUserIDs()) == 0 && len(group.Players()) == 0
 	})
 }
 
@@ -203,11 +203,11 @@ func inviteResponseEventMatcher(groupID, userID string) interface{} {
 func createGroup(groupID, invitedUserID string) *domain.Group {
 	name, _ := domain.NewName("Group Name")
 
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate(groupID, "Group"),
-		Name:           name,
-		Players:        []*domain.Player{},
-		InvitedUserIDs: []string{invitedUserID},
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		groupID,
+		[]*domain.Player{},
+		name,
+		[]string{invitedUserID},
+		domain.Admin,
+	)
 }

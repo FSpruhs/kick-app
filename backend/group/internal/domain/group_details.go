@@ -10,9 +10,9 @@ type GroupDetails struct {
 func NewGroupDetails(group *Group, users []*User) *GroupDetails {
 	return &GroupDetails{
 		id:          group.ID(),
-		groupName:   group.Name,
+		groupName:   group.Name(),
 		users:       users,
-		inviteLevel: group.InviteLevel.String(),
+		inviteLevel: group.InviteLevel().String(),
 	}
 }
 

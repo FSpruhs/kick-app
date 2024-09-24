@@ -31,25 +31,20 @@ const GroupAggregate = "group.GroupAggregate"
 
 type Group struct {
 	ddd.Aggregate
-	Name           *Name
-	Players        []*Player
-	InvitedUserIDs []string
-	InviteLevel    Role
+	name           *Name
+	players        []*Player
+	invitedUserIDs []string
+	inviteLevel    Role
 }
 
-func NewGroup(id string) *Group {
+func NewGroup(id string, players []*Player, name *Name, invitedUserIDs []string, inviteLevel Role) *Group {
 	return &Group{
-		Aggregate: ddd.NewAggregate(id, GroupAggregate),
+		Aggregate:      ddd.NewAggregate(id, GroupAggregate),
+		players:        players,
+		name:           name,
+		invitedUserIDs: invitedUserIDs,
+		inviteLevel:    inviteLevel,
 	}
-}
-
-func (g *Group) UserIDs() []string {
-	userIDs := make([]string, len(g.Players))
-	for i, p := range g.Players {
-		userIDs[i] = p.UserID()
-	}
-
-	return userIDs
 }
 
 func CreateNewGroup(userID, name string) (*Group, error) {
@@ -60,10 +55,10 @@ func CreateNewGroup(userID, name string) (*Group, error) {
 
 	newGroup := &Group{
 		Aggregate:      ddd.NewAggregate(uuid.New().String(), GroupAggregate),
-		Players:        []*Player{NewPlayer(userID, Active, Master)},
-		Name:           newName,
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    Admin,
+		players:        []*Player{NewPlayer(userID, Active, Master)},
+		name:           newName,
+		invitedUserIDs: make([]string, 0),
+		inviteLevel:    Admin,
 	}
 
 	newGroup.AddEvent(grouppb.GroupCreatedEvent, grouppb.GroupCreated{
@@ -74,8 +69,17 @@ func CreateNewGroup(userID, name string) (*Group, error) {
 	return newGroup, nil
 }
 
+func (g *Group) UserIDs() []string {
+	userIDs := make([]string, len(g.Players()))
+	for i, p := range g.Players() {
+		userIDs[i] = p.UserID()
+	}
+
+	return userIDs
+}
+
 func (g *Group) findPlayerByUserID(userID string) (*Player, error) {
-	for _, p := range g.Players {
+	for _, p := range g.Players() {
 		if p.UserID() == userID {
 			return p, nil
 		}
@@ -85,7 +89,7 @@ func (g *Group) findPlayerByUserID(userID string) (*Player, error) {
 }
 
 func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
-	if contains(g.InvitedUserIDs, invitedUserID) {
+	if contains(g.InvitedUserIDs(), invitedUserID) {
 		return ErrUserAlreadyInvited
 	}
 
@@ -94,15 +98,15 @@ func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
 		return err
 	}
 
-	if invitingPlayer.Role() < g.InviteLevel {
+	if invitingPlayer.Role() < g.InviteLevel() {
 		return ErrInvitingPlayerRoleTooLow
 	}
 
-	g.InvitedUserIDs = append(g.InvitedUserIDs, invitedUserID)
+	g.invitedUserIDs = append(g.InvitedUserIDs(), invitedUserID)
 
 	g.AddEvent(grouppb.UserInvitedEvent, grouppb.UserInvited{
 		GroupID:   g.ID(),
-		GroupName: g.Name.Value(),
+		GroupName: g.Name().Value(),
 		UserID:    invitedUserID,
 	})
 
@@ -110,22 +114,22 @@ func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
 }
 
 func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
-	if !contains(g.InvitedUserIDs, userID) {
+	if !contains(g.InvitedUserIDs(), userID) {
 		return ErrUserNotInvitedInGroup
 	}
 
 	if accept {
 		player, err := g.findPlayerByUserID(userID)
 		if err != nil {
-			g.Players = append(g.Players, NewPlayer(userID, Active, Member))
+			g.players = append(g.Players(), NewPlayer(userID, Active, Member))
 		} else {
 			player.status = Active
 		}
 
-		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
+		g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
 		g.AddEvent(grouppb.UserAcceptedInvitationEvent, grouppb.UserAcceptedInvitation{GroupID: g.ID(), UserID: userID})
 	} else {
-		g.InvitedUserIDs = remove(g.InvitedUserIDs, userID)
+		g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
 	}
 
 	return nil
@@ -159,84 +163,6 @@ func (g *Group) UpdatePlayer(updatingUserID, updatedUserID string, newRole Role,
 	}
 
 	return nil
-}
-
-func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player) error {
-	if newStatus != Active && newStatus != Inactive {
-		return ErrInvalidStatus
-	}
-
-	if notParticipatesInGroup(updatedPlayer) {
-		return ErrInvalidStatus
-	}
-
-	if updatedPlayer.Role() == Master {
-		return ErrMasterStatusIsAlwaysActive
-	}
-
-	if updatingPlayer.UserID() != updatedPlayer.UserID() && updatingPlayer.Role() == Member {
-		return ErrMemberCanNotUpdate
-	}
-
-	updatedPlayer.status = newStatus
-
-	return nil
-}
-
-func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error {
-	if updatingPlayer.UserID() == updatedPlayer.UserID() {
-		return ErrUserCanNotSelfUpgrade
-	}
-
-	if updatingPlayer.Role() == Member {
-		return ErrMemberCanNotUpdate
-	}
-
-	switch newRole {
-	case Member:
-		if updatingPlayer.Role() != Master {
-			return ErrOnlyMasterCanDownGradeRoleToMember
-		}
-	case Master:
-		if updatingPlayer.Role() != Master {
-			return ErrOnlyMasterCanUpdateToMaster
-		}
-
-		if notParticipatesInGroup(updatedPlayer) {
-			return ErrInvalidStatus
-		}
-
-		updatingPlayer.role = Admin
-
-	case Admin:
-		if updatedPlayer.Role() == Master && updatingPlayer.Role() != Master {
-			return ErrMasterCanNotDowngradeOtherMaster
-		}
-	}
-
-	updatedPlayer.role = newRole
-
-	return nil
-}
-
-func contains(array []string, value string) bool {
-	for _, v := range array {
-		if v == value {
-			return true
-		}
-	}
-
-	return false
-}
-
-func remove(array []string, value string) []string {
-	for i, v := range array {
-		if v == value {
-			return append(array[:i], array[i+1:]...)
-		}
-	}
-
-	return array
 }
 
 func (g *Group) UserLeavesGroup(userID string) error {
@@ -285,10 +211,6 @@ func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
 	return true
 }
 
-func notParticipatesInGroup(player *Player) bool {
-	return player.Status() != Active && player.Status() != Inactive
-}
-
 func (g *Group) RemovePlayer(removeUserID, removingUserID string) error {
 	removePlayer, err := g.findPlayerByUserID(removeUserID)
 	if err != nil {
@@ -309,8 +231,106 @@ func (g *Group) RemovePlayer(removeUserID, removingUserID string) error {
 	g.AddEvent(grouppb.PlayerRemovedFromGroupEvent, grouppb.PlayerRemovedFromGroup{
 		GroupID:   g.ID(),
 		UserID:    removeUserID,
-		GroupName: g.Name.Value(),
+		GroupName: g.Name().Value(),
 	})
+
+	return nil
+}
+
+func (g *Group) Players() []*Player {
+	return g.players
+}
+
+func (g *Group) Name() *Name {
+	return g.name
+}
+
+func (g *Group) InvitedUserIDs() []string {
+	return g.invitedUserIDs
+}
+
+func (g *Group) InviteLevel() Role {
+	return g.inviteLevel
+}
+
+func notParticipatesInGroup(player *Player) bool {
+	return player.Status() != Active && player.Status() != Inactive
+}
+
+func remove(array []string, value string) []string {
+	for i, v := range array {
+		if v == value {
+			return append(array[:i], array[i+1:]...)
+		}
+	}
+
+	return array
+}
+
+func contains(array []string, value string) bool {
+	for _, v := range array {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
+}
+
+func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error {
+	if updatingPlayer.UserID() == updatedPlayer.UserID() {
+		return ErrUserCanNotSelfUpgrade
+	}
+
+	if updatingPlayer.Role() == Member {
+		return ErrMemberCanNotUpdate
+	}
+
+	switch newRole {
+	case Member:
+		if updatingPlayer.Role() != Master {
+			return ErrOnlyMasterCanDownGradeRoleToMember
+		}
+	case Master:
+		if updatingPlayer.Role() != Master {
+			return ErrOnlyMasterCanUpdateToMaster
+		}
+
+		if notParticipatesInGroup(updatedPlayer) {
+			return ErrInvalidStatus
+		}
+
+		updatingPlayer.role = Admin
+
+	case Admin:
+		if updatedPlayer.Role() == Master && updatingPlayer.Role() != Master {
+			return ErrMasterCanNotDowngradeOtherMaster
+		}
+	}
+
+	updatedPlayer.role = newRole
+
+	return nil
+}
+
+func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player) error {
+	if newStatus != Active && newStatus != Inactive {
+		return ErrInvalidStatus
+	}
+
+	if notParticipatesInGroup(updatedPlayer) {
+		return ErrInvalidStatus
+	}
+
+	if updatedPlayer.Role() == Master {
+		return ErrMasterStatusIsAlwaysActive
+	}
+
+	if updatingPlayer.UserID() != updatedPlayer.UserID() && updatingPlayer.Role() == Member {
+		return ErrMemberCanNotUpdate
+	}
+
+	updatedPlayer.status = newStatus
 
 	return nil
 }

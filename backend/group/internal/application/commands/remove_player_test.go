@@ -158,17 +158,17 @@ func removeGroupEventMatcher(groupID, userID string) interface{} {
 func createRemoveGroup(groupID, removeUserID, removingUserID string) *domain.Group {
 	name, _ := domain.NewName("Group Name")
 
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate(groupID, "Group"),
-		Name:           name,
-		Players:        []*domain.Player{domain.NewPlayer(removeUserID, domain.Active, domain.Member), domain.NewPlayer(removingUserID, domain.Active, domain.Master)},
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		groupID,
+		[]*domain.Player{domain.NewPlayer(removeUserID, domain.Active, domain.Member), domain.NewPlayer(removingUserID, domain.Active, domain.Master)},
+		name,
+		[]string{},
+		domain.Admin,
+	)
 }
 
 func removeGroupMatcher() interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.Players) == 2 && group.Players[0].Status() == domain.Removed
+		return len(group.Players()) == 2 && group.Players()[0].Status() == domain.Removed
 	})
 }

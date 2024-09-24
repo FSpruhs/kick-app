@@ -7,7 +7,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
-var ErrUserNotFound = fmt.Errorf("user not found")
+var ErrUserNotFound = errors.New("user not found")
 
 type GetGroup struct {
 	GroupID string
@@ -38,7 +38,7 @@ func (h GetGroupHandler) GetGroup(cmd *GetGroup) (*domain.GroupDetails, error) {
 
 	var notFoundUsers []string
 
-	for _, player := range group.Players {
+	for _, player := range group.Players() {
 		user, err := findUser(users, player.UserID())
 		if errors.Is(ErrUserNotFound, err) {
 			notFoundUsers = append(notFoundUsers, player.UserID())

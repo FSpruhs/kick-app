@@ -139,7 +139,7 @@ func TestInviteUserHandler_InviteUser(t *testing.T) {
 
 func inviteMatcher(invitedUserID string) interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.InvitedUserIDs) == 1 && group.InvitedUserIDs[0] == invitedUserID
+		return len(group.InvitedUserIDs()) == 1 && group.InvitedUserIDs()[0] == invitedUserID
 	})
 }
 
@@ -156,11 +156,11 @@ func inviteEventMatcher(groupID, userID string) interface{} {
 func createFoundGroup(groupID, invitingUserID string) *domain.Group {
 	name, _ := domain.NewName("Group Name")
 
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate(groupID, "Group"),
-		Name:           name,
-		Players:        []*domain.Player{domain.NewPlayer(invitingUserID, domain.Active, domain.Master)},
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		groupID,
+		[]*domain.Player{domain.NewPlayer(invitingUserID, domain.Active, domain.Master)},
+		name,
+		make([]string, 0),
+		domain.Admin,
+	)
 }

@@ -107,24 +107,24 @@ func TestCreateGroupHandler_CreateGroup(t *testing.T) {
 }
 
 func createExpectedGroup(name *domain.Name, userID string) *domain.Group {
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate("123", "Group"),
-		Name:           name,
-		Players:        []*domain.Player{domain.NewPlayer(userID, domain.Master, domain.Active)},
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		"123",
+		[]*domain.Player{domain.NewPlayer(userID, domain.Master, domain.Active)},
+		name,
+		make([]string, 0),
+		domain.Admin,
+	)
 }
 
 func groupMatcher(name *domain.Name, userID string) interface{} {
 	return mock.MatchedBy(func(g *domain.Group) bool {
-		return g.InviteLevel == domain.Admin &&
-			g.Name.Value() == name.Value() &&
-			len(g.Players) == 1 &&
-			g.Players[0].UserID() == userID &&
-			g.Players[0].Status() == domain.Active &&
-			g.Players[0].Role() == domain.Master &&
-			len(g.InvitedUserIDs) == 0
+		return g.InviteLevel() == domain.Admin &&
+			g.Name().Value() == name.Value() &&
+			len(g.Players()) == 1 &&
+			g.Players()[0].UserID() == userID &&
+			g.Players()[0].Status() == domain.Active &&
+			g.Players()[0].Role() == domain.Master &&
+			len(g.InvitedUserIDs()) == 0
 	})
 }
 

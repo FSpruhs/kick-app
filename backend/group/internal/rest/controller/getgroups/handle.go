@@ -44,7 +44,7 @@ func toResponse(groups []*domain.Group) []*Response {
 	for i, group := range groups {
 		response[i] = &Response{
 			ID:   group.ID(),
-			Name: group.Name.Value(),
+			Name: group.Name().Value(),
 		}
 	}
 

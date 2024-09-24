@@ -9,7 +9,8 @@ import (
 
 func TestNewGroup(t *testing.T) {
 	groupID := "test-group"
-	group := NewGroup(groupID)
+	name, _ := NewName("test-group")
+	group := NewGroup(groupID, []*Player{}, name, []string{}, Master)
 
 	assert.Equal(t, groupID, group.ID())
 }
@@ -18,10 +19,10 @@ func TestUserIDs(t *testing.T) {
 	userID1 := "test-user-1"
 	userID2 := "test-user-2"
 
-	group := NewGroup("test-group")
+	group, _ := CreateNewGroup("", "test-group")
 	user1 := NewPlayer(userID1, 0, 0)
 	user2 := NewPlayer(userID2, 0, 0)
-	group.Players = []*Player{user1, user2}
+	group.players = []*Player{user1, user2}
 
 	userIDs := group.UserIDs()
 
@@ -36,13 +37,13 @@ func TestCreateNewGroup(t *testing.T) {
 	group, err := CreateNewGroup(userID, groupName)
 
 	assert.NoError(t, err)
-	assert.Equal(t, groupName, group.Name.Value())
-	assert.Equal(t, 1, len(group.Players))
-	assert.Equal(t, userID, group.Players[0].UserID())
-	assert.Equal(t, 0, len(group.InvitedUserIDs))
-	assert.Equal(t, Role(Admin), group.InviteLevel)
-	assert.Equal(t, Role(Master), group.Players[0].Role())
-	assert.Equal(t, Status(Active), group.Players[0].Status())
+	assert.Equal(t, groupName, group.Name().Value())
+	assert.Equal(t, 1, len(group.Players()))
+	assert.Equal(t, userID, group.Players()[0].UserID())
+	assert.Equal(t, 0, len(group.InvitedUserIDs()))
+	assert.Equal(t, Role(Admin), group.InviteLevel())
+	assert.Equal(t, Role(Master), group.Players()[0].Role())
+	assert.Equal(t, Status(Active), group.Players()[0].Status())
 	assert.Equal(t, 1, len(group.Events()))
 	assert.Equal(t, group.ID(), group.Events()[0].Payload().(grouppb.GroupCreated).GroupID)
 	assert.Equal(t, userID, group.Events()[0].Payload().(grouppb.GroupCreated).UserIDs[0])
@@ -57,8 +58,8 @@ func TestInviteUser(t *testing.T) {
 	err := group.InviteUser(invitedUserID, userID)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(group.InvitedUserIDs))
-	assert.Equal(t, invitedUserID, group.InvitedUserIDs[0])
+	assert.Equal(t, 1, len(group.InvitedUserIDs()))
+	assert.Equal(t, invitedUserID, group.InvitedUserIDs()[0])
 	assert.Equal(t, 2, len(group.Events()))
 	assert.Equal(t, group.ID(), group.Events()[1].Payload().(grouppb.UserInvited).GroupID)
 	assert.Equal(t, invitedUserID, group.Events()[1].Payload().(grouppb.UserInvited).UserID)
@@ -69,7 +70,7 @@ func TestInviteUser_UserAlreadyInvited(t *testing.T) {
 	invitedUserID := "invited-user"
 
 	group, _ := CreateNewGroup(userID, "test-group")
-	group.InvitedUserIDs = []string{invitedUserID}
+	group.invitedUserIDs = []string{invitedUserID}
 
 	err := group.InviteUser(invitedUserID, userID)
 
@@ -94,7 +95,7 @@ func TestInviteUser_InvitingPlayerRoleTooLow(t *testing.T) {
 	invitedUserID := "invited-user"
 
 	group, _ := CreateNewGroup("", "test-group")
-	group.Players = append(group.Players, NewPlayer(userID, 0, 0))
+	group.players = append(group.Players(), NewPlayer(userID, 0, 0))
 
 	err := group.InviteUser(invitedUserID, userID)
 
@@ -105,16 +106,16 @@ func TestInviteUser_InvitingPlayerRoleTooLow(t *testing.T) {
 func TestHandleInvitedUserResponse(t *testing.T) {
 	userID := "test-user"
 	group, _ := CreateNewGroup("", "test-group")
-	group.InvitedUserIDs = []string{userID}
+	group.invitedUserIDs = []string{userID}
 
 	err := group.HandleInvitedUserResponse(userID, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(group.InvitedUserIDs))
-	assert.Equal(t, 2, len(group.Players))
-	assert.Equal(t, userID, group.Players[1].UserID())
-	assert.Equal(t, Status(Active), group.Players[1].Status())
-	assert.Equal(t, Role(Member), group.Players[1].Role())
+	assert.Equal(t, 0, len(group.InvitedUserIDs()))
+	assert.Equal(t, 2, len(group.Players()))
+	assert.Equal(t, userID, group.Players()[1].UserID())
+	assert.Equal(t, Status(Active), group.Players()[1].Status())
+	assert.Equal(t, Role(Member), group.Players()[1].Role())
 	assert.Equal(t, 2, len(group.Events()))
 	assert.Equal(t, group.ID(), group.Events()[1].Payload().(grouppb.UserAcceptedInvitation).GroupID)
 	assert.Equal(t, userID, group.Events()[1].Payload().(grouppb.UserAcceptedInvitation).UserID)
@@ -133,16 +134,16 @@ func TestHandleInvitedUserResponse_UserNotInvitedInGroup(t *testing.T) {
 func TestHandleInvitedUserResponse_UserAlreadyInGroup(t *testing.T) {
 	userID := "test-user"
 	group, _ := CreateNewGroup("", "test-group")
-	group.Players = append(group.Players, NewPlayer(userID, Leaved, Member))
-	group.InvitedUserIDs = []string{userID}
+	group.players = append(group.Players(), NewPlayer(userID, Leaved, Member))
+	group.invitedUserIDs = []string{userID}
 
 	err := group.HandleInvitedUserResponse(userID, true)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(group.Players))
-	assert.Equal(t, userID, group.Players[1].UserID())
-	assert.Equal(t, Status(Active), group.Players[1].Status())
-	assert.Equal(t, Role(Member), group.Players[1].Role())
+	assert.Equal(t, 2, len(group.Players()))
+	assert.Equal(t, userID, group.Players()[1].UserID())
+	assert.Equal(t, Status(Active), group.Players()[1].Status())
+	assert.Equal(t, Role(Member), group.Players()[1].Role())
 	assert.Equal(t, 2, len(group.Events()))
 	assert.Equal(t, group.ID(), group.Events()[1].Payload().(grouppb.UserAcceptedInvitation).GroupID)
 	assert.Equal(t, userID, group.Events()[1].Payload().(grouppb.UserAcceptedInvitation).UserID)
@@ -151,13 +152,13 @@ func TestHandleInvitedUserResponse_UserAlreadyInGroup(t *testing.T) {
 func TestHandleInvitedUserResponse_DeclineInvitation(t *testing.T) {
 	userID := "test-user"
 	group, _ := CreateNewGroup("", "test-group")
-	group.InvitedUserIDs = []string{userID}
+	group.invitedUserIDs = []string{userID}
 
 	err := group.HandleInvitedUserResponse(userID, false)
 
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(group.InvitedUserIDs))
-	assert.Equal(t, 1, len(group.Players))
+	assert.Equal(t, 0, len(group.InvitedUserIDs()))
+	assert.Equal(t, 1, len(group.Players()))
 	assert.Equal(t, 1, len(group.Events()))
 }
 
@@ -199,7 +200,7 @@ func TestUpdatePlayer(t *testing.T) {
 		group, _ := CreateNewGroup("", "test-group")
 		updatingPlayer := NewPlayer("1", test.updatingStatus, test.updatingRole)
 		updatedPlayer := NewPlayer("2", test.updatedStatus, test.updatedRole)
-		group.Players = []*Player{updatingPlayer, updatedPlayer}
+		group.players = []*Player{updatingPlayer, updatedPlayer}
 		err := group.UpdatePlayer(test.updatingUserID, test.updatedUserID, test.newRole, test.newStatus)
 
 		assert.Equal(t, test.expectedErr, err)
@@ -214,19 +215,19 @@ func TestUpdatePlayer(t *testing.T) {
 func TestUpdatePlayer_NewMaster(t *testing.T) {
 	group, _ := CreateNewGroup("1", "test-group")
 	updatedPlayer := NewPlayer("2", Active, Member)
-	group.Players = append(group.Players, updatedPlayer)
+	group.players = append(group.Players(), updatedPlayer)
 
 	err := group.UpdatePlayer("1", "2", Master, Active)
 
 	assert.NoError(t, err)
 	assert.Equal(t, Role(Master), updatedPlayer.Role())
-	assert.Equal(t, Role(Admin), group.Players[0].Role())
+	assert.Equal(t, Role(Admin), group.Players()[0].Role())
 }
 
 func TestUpdatePlayer_UserSetSelfToInactive(t *testing.T) {
 	group, _ := CreateNewGroup("1", "test-group")
 	updatedPlayer := NewPlayer("2", Active, Member)
-	group.Players = append(group.Players, updatedPlayer)
+	group.players = append(group.Players(), updatedPlayer)
 
 	err := group.UpdatePlayer("2", "2", Member, Inactive)
 
@@ -238,7 +239,7 @@ func TestUserLeavesGroup_Success(t *testing.T) {
 	leavingUserID := "2"
 	group, _ := CreateNewGroup("1", "test-group")
 	leavingPlayer := NewPlayer(leavingUserID, Active, Member)
-	group.Players = append(group.Players, leavingPlayer)
+	group.players = append(group.Players(), leavingPlayer)
 
 	err := group.UserLeavesGroup(leavingUserID)
 
@@ -261,7 +262,7 @@ func TestUserLeavesGroup_UserNotInGroup(t *testing.T) {
 func TestUserLeavesGroup_MasterCanNotLeaveGroup(t *testing.T) {
 	group, _ := CreateNewGroup("1", "test-group")
 	master := NewPlayer("1", Active, Master)
-	group.Players = append(group.Players, master)
+	group.players = append(group.Players(), master)
 
 	err := group.UserLeavesGroup("1")
 
@@ -272,7 +273,7 @@ func TestUserLeavesGroup_MasterCanNotLeaveGroup(t *testing.T) {
 func TestUserLeavesGroup_ErrWhenNotParticipatesInGroup(t *testing.T) {
 	group, _ := CreateNewGroup("1", "test-group")
 	player := NewPlayer("2", Removed, Member)
-	group.Players = append(group.Players, player)
+	group.players = append(group.Players(), player)
 
 	err := group.UserLeavesGroup("2")
 
@@ -296,7 +297,7 @@ func TestIsUserParticipateInTheGroup(t *testing.T) {
 		t.Run(fmt.Sprintf("TestIsUserParticipateInTheGroup: %s", test.status), func(t *testing.T) {
 			group, _ := CreateNewGroup("1", "test-group")
 			player := NewPlayer("2", test.status, Member)
-			group.Players = append(group.Players, player)
+			group.players = append(group.Players(), player)
 
 			assert.Equal(t, test.expected, group.IsUserParticipateInTheGroup("2"))
 		})
@@ -326,8 +327,8 @@ func TestRemovePlayer_Success(t *testing.T) {
 			removePlayer := NewPlayer("2", Active, test.removeRole)
 			removingPlayer := NewPlayer("3", Active, test.removingRole)
 
-			group.Players = append(group.Players, removePlayer)
-			group.Players = append(group.Players, removingPlayer)
+			group.players = append(group.Players(), removePlayer)
+			group.players = append(group.Players(), removingPlayer)
 
 			err := group.RemovePlayer("2", "3")
 

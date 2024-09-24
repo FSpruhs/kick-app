@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
-	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
@@ -115,17 +114,17 @@ func TestUpdatePlayerHandler_UpdatePlayer(t *testing.T) {
 func createUpdateGroup(groupID, updatedUserID, updatingUserID string) *domain.Group {
 	name, _ := domain.NewName("Group Name")
 
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate(groupID, "Group"),
-		Name:           name,
-		Players:        []*domain.Player{domain.NewPlayer(updatedUserID, domain.Active, domain.Member), domain.NewPlayer(updatingUserID, domain.Active, domain.Master)},
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		groupID,
+		[]*domain.Player{domain.NewPlayer(updatedUserID, domain.Active, domain.Member), domain.NewPlayer(updatingUserID, domain.Active, domain.Master)},
+		name,
+		make([]string, 0),
+		domain.Admin,
+	)
 }
 
 func updateGroupMatcher(newRole domain.Role, newStatus domain.Status) interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.Players) == 2 && group.Players[0].Status() == newStatus && group.Players[0].Role() == newRole
+		return len(group.Players()) == 2 && group.Players()[0].Status() == newStatus && group.Players()[0].Role() == newRole
 	})
 }

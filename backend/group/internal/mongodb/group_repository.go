@@ -111,8 +111,8 @@ func (g GroupRepository) FindAllByUserID(userID string) ([]*domain.Group, error)
 }
 
 func toDocument(group *domain.Group) *GroupDocument {
-	players := make([]*PlayerDocument, len(group.Players))
-	for i, p := range group.Players {
+	players := make([]*PlayerDocument, len(group.Players()))
+	for i, p := range group.Players() {
 		players[i] = &PlayerDocument{
 			UserID: p.UserID(),
 			Role:   p.Role().String(),
@@ -122,10 +122,10 @@ func toDocument(group *domain.Group) *GroupDocument {
 
 	return &GroupDocument{
 		ID:             group.ID(),
-		Name:           group.Name.Value(),
+		Name:           group.Name().Value(),
 		Players:        players,
-		InvitedUserIDs: group.InvitedUserIDs,
-		InviteLevel:    group.InviteLevel.String(),
+		InvitedUserIDs: group.InvitedUserIDs(),
+		InviteLevel:    group.InviteLevel().String(),
 	}
 }
 
@@ -158,11 +158,7 @@ func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 		return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 	}
 
-	group := domain.NewGroup(groupDoc.ID)
-	group.Name = name
-	group.Players = players
-	group.InvitedUserIDs = groupDoc.InvitedUserIDs
-	group.InviteLevel = inviteLevel
+	group := domain.NewGroup(groupDoc.ID, players, name, groupDoc.InvitedUserIDs, inviteLevel)
 
 	return group, nil
 }

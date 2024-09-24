@@ -57,6 +57,6 @@ func Handle(app application.App) gin.HandlerFunc {
 func toResponse(group *domain.Group) *Response {
 	return &Response{
 		ID:   group.ID(),
-		Name: group.Name.Value(),
+		Name: group.Name().Value(),
 	}
 }

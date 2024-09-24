@@ -141,7 +141,7 @@ func TestLeaveGroupHandler_LeaveGroup(t *testing.T) {
 
 func leaveGroupMatcher() interface{} {
 	return mock.MatchedBy(func(group *domain.Group) bool {
-		return len(group.Players) == 2 && group.Players[0].Status() == domain.Leaved
+		return len(group.Players()) == 2 && group.Players()[0].Status() == domain.Leaved
 	})
 }
 
@@ -158,11 +158,11 @@ func leaveGroupEventMatcher(groupID, userID string) interface{} {
 func createLeaveGroup(groupID, userID string) *domain.Group {
 	name, _ := domain.NewName("Group Name")
 
-	return &domain.Group{
-		Aggregate:      ddd.NewAggregate(groupID, "Group"),
-		Name:           name,
-		Players:        []*domain.Player{domain.NewPlayer(userID, domain.Active, domain.Member), domain.NewPlayer("master", domain.Active, domain.Master)},
-		InvitedUserIDs: make([]string, 0),
-		InviteLevel:    domain.Admin,
-	}
+	return domain.NewGroup(
+		groupID,
+		[]*domain.Player{domain.NewPlayer(userID, domain.Active, domain.Member), domain.NewPlayer("master", domain.Active, domain.Master)},
+		name,
+		make([]string, 0),
+		domain.Admin,
+	)
 }

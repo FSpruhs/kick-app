@@ -24,13 +24,18 @@ func (h GetGroupsByUserHandler) GetGroups(cmd *GetGroupsByUser) ([]*domain.Group
 		return nil, fmt.Errorf("getting groups for user %s: %w", cmd.UserID, err)
 	}
 
+	filteredGroups := filterGroups(cmd.UserID, groups)
+
+	return filteredGroups, nil
+}
+
+func filterGroups(userID string, groups []*domain.Group) []*domain.Group {
 	var filteredGroups []*domain.Group
 
 	for _, group := range groups {
-		if group.IsUserParticipateInTheGroup(cmd.UserID) {
+		if group.IsUserParticipateInTheGroup(userID) {
 			filteredGroups = append(filteredGroups, group)
 		}
 	}
-
-	return filteredGroups, nil
+	return filteredGroups
 }

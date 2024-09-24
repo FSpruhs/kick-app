@@ -78,22 +78,12 @@ func (g *Group) UserIDs() []string {
 	return userIDs
 }
 
-func (g *Group) findPlayerByUserID(userID string) (*Player, error) {
-	for _, p := range g.Players() {
-		if p.UserID() == userID {
-			return p, nil
-		}
-	}
-
-	return nil, ErrUserNotInGroup
-}
-
 func (g *Group) InviteUser(invitedUserID, invitingUserID string) error {
 	if contains(g.InvitedUserIDs(), invitedUserID) {
 		return ErrUserAlreadyInvited
 	}
 
-	invitingPlayer, err := g.findPlayerByUserID(invitingUserID)
+	invitingPlayer, err := findPlayerByUserID(g.Players(), invitingUserID)
 	if err != nil {
 		return err
 	}
@@ -119,29 +109,39 @@ func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
 	}
 
 	if accept {
-		player, err := g.findPlayerByUserID(userID)
-		if err != nil {
-			g.players = append(g.Players(), NewPlayer(userID, Active, Member))
-		} else {
-			player.status = Active
-		}
-
-		g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
-		g.AddEvent(grouppb.UserAcceptedInvitationEvent, grouppb.UserAcceptedInvitation{GroupID: g.ID(), UserID: userID})
-	} else {
-		g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
+		return g.acceptInvitation(userID)
 	}
+
+	g.rejectInvitation(userID)
 
 	return nil
 }
 
+func (g *Group) acceptInvitation(userID string) error {
+	player, err := findPlayerByUserID(g.Players(), userID)
+	if err != nil {
+		g.players = append(g.Players(), NewPlayer(userID, Active, Member))
+	} else {
+		player.status = Active
+	}
+
+	g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
+	g.AddEvent(grouppb.UserAcceptedInvitationEvent, grouppb.UserAcceptedInvitation{GroupID: g.ID(), UserID: userID})
+
+	return nil
+}
+
+func (g *Group) rejectInvitation(userID string) {
+	g.invitedUserIDs = remove(g.InvitedUserIDs(), userID)
+}
+
 func (g *Group) UpdatePlayer(updatingUserID, updatedUserID string, newRole Role, newStatus Status) error {
-	updatingPlayer, err := g.findPlayerByUserID(updatingUserID)
+	updatingPlayer, err := findPlayerByUserID(g.Players(), updatingUserID)
 	if err != nil {
 		return err
 	}
 
-	updatedPlayer, err := g.findPlayerByUserID(updatedUserID)
+	updatedPlayer, err := findPlayerByUserID(g.Players(), updatedUserID)
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (g *Group) UpdatePlayer(updatingUserID, updatedUserID string, newRole Role,
 }
 
 func (g *Group) UserLeavesGroup(userID string) error {
-	player, err := g.findPlayerByUserID(userID)
+	player, err := findPlayerByUserID(g.Players(), userID)
 	if err != nil {
 		return err
 	}
@@ -190,7 +190,7 @@ func (g *Group) UserLeavesGroup(userID string) error {
 }
 
 func (g *Group) UserForPlayerNotFound(userID string) {
-	player, err := g.findPlayerByUserID(userID)
+	player, err := findPlayerByUserID(g.Players(), userID)
 	if err != nil {
 		log.Printf("player not found: %s\n", userID)
 	}
@@ -199,7 +199,7 @@ func (g *Group) UserForPlayerNotFound(userID string) {
 }
 
 func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
-	player, err := g.findPlayerByUserID(userID)
+	player, err := findPlayerByUserID(g.Players(), userID)
 	if err != nil {
 		return false
 	}
@@ -212,12 +212,12 @@ func (g *Group) IsUserParticipateInTheGroup(userID string) bool {
 }
 
 func (g *Group) RemovePlayer(removeUserID, removingUserID string) error {
-	removePlayer, err := g.findPlayerByUserID(removeUserID)
+	removePlayer, err := findPlayerByUserID(g.Players(), removeUserID)
 	if err != nil {
 		return err
 	}
 
-	removingPlayer, err := g.findPlayerByUserID(removingUserID)
+	removingPlayer, err := findPlayerByUserID(g.Players(), removingUserID)
 	if err != nil {
 		return err
 	}
@@ -275,6 +275,16 @@ func contains(array []string, value string) bool {
 	}
 
 	return false
+}
+
+func findPlayerByUserID(players []*Player, userID string) (*Player, error) {
+	for _, p := range players {
+		if p.UserID() == userID {
+			return p, nil
+		}
+	}
+
+	return nil, ErrUserNotInGroup
 }
 
 func updatePlayerRole(newRole Role, updatingPlayer, updatedPlayer *Player) error {

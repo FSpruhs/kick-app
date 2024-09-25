@@ -12,6 +12,7 @@ import (
 type AppConfig struct {
 	EnvMongoURI  string
 	DatabaseName string
+	GinPort      string
 	RPC          rpc.Config
 }
 
@@ -28,5 +29,6 @@ func InitConfig() AppConfig {
 			Port: os.Getenv("GRPC_PORT"),
 			Host: os.Getenv("GRPC_HOST"),
 		},
+		GinPort: os.Getenv("GIN_PORT"),
 	}
 }

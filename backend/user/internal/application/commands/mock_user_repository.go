@@ -37,6 +37,7 @@ func (m *MockUserRepository) FindByEmail(email *domain.Email) (*domain.User, err
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
@@ -45,10 +46,12 @@ func (m *MockUserRepository) Create(user *domain.User) (*domain.User, error) {
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
 func (m *MockUserRepository) CountByEmail(email *domain.Email) (int, error) {
 	args := m.Called(email)
+
 	return args.Int(0), args.Error(1)
 }

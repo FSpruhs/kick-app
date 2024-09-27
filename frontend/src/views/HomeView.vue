@@ -5,8 +5,10 @@ import { onMounted, ref } from 'vue';
 import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupRestService';
 import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
+import { useAuthStore } from '@/store/authStore';
 
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const messageStore = useMessageStore();
 const router = useRouter();
 const groupData = ref<GroupResponse>([]);
@@ -86,6 +88,18 @@ onMounted(() => {
         </v-card>
       </v-sheet>
     </v-container>
+
+    <h3>UserName: {{ authStore.getAuthenticatedData().userName }}</h3>
+    <h3>Authenticated: {{ authStore.getAuthenticatedData().authenticated }}</h3>
+    <h3>UserID: {{ authStore.getAuthenticatedData().userId }}</h3>
+
+    <h3>Email: {{ authStore.getAuthenticatedData().email }}</h3>
+
+    <h3>Roles: {{ authStore.getAuthenticatedData().roles }}</h3>
+
+    <h3>Token: {{ authStore.getAuthenticatedData().token }}</h3>
+
+    <h3>Refresher Token: {{ authStore.getAuthenticatedData().refreshToken }}</h3>
   </v-app>
 </template>
 

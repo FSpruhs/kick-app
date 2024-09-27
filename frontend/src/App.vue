@@ -2,9 +2,11 @@
 import { RouterView, useRouter } from 'vue-router';
 import { useUserStore } from '@/store/UserStore';
 import { useMessageStore } from '@/store/MessageStore';
+import { useAuthStore } from '@/store/authStore';
 
 const router = useRouter();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const messageStore = useMessageStore();
 
 function navigateToHome() {
@@ -12,7 +14,8 @@ function navigateToHome() {
 }
 
 function logout() {
-  userStore.clearUser();
+  //userStore.clearUser();
+  authStore.logout();
   router.push({ name: 'Login' });
 }
 </script>

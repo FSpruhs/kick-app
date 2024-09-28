@@ -34,16 +34,14 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App);
+app.use(router);
+app.use(vuetify);
+app.use(pinia);
 
 keycloak
-  .init({ onLoad: 'login-required' })
+  .init({ onLoad: 'check-sso' })
   .then((authenticated) => {
     if (authenticated) {
-      app.use(router);
-      app.use(vuetify);
-      app.use(pinia);
-      app.mount('#app');
-
       const authStore = useAuthStore();
 
       authStore.setAuthData({
@@ -55,10 +53,11 @@ keycloak
         email: keycloak.tokenParsed?.email ?? '',
         authenticated: true
       });
-    } else {
-      window.location.reload();
     }
+
+    app.mount('#app');
   })
+
   .catch(() => {
     console.error('Keycloak initialization failed:');
   });

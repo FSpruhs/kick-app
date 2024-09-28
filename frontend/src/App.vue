@@ -16,7 +16,7 @@ function navigateToHome() {
 function logout() {
   //userStore.clearUser();
   authStore.logout();
-  router.push({ name: 'Login' });
+  router.push({ name: 'Index' });
 }
 </script>
 

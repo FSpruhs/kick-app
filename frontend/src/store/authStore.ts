@@ -11,7 +11,7 @@ export const useAuthStore = defineStore('auth', {
       this.authData = authData;
     },
     logout() {
-      keycloak.logout();
+      keycloak.logout({ redirectUri: 'http://localhost:5173/' });
       this.authenticated = false;
       this.userInfo = null;
     },

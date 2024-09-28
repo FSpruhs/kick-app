@@ -10,12 +10,16 @@ export const useAuthStore = defineStore('auth', {
     setAuthData(authData: AuthData) {
       this.authData = authData;
     },
+    updateToken(token: string, refreshToken: string) {
+      this.authData!.token = token;
+      this.authData!.refreshToken = refreshToken;
+    },
     logout() {
       keycloak.logout({ redirectUri: 'http://localhost:5173/' });
       this.authenticated = false;
       this.userInfo = null;
     },
-    getAuthenticatedData() {
+    getAuthenticatedData(): AuthData | null {
       return this.authData;
     }
   },

@@ -1,4 +1,4 @@
-import { apiClient } from '@/services/axiosService';
+import apiClient from '@/services/axiosService';
 
 export interface Message {
   id: string;

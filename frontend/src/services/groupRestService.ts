@@ -1,4 +1,4 @@
-import { apiClient } from '@/services/axiosService';
+import apiClient from '@/services/axiosService';
 
 interface GroupPayload {
   name: string;

@@ -2,10 +2,12 @@ package commands
 
 import (
 	"errors"
-	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
+
+	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 )
 
 func TestUpdatePlayerHandler_UpdatePlayer(t *testing.T) {

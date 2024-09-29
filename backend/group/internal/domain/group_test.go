@@ -2,9 +2,11 @@ package domain
 
 import (
 	"fmt"
-	"github.com/FSpruhs/kick-app/backend/group/grouppb"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 )
 
 func TestNewGroup(t *testing.T) {

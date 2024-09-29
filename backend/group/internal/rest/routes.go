@@ -12,10 +12,12 @@ import (
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/leavegroup"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/removeuser"
 	"github.com/FSpruhs/kick-app/backend/group/internal/rest/controller/updateplayer"
+	"github.com/FSpruhs/kick-app/backend/internal/ginconfig"
 )
 
 func GroupRouter(router *gin.Engine, app application.App) {
 	api := router.Group("/api/v1")
+	api.Use(ginconfig.JWTMiddleware())
 	{
 		api.POST("/group", creategroup.Handle(app))
 		api.GET("/group/user/:userId", getgroups.Handle(app))

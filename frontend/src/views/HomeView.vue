@@ -6,6 +6,7 @@ import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupR
 import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
 import { useAuthStore } from '@/store/authStore';
+import keycloak from '../services/keycloakService';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
@@ -92,6 +93,7 @@ onMounted(() => {
     <h3>UserName: {{ authStore.getAuthenticatedData().userName }}</h3>
     <h3>Authenticated: {{ authStore.getAuthenticatedData().authenticated }}</h3>
     <h3>UserID: {{ authStore.getAuthenticatedData().userId }}</h3>
+    <h3>clientId: {{ keycloak.clientId }}</h3>
 
     <h3>Email: {{ authStore.getAuthenticatedData().email }}</h3>
 

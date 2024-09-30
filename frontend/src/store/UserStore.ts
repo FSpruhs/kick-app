@@ -13,6 +13,14 @@ export const useUserStore = defineStore('user', {
       localStorage.setItem(LOCAL_STORAGE_NAME, JSON.stringify(this.user));
     },
     getUser() {
+      if (!this.user) {
+        return {
+          id: 'dummy',
+          name: 'dummy',
+          email: 'dummy',
+          roles: []
+        };
+      }
       return this.user;
     },
     clearUser() {

@@ -71,7 +71,7 @@ func (a *app) waitForWeb(ctx context.Context) error {
 	ginGroup, gCtx := errgroup.WithContext(ctx)
 
 	ginGroup.Go(func() error {
-		if err := a.router.Run(":" + a.Config().GinPort); err != nil {
+		if err := a.router.Run(":" + a.Config().Gin.Port); err != nil {
 			return fmt.Errorf("starting web server: %w", err)
 		}
 

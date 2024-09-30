@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/FSpruhs/kick-app/backend/internal/ginconfig"
 	"log"
 	"os"
 
@@ -12,8 +13,8 @@ import (
 type AppConfig struct {
 	EnvMongoURI  string
 	DatabaseName string
-	GinPort      string
 	RPC          rpc.Config
+	Gin          ginconfig.Config
 }
 
 func InitConfig() AppConfig {
@@ -29,6 +30,10 @@ func InitConfig() AppConfig {
 			Port: os.Getenv("GRPC_PORT"),
 			Host: os.Getenv("GRPC_HOST"),
 		},
-		GinPort: os.Getenv("GIN_PORT"),
+		Gin: ginconfig.Config{
+			Port:           os.Getenv("GIN_PORT"),
+			RealmConfigURL: os.Getenv("REALM_CONFIG_URL"),
+			ClientID:       os.Getenv("CLIENT_ID"),
+		},
 	}
 }

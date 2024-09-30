@@ -85,6 +85,7 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !keycloak.authenticated) {
     keycloak.login().then((authenticated) => {
+      console.log(keycloak.clientId);
       if (authenticated) {
         const authStore = useAuthStore();
 

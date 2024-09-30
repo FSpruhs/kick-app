@@ -299,7 +299,17 @@
           "attributes": {}
         }
       ],
-      "kick": [],
+      "kick": [
+        {
+          "id": "882d01eb-bf7f-488e-822f-1a71752be6a0",
+          "name": "member",
+          "description": "member of the kick app",
+          "composite": false,
+          "clientRole": true,
+          "containerId": "2763eaee-9880-40b4-bc11-b24c3a554a3d",
+          "attributes": {}
+        }
+      ],
       "security-admin-console": [],
       "admin-cli": [],
       "account-console": [],
@@ -661,7 +671,7 @@
       "description": "",
       "rootUrl": "",
       "adminUrl": "",
-      "baseUrl": "http://localhost:8080/",
+      "baseUrl": "http://localhost:8080",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
@@ -693,6 +703,22 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
+      "protocolMappers": [
+        {
+          "id": "96e83de1-fc77-48be-b40e-eee2fe3f7c60",
+          "name": "aud-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "kick",
+            "id.token.claim": "false",
+            "lightweight.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ],
       "defaultClientScopes": [
         "web-origins",
         "acr",

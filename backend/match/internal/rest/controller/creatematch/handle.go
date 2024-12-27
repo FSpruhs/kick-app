@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+
 	"github.com/FSpruhs/kick-app/backend/match/internal/application"
 	"github.com/FSpruhs/kick-app/backend/match/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 // Handle

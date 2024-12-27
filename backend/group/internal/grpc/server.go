@@ -3,10 +3,11 @@ package grpc
 import (
 	"context"
 
+	"google.golang.org/grpc"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
-	"google.golang.org/grpc"
 )
 
 type server struct {

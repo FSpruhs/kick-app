@@ -1,12 +1,12 @@
 package config
 
 import (
-	"github.com/FSpruhs/kick-app/backend/internal/ginconfig"
 	"log"
 	"os"
 
 	"github.com/joho/godotenv"
 
+	"github.com/FSpruhs/kick-app/backend/internal/ginconfig"
 	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 )
 

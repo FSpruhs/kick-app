@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"google.golang.org/grpc"
+
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
 	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
-	"google.golang.org/grpc"
 )
 
 type GroupRepository struct {

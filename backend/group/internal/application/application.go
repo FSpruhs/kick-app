@@ -24,6 +24,7 @@ type Commands interface {
 type Queries interface {
 	GetGroups(cmd *queries.GetGroupsByUser) ([]*domain.Group, error)
 	GetGroup(cmd *queries.GetGroup) (*domain.GroupDetails, error)
+	IsPlayerActive(cmd *queries.IsPlayerActive) bool
 }
 
 type Application struct {
@@ -43,6 +44,7 @@ type appCommands struct {
 type appQueries struct {
 	queries.GetGroupsByUserHandler
 	queries.GetGroupHandler
+	queries.IsPlayerActiveHandler
 }
 
 var _ App = (*Application)(nil)
@@ -64,6 +66,7 @@ func New(
 		appQueries: appQueries{
 			GetGroupsByUserHandler: queries.NewGetGroupsByUserHandler(groups),
 			GetGroupHandler:        queries.NewGetGroupHandler(groups, users),
+			IsPlayerActiveHandler:  queries.NewIsPlayerActiveHandler(groups),
 		},
 	}
 }

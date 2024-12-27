@@ -237,6 +237,15 @@ func (g *Group) RemovePlayer(removeUserID, removingUserID string) error {
 	return nil
 }
 
+func (g *Group) IsActivePlayer(userID string) bool {
+	player, err := findPlayerByUserID(g.Players(), userID)
+	if err != nil {
+		return false
+	}
+
+	return player.Status() == Active
+}
+
 func (g *Group) Players() []*Player {
 	return g.players
 }

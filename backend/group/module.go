@@ -26,5 +26,9 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 
 	rest.GroupRouter(mono.Router(), app)
 
+	if err := grpc.RegisterServer(app, mono.RPC()); err != nil {
+		return fmt.Errorf("register group server: %w", err)
+	}
+
 	return nil
 }

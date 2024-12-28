@@ -31,5 +31,10 @@ func (h CreateMatchHandler) CreateMatch(cmd *CreateMatch) (*domain.Match, error)
 	}
 
 	match := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount)
+
+	if err := h.MatchRepository.Save(match); err != nil {
+		return nil, fmt.Errorf("saving match: %w", err)
+	}
+
 	return match, nil
 }

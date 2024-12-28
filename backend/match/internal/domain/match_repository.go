@@ -1,3 +1,5 @@
 package domain
 
-type MatchRepository interface{}
+type MatchRepository interface {
+	Save(match *Match) error
+}

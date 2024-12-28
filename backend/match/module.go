@@ -22,7 +22,7 @@ func (m *Module) Startup(mono monolith.Monolith) error {
 
 	groups := grpc.NewGroupRepository(conn)
 
-	app := application.New(matches, groups)
+	app := application.New(matches, groups, mono.EventDispatcher())
 
 	rest.MatchRoutes(mono.Router(), app)
 

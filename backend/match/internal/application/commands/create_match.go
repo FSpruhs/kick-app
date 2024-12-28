@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
 )
 
@@ -18,10 +19,15 @@ type CreateMatch struct {
 type CreateMatchHandler struct {
 	domain.MatchRepository
 	domain.GroupRepository
+	ddd.EventPublisher[ddd.AggregateEvent]
 }
 
-func NewCreateMatchHandler(match domain.MatchRepository, groups domain.GroupRepository) CreateMatchHandler {
-	return CreateMatchHandler{match, groups}
+func NewCreateMatchHandler(
+	matches domain.MatchRepository,
+	groups domain.GroupRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+) CreateMatchHandler {
+	return CreateMatchHandler{matches, groups, eventPublisher}
 }
 
 func (h CreateMatchHandler) CreateMatch(cmd *CreateMatch) (*domain.Match, error) {
@@ -30,10 +36,14 @@ func (h CreateMatchHandler) CreateMatch(cmd *CreateMatch) (*domain.Match, error)
 		return nil, fmt.Errorf("user %s is not active in group %s", cmd.UserID, cmd.GroupID)
 	}
 
-	match := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount)
+	match := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount, cmd.GroupID)
 
 	if err := h.MatchRepository.Save(match); err != nil {
 		return nil, fmt.Errorf("saving match: %w", err)
+	}
+
+	if err := h.EventPublisher.Publish(match.Events()...); err != nil {
+		return nil, fmt.Errorf("publishing match created event: %w", err)
 	}
 
 	return match, nil

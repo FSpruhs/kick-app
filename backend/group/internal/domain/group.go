@@ -246,6 +246,21 @@ func (g *Group) IsActivePlayer(userID string) bool {
 	return player.Status() == Active
 }
 
+func (g *Group) MatchCreatedForGroup(matchID string) {
+	activePlayers := make([]string, 0)
+	for _, p := range g.Players() {
+		if p.Status() == Active {
+			activePlayers = append(activePlayers, p.UserID())
+		}
+	}
+
+	g.AddEvent(grouppb.MatchCreatedForGroupEvent, grouppb.MatchCreatedForGroup{
+		GroupID:         g.ID(),
+		MatchID:         matchID,
+		ActivePlayerIDs: activePlayers,
+	})
+}
+
 func (g *Group) Players() []*Player {
 	return g.players
 }

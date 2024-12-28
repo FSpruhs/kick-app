@@ -1,6 +1,7 @@
 package application
 
 import (
+	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/match/internal/application/commands"
 	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
 )
@@ -29,10 +30,14 @@ type appQueries struct{}
 
 var _ App = (*Application)(nil)
 
-func New(matches domain.MatchRepository, groups domain.GroupRepository) *Application {
+func New(
+	matches domain.MatchRepository,
+	groups domain.GroupRepository,
+	eventPublisher ddd.EventPublisher[ddd.AggregateEvent],
+) *Application {
 	return &Application{
 		appCommands: appCommands{
-			CreateMatchHandler: commands.NewCreateMatchHandler(matches, groups),
+			CreateMatchHandler: commands.NewCreateMatchHandler(matches, groups, eventPublisher),
 		},
 		appQueries: appQueries{},
 	}

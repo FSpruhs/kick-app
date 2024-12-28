@@ -6,6 +6,7 @@ const (
 	UserAcceptedInvitationEvent = "group.UserAcceptedInvitation"
 	PlayerLeavesGroupEvent      = "group.PlayerLeavesGroup"
 	PlayerRemovedFromGroupEvent = "group.PlayerRemoved"
+	MatchCreatedForGroupEvent   = "group.MatchCreatedForGroup"
 )
 
 type GroupCreated struct {
@@ -33,4 +34,10 @@ type PlayerRemovedFromGroup struct {
 	GroupID   string
 	UserID    string
 	GroupName string
+}
+
+type MatchCreatedForGroup struct {
+	GroupID         string
+	MatchID         string
+	ActivePlayerIDs []string
 }

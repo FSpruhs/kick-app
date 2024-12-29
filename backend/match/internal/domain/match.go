@@ -3,9 +3,10 @@ package domain
 import (
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/FSpruhs/kick-app/backend/internal/ddd"
 	"github.com/FSpruhs/kick-app/backend/match/matchpb"
-	"github.com/google/uuid"
 )
 
 const MatchAggregate = "match.MatchAggregate"

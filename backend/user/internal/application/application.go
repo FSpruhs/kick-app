@@ -44,7 +44,10 @@ type appQueries struct {
 
 var _ App = (*Application)(nil)
 
-func New(users domain.UserRepository, messages domain.MessageRepository) *Application {
+func New(
+	users domain.UserRepository,
+	messages domain.MessageRepository,
+) *Application {
 	return &Application{
 		appCommands: appCommands{
 			CreateUserHandler:  commands.NewCreateUserHandler(users),

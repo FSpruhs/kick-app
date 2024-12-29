@@ -3,6 +3,7 @@ package updateplayer
 import (
 	"net/http"
 
+	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 
@@ -37,7 +38,27 @@ func Handle(app application.App) gin.HandlerFunc {
 			return
 		}
 
-		command := commands.UpdatePlayer{}
+		role, err := domain.ToRole(message.Role)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
+
+			return
+		}
+
+		status, err := domain.ToStatus(message.Status)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, context.Error(err))
+
+			return
+		}
+
+		command := commands.UpdatePlayer{
+			GroupID:        message.GroupID,
+			UpdatingUserID: message.UpdatingUserID,
+			UpdatedUserID:  message.UpdatedUserID,
+			NewRole:        role,
+			NewStatus:      status,
+		}
 
 		if err := app.UpdatePlayer(&command); err != nil {
 			context.JSON(http.StatusInternalServerError, context.Error(err))

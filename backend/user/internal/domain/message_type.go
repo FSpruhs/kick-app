@@ -5,6 +5,7 @@ type MessageType int
 const (
 	GroupInvitation = iota
 	RemovedFromGroup
+	MatchInvitation
 )
 
 func (mt MessageType) String() string {
@@ -13,6 +14,8 @@ func (mt MessageType) String() string {
 		return "groupInvitation"
 	case RemovedFromGroup:
 		return "removedFromGroup"
+	case MatchInvitation:
+		return "matchInvitation"
 	default:
 		return "unknown"
 	}

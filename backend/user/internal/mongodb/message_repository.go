@@ -17,6 +17,7 @@ type MessageDocument struct {
 	ID         string             `bson:"_id,omitempty"`
 	UserID     string             `json:"userId,omitempty"`
 	GroupID    string             `json:"groupId,omitempty"`
+	MatchID    string             `json:"matchId,omitempty"`
 	Content    string             `json:"content,omitempty"`
 	Type       domain.MessageType `json:"type,omitempty"`
 	OccurredAt time.Time          `json:"occurredAt,omitempty"`
@@ -105,6 +106,7 @@ func toDocument(message *domain.Message) *MessageDocument {
 		ID:         message.ID,
 		UserID:     message.UserID,
 		GroupID:    message.GroupID,
+		MatchID:    message.MatchID,
 		Content:    message.Content,
 		Type:       message.Type,
 		OccurredAt: message.OccurredAt,
@@ -117,6 +119,7 @@ func toMessageDomain(messageDoc *MessageDocument) *domain.Message {
 		ID:         messageDoc.ID,
 		UserID:     messageDoc.UserID,
 		GroupID:    messageDoc.GroupID,
+		MatchID:    messageDoc.MatchID,
 		Content:    messageDoc.Content,
 		Type:       messageDoc.Type,
 		OccurredAt: messageDoc.OccurredAt,

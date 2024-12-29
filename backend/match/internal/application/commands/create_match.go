@@ -33,7 +33,7 @@ func NewCreateMatchHandler(
 func (h CreateMatchHandler) CreateMatch(cmd *CreateMatch) (*domain.Match, error) {
 	isPlayerActive, err := h.IsPlayerActive(cmd.UserID, cmd.GroupID)
 	if err != nil || !isPlayerActive {
-		return nil, fmt.Errorf("user %s is not active in group %s", cmd.UserID, cmd.GroupID)
+		return nil, fmt.Errorf("checking if player is active: %w", err)
 	}
 
 	match := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount, cmd.GroupID)

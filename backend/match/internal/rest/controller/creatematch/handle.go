@@ -48,13 +48,17 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		result, err := app.CreateMatch(command)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, context.Error(err))
+
+			return
+		}
 
 		context.JSON(http.StatusCreated, toMessage(result))
 	}
 }
 
 func toCommand(message *Message) (*commands.CreateMatch, error) {
-
 	dateTime, err := time.Parse(time.RFC3339, message.Begin)
 	if err != nil {
 		return nil, fmt.Errorf("parse date time: %w", err)
@@ -80,5 +84,7 @@ func toCommand(message *Message) (*commands.CreateMatch, error) {
 }
 
 func toMessage(match *domain.Match) *Response {
-	return &Response{}
+	return &Response{
+		ID: match.ID(),
+	}
 }

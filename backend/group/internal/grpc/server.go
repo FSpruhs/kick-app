@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc"
 
@@ -23,9 +24,22 @@ func RegisterServer(app application.App, registrar grpc.ServiceRegistrar) error 
 	return nil
 }
 
-func (s server) IsActivePlayer(_ context.Context, request *grouppb.IsActivePlayerRequest) (*grouppb.IsActivePlayerResponse, error) {
+func (s server) IsActivePlayer(
+	_ context.Context,
+	request *grouppb.IsActivePlayerRequest,
+) (*grouppb.IsActivePlayerResponse, error) {
 	query := &queries.IsPlayerActive{UserID: request.GetUserId(), GroupID: request.GetGroupId()}
 	result := s.app.IsPlayerActive(query)
 
 	return &grouppb.IsActivePlayerResponse{IsActive: result}, nil
+}
+
+func (s server) GetActivePlayersByGroupID(_ context.Context, request *grouppb.GetActivePlayersByGroupIDRequest) (*grouppb.GetActivePlayersByGroupIDResponse, error) {
+	query := &queries.GetActivePlayersByGroup{GroupID: request.GetGroupId()}
+	result, err := s.app.GetActivePlayersByGroup(query)
+	if err != nil {
+		return nil, fmt.Errorf("get active players by group id: %w", err)
+	}
+
+	return &grouppb.GetActivePlayersByGroupIDResponse{UserIds: result}, nil
 }

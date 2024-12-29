@@ -25,6 +25,7 @@ type Queries interface {
 	GetGroups(cmd *queries.GetGroupsByUser) ([]*domain.Group, error)
 	GetGroup(cmd *queries.GetGroup) (*domain.GroupDetails, error)
 	IsPlayerActive(cmd *queries.IsPlayerActive) bool
+	GetActivePlayersByGroup(cmd *queries.GetActivePlayersByGroup) ([]string, error)
 }
 
 type Application struct {
@@ -45,6 +46,7 @@ type appQueries struct {
 	queries.GetGroupsByUserHandler
 	queries.GetGroupHandler
 	queries.IsPlayerActiveHandler
+	queries.GetActivePlayersByGroupHandler
 }
 
 var _ App = (*Application)(nil)
@@ -64,9 +66,10 @@ func New(
 			RemovePlayerHandler:        commands.NewRemovePlayerHandler(groups, eventPublisher),
 		},
 		appQueries: appQueries{
-			GetGroupsByUserHandler: queries.NewGetGroupsByUserHandler(groups),
-			GetGroupHandler:        queries.NewGetGroupHandler(groups, users),
-			IsPlayerActiveHandler:  queries.NewIsPlayerActiveHandler(groups),
+			GetGroupsByUserHandler:         queries.NewGetGroupsByUserHandler(groups),
+			GetGroupHandler:                queries.NewGetGroupHandler(groups, users),
+			IsPlayerActiveHandler:          queries.NewIsPlayerActiveHandler(groups),
+			GetActivePlayersByGroupHandler: queries.NewGetActivePlayersByGroupHandler(groups),
 		},
 	}
 }

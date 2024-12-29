@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/FSpruhs/kick-app/backend/group/grouppb"
-	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
+	"github.com/FSpruhs/kick-app/backend/user/internal/domain"
 )
 
 type GroupRepository struct {
@@ -20,14 +20,14 @@ func NewGroupRepository(conn *grpc.ClientConn) *GroupRepository {
 	return &GroupRepository{client: grouppb.NewGroupServiceClient(conn)}
 }
 
-func (r *GroupRepository) IsPlayerActive(userID, groupID string) (bool, error) {
-	resp, err := r.client.IsActivePlayer(
+func (r *GroupRepository) FindPlayersByGroup(groupID string) ([]string, error) {
+	resp, err := r.client.GetActivePlayersByGroupID(
 		context.Background(),
-		&grouppb.IsActivePlayerRequest{UserId: userID, GroupId: groupID},
+		&grouppb.GetActivePlayersByGroupIDRequest{GroupId: groupID},
 	)
 	if err != nil {
-		return false, fmt.Errorf("is player active %s %s: %w", userID, groupID, err)
+		return nil, fmt.Errorf("get active players by group id: %w", err)
 	}
 
-	return resp.GetIsActive(), nil
+	return resp.GetUserIds(), nil
 }

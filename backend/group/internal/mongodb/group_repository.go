@@ -134,7 +134,6 @@ func toDomain(groupDoc *GroupDocument) (*domain.Group, error) {
 	if err != nil {
 		return nil, fmt.Errorf("while mapping group document do domain: %w", err)
 	}
-
 	players := make([]*domain.Player, len(groupDoc.Players))
 
 	for index, player := range groupDoc.Players {

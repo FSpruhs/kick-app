@@ -37,5 +37,6 @@ func filterGroups(userID string, groups []*domain.Group) []*domain.Group {
 			filteredGroups = append(filteredGroups, group)
 		}
 	}
+
 	return filteredGroups
 }

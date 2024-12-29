@@ -50,6 +50,7 @@ func toResponse(messages []*domain.Message) []*Response {
 			ID:         message.ID,
 			UserID:     message.UserID,
 			GroupID:    message.GroupID,
+			MatchID:    message.MatchID,
 			Content:    message.Content,
 			Type:       message.Type.String(),
 			OccurredAt: message.OccurredAt,

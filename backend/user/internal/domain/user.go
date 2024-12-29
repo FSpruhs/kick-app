@@ -54,6 +54,7 @@ func (u *User) LeaveGroup(groupID string) {
 	for i, id := range u.Groups {
 		if id == groupID {
 			u.Groups = append(u.Groups[:i], u.Groups[i+1:]...)
+
 			return
 		}
 	}

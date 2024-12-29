@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/FSpruhs/kick-app/backend/match/internal/domain"
 )
 
 const timeout = 10 * time.Second

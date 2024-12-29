@@ -1,3 +1,5 @@
 package creatematch
 
-type Response struct{}
+type Response struct {
+	ID string `json:"id"`
+}

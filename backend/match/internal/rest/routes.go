@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/FSpruhs/kick-app/backend/match/internal/rest/controller/invitationresponse"
 	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/match/internal/application"
@@ -11,6 +12,7 @@ func MatchRoutes(router *gin.Engine, app application.App) {
 	api := router.Group("/api/v1")
 	{
 		api.POST("/match", creatematch.Handle(app))
+		api.POST("/match/registration", invitationresponse.Handle(app))
 	}
 
 }

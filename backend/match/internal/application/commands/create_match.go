@@ -36,7 +36,10 @@ func (h CreateMatchHandler) CreateMatch(cmd *CreateMatch) (*domain.Match, error)
 		return nil, fmt.Errorf("checking if player is active: %w", err)
 	}
 
-	match := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount, cmd.GroupID)
+	match, err := domain.NewMatch(cmd.Begin, *cmd.Location, *cmd.PlayerCount, cmd.GroupID)
+	if err != nil {
+		return nil, fmt.Errorf("creating match: %w", err)
+	}
 
 	if err := h.MatchRepository.Save(match); err != nil {
 		return nil, fmt.Errorf("saving match: %w", err)

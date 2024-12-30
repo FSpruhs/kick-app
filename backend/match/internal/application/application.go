@@ -13,6 +13,7 @@ type App interface {
 
 type Commands interface {
 	CreateMatch(cmd *commands.CreateMatch) (*domain.Match, error)
+	RespondToInvitation(cmd *commands.RespondToInvitation) error
 }
 
 type Queries interface{}
@@ -24,6 +25,7 @@ type Application struct {
 
 type appCommands struct {
 	commands.CreateMatchHandler
+	commands.RespondToInvitationHandler
 }
 
 type appQueries struct{}
@@ -37,7 +39,8 @@ func New(
 ) *Application {
 	return &Application{
 		appCommands: appCommands{
-			CreateMatchHandler: commands.NewCreateMatchHandler(matches, groups, eventPublisher),
+			CreateMatchHandler:         commands.NewCreateMatchHandler(matches, groups, eventPublisher),
+			RespondToInvitationHandler: commands.NewRespondToInvitationHandler(matches, groups),
 		},
 		appQueries: appQueries{},
 	}

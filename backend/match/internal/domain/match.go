@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +12,8 @@ import (
 
 const MatchAggregate = "match.MatchAggregate"
 
+var ErrMatchAlreadyStarted = errors.New("match already started")
+
 type Match struct {
 	ddd.Aggregate
 	groupID       string
@@ -20,7 +23,7 @@ type Match struct {
 	registrations []*Registration
 }
 
-func NewMatch(begin time.Time, location Location, playerCount PlayerCount, groupID string) *Match {
+func NewMatch(begin time.Time, location Location, playerCount PlayerCount, groupID string) (*Match, error) {
 	match := &Match{
 		Aggregate:     ddd.NewAggregate(uuid.New().String(), MatchAggregate),
 		groupID:       groupID,
@@ -30,30 +33,60 @@ func NewMatch(begin time.Time, location Location, playerCount PlayerCount, group
 		registrations: make([]*Registration, 0),
 	}
 
+	if time.Now().After(begin) {
+		return nil, ErrMatchAlreadyStarted
+	}
+
 	match.AddEvent(matchpb.MatchCreatedEvent, matchpb.MatchCreated{
 		MatchID: match.ID(),
 		GroupID: match.GroupID(),
 	})
 
-	return match
+	return match, nil
 }
 
-func (m Match) Begin() time.Time {
+func (m *Match) RespondToInvitation(playerID string, accept bool) error {
+	var status RegistrationStatus
+	if accept {
+		status = Registered
+	} else {
+		status = Deregistered
+	}
+
+	for _, r := range m.registrations {
+		if r.userID == playerID {
+			r.status = status
+			r.timeStamp = time.Now()
+
+			return nil
+		}
+	}
+
+	m.registrations = append(m.registrations, &Registration{
+		userID:    playerID,
+		status:    status,
+		timeStamp: time.Now(),
+	})
+
+	return nil
+}
+
+func (m *Match) Begin() time.Time {
 	return m.begin
 }
 
-func (m Match) Location() Location {
+func (m *Match) Location() Location {
 	return m.location
 }
 
-func (m Match) PlayerCount() PlayerCount {
+func (m *Match) PlayerCount() PlayerCount {
 	return m.playerCount
 }
 
-func (m Match) Registrations() []*Registration {
+func (m *Match) Registrations() []*Registration {
 	return m.registrations
 }
 
-func (m Match) GroupID() string {
+func (m *Match) GroupID() string {
 	return m.groupID
 }

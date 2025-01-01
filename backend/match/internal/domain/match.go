@@ -56,6 +56,9 @@ func (m *Match) RespondToInvitation(playerID string, accept bool) error {
 
 	for _, r := range m.registrations {
 		if r.userID == playerID {
+			if r.status != Registered && r.status != Deregistered {
+				return fmt.Errorf("player %s cant change registration", playerID)
+			}
 			r.status = status
 			r.timeStamp = time.Now()
 

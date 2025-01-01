@@ -55,5 +55,5 @@ func (s server) HasPlayerAdminRole(
 	query := &queries.HasPlayerAdminRole{UserID: request.GetUserId(), GroupID: request.GetGroupId()}
 	result := s.app.HasPlayerAdminRole(query)
 
-	return &grouppb.HasPlayerAdminRoleResponse{HasRole: result}, nil
+	return &grouppb.HasPlayerAdminRoleResponse{HasAdminRole: result}, nil
 }

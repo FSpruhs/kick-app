@@ -34,12 +34,26 @@ func (s server) IsActivePlayer(
 	return &grouppb.IsActivePlayerResponse{IsActive: result}, nil
 }
 
-func (s server) GetActivePlayersByGroupID(_ context.Context, request *grouppb.GetActivePlayersByGroupIDRequest) (*grouppb.GetActivePlayersByGroupIDResponse, error) {
+func (s server) GetActivePlayersByGroupID(
+	_ context.Context,
+	request *grouppb.GetActivePlayersByGroupIDRequest,
+) (*grouppb.GetActivePlayersByGroupIDResponse, error) {
 	query := &queries.GetActivePlayersByGroup{GroupID: request.GetGroupId()}
+
 	result, err := s.app.GetActivePlayersByGroup(query)
 	if err != nil {
 		return nil, fmt.Errorf("get active players by group id: %w", err)
 	}
 
 	return &grouppb.GetActivePlayersByGroupIDResponse{UserIds: result}, nil
+}
+
+func (s server) HasPlayerAdminRole(
+	_ context.Context,
+	request *grouppb.HasPlayerAdminRoleRequest,
+) (*grouppb.HasPlayerAdminRoleResponse, error) {
+	query := &queries.HasPlayerAdminRole{UserID: request.GetUserId(), GroupID: request.GetGroupId()}
+	result := s.app.HasPlayerAdminRole(query)
+
+	return &grouppb.HasPlayerAdminRoleResponse{HasRole: result}, nil
 }

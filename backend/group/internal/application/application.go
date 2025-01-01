@@ -26,6 +26,7 @@ type Queries interface {
 	GetGroup(cmd *queries.GetGroup) (*domain.GroupDetails, error)
 	IsPlayerActive(cmd *queries.IsPlayerActive) bool
 	GetActivePlayersByGroup(cmd *queries.GetActivePlayersByGroup) ([]string, error)
+	HasPlayerAdminRole(cmd *queries.HasPlayerAdminRole) bool
 }
 
 type Application struct {
@@ -47,6 +48,7 @@ type appQueries struct {
 	queries.GetGroupHandler
 	queries.IsPlayerActiveHandler
 	queries.GetActivePlayersByGroupHandler
+	queries.HasPlayerAdminRoleHandler
 }
 
 var _ App = (*Application)(nil)
@@ -70,6 +72,7 @@ func New(
 			GetGroupHandler:                queries.NewGetGroupHandler(groups, users),
 			IsPlayerActiveHandler:          queries.NewIsPlayerActiveHandler(groups),
 			GetActivePlayersByGroupHandler: queries.NewGetActivePlayersByGroupHandler(groups),
+			HasPlayerAdminRoleHandler:      queries.NewHasPlayerAdminRoleHandler(groups),
 		},
 	}
 }

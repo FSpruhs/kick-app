@@ -31,3 +31,15 @@ func (r *GroupRepository) IsPlayerActive(userID, groupID string) (bool, error) {
 
 	return resp.GetIsActive(), nil
 }
+
+func (r *GroupRepository) HasPlayerAdminRole(userID, groupID string) (bool, error) {
+	resp, err := r.client.HasPlayerAdminRole(
+		context.Background(),
+		&grouppb.HasPlayerAdminRoleRequest{UserId: userID, GroupId: groupID},
+	)
+	if err != nil {
+		return false, fmt.Errorf("has player admin role %s %s: %w", userID, groupID, err)
+	}
+
+	return resp.GetHasAdminRole(), nil
+}

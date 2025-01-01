@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"github.com/FSpruhs/kick-app/backend/match/internal/rest/controller/addregistration"
 	"github.com/FSpruhs/kick-app/backend/match/internal/rest/controller/invitationresponse"
 	"github.com/gin-gonic/gin"
 
@@ -13,6 +14,7 @@ func MatchRoutes(router *gin.Engine, app application.App) {
 	{
 		api.POST("/match", creatematch.Handle(app))
 		api.POST("/match/registration", invitationresponse.Handle(app))
+		api.PUT("/match/registration", addregistration.Handle(app))
 	}
 
 }

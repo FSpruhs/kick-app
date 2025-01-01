@@ -8,7 +8,6 @@ package grouppb
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -22,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	GroupService_IsActivePlayer_FullMethodName            = "/grouppb.GroupService/IsActivePlayer"
 	GroupService_GetActivePlayersByGroupID_FullMethodName = "/grouppb.GroupService/GetActivePlayersByGroupID"
+	GroupService_HasPlayerAdminRole_FullMethodName        = "/grouppb.GroupService/HasPlayerAdminRole"
 )
 
 // GroupServiceClient is the client API for GroupService service.
@@ -30,6 +30,7 @@ const (
 type GroupServiceClient interface {
 	IsActivePlayer(ctx context.Context, in *IsActivePlayerRequest, opts ...grpc.CallOption) (*IsActivePlayerResponse, error)
 	GetActivePlayersByGroupID(ctx context.Context, in *GetActivePlayersByGroupIDRequest, opts ...grpc.CallOption) (*GetActivePlayersByGroupIDResponse, error)
+	HasPlayerAdminRole(ctx context.Context, in *HasPlayerAdminRoleRequest, opts ...grpc.CallOption) (*HasPlayerAdminRoleResponse, error)
 }
 
 type groupServiceClient struct {
@@ -60,12 +61,23 @@ func (c *groupServiceClient) GetActivePlayersByGroupID(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *groupServiceClient) HasPlayerAdminRole(ctx context.Context, in *HasPlayerAdminRoleRequest, opts ...grpc.CallOption) (*HasPlayerAdminRoleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HasPlayerAdminRoleResponse)
+	err := c.cc.Invoke(ctx, GroupService_HasPlayerAdminRole_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GroupServiceServer is the server API for GroupService service.
 // All implementations must embed UnimplementedGroupServiceServer
 // for forward compatibility.
 type GroupServiceServer interface {
 	IsActivePlayer(context.Context, *IsActivePlayerRequest) (*IsActivePlayerResponse, error)
 	GetActivePlayersByGroupID(context.Context, *GetActivePlayersByGroupIDRequest) (*GetActivePlayersByGroupIDResponse, error)
+	HasPlayerAdminRole(context.Context, *HasPlayerAdminRoleRequest) (*HasPlayerAdminRoleResponse, error)
 	mustEmbedUnimplementedGroupServiceServer()
 }
 
@@ -81,6 +93,9 @@ func (UnimplementedGroupServiceServer) IsActivePlayer(context.Context, *IsActive
 }
 func (UnimplementedGroupServiceServer) GetActivePlayersByGroupID(context.Context, *GetActivePlayersByGroupIDRequest) (*GetActivePlayersByGroupIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetActivePlayersByGroupID not implemented")
+}
+func (UnimplementedGroupServiceServer) HasPlayerAdminRole(context.Context, *HasPlayerAdminRoleRequest) (*HasPlayerAdminRoleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasPlayerAdminRole not implemented")
 }
 func (UnimplementedGroupServiceServer) mustEmbedUnimplementedGroupServiceServer() {}
 func (UnimplementedGroupServiceServer) testEmbeddedByValue()                      {}
@@ -139,6 +154,24 @@ func _GroupService_GetActivePlayersByGroupID_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GroupService_HasPlayerAdminRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasPlayerAdminRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GroupServiceServer).HasPlayerAdminRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GroupService_HasPlayerAdminRole_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GroupServiceServer).HasPlayerAdminRole(ctx, req.(*HasPlayerAdminRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GroupService_ServiceDesc is the grpc.ServiceDesc for GroupService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,6 +186,10 @@ var GroupService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetActivePlayersByGroupID",
 			Handler:    _GroupService_GetActivePlayersByGroupID_Handler,
+		},
+		{
+			MethodName: "HasPlayerAdminRole",
+			Handler:    _GroupService_HasPlayerAdminRole_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

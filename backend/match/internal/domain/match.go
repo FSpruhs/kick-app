@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,6 +70,18 @@ func (m *Match) RespondToInvitation(playerID string, accept bool) error {
 	})
 
 	return nil
+}
+
+func (m *Match) AddRegistration(playerID string) error {
+	for _, r := range m.registrations {
+		if r.userID == playerID {
+			r.status = Added
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("player %s not found", playerID)
 }
 
 func (m *Match) Begin() time.Time {

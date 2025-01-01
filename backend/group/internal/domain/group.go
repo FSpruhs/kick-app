@@ -246,6 +246,15 @@ func (g *Group) IsActivePlayer(userID string) bool {
 	return player.Status() == Active
 }
 
+func (g *Group) HasPlayerAdminRole(userID string) bool {
+	player, err := findPlayerByUserID(g.Players(), userID)
+	if err != nil {
+		return false
+	}
+
+	return player.Role() >= Admin
+}
+
 func (g *Group) Players() []*Player {
 	return g.players
 }

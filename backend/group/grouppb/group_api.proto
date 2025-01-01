@@ -7,6 +7,7 @@ option go_package = "github.com/FSpruhs/kick-app/backend/user/grouppb";
 service GroupService {
   rpc IsActivePlayer(IsActivePlayerRequest) returns (IsActivePlayerResponse);
   rpc GetActivePlayersByGroupID(GetActivePlayersByGroupIDRequest) returns (GetActivePlayersByGroupIDResponse);
+  rpc HasPlayerAdminRole(HasPlayerAdminRoleRequest) returns (HasPlayerAdminRoleResponse);
 }
 
 message IsActivePlayerRequest {
@@ -24,4 +25,13 @@ message GetActivePlayersByGroupIDRequest {
 
 message GetActivePlayersByGroupIDResponse {
   repeated string userIds = 1;
+}
+
+message HasPlayerAdminRoleRequest {
+  string userId = 1;
+  string groupId = 2;
+}
+
+message HasPlayerAdminRoleResponse {
+  bool hasAdminRole = 1;
 }

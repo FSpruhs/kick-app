@@ -24,7 +24,26 @@ type Match struct {
 	registrations []*Registration
 }
 
-func NewMatch(begin time.Time, location Location, playerCount PlayerCount, groupID string) (*Match, error) {
+func NewMatch(
+	id,
+	groupID string,
+	begin time.Time,
+	location *Location,
+	playerCount *PlayerCount,
+	registrations []*Registration,
+) *Match {
+	return &Match{
+		Aggregate:     ddd.NewAggregate(id, MatchAggregate),
+		groupID:       groupID,
+		begin:         begin,
+		location:      location,
+		playerCount:   playerCount,
+		registrations: registrations,
+	}
+
+}
+
+func CreateNewMatch(begin time.Time, location Location, playerCount PlayerCount, groupID string) (*Match, error) {
 	match := &Match{
 		Aggregate:     ddd.NewAggregate(uuid.New().String(), MatchAggregate),
 		groupID:       groupID,

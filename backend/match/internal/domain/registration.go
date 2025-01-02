@@ -8,6 +8,14 @@ type Registration struct {
 	timeStamp time.Time
 }
 
+func NewRegistration(userID string, status RegistrationStatus, timeStamp time.Time) *Registration {
+	return &Registration{
+		userID:    userID,
+		status:    status,
+		timeStamp: timeStamp,
+	}
+}
+
 func (r Registration) UserID() string {
 	return r.userID
 }

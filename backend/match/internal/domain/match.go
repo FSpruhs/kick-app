@@ -106,6 +106,18 @@ func (m *Match) AddRegistration(playerID string) error {
 	return fmt.Errorf("player %s not found", playerID)
 }
 
+func (m *Match) RemoveRegistration(playerID string) error {
+	for _, r := range m.registrations {
+		if r.userID == playerID {
+			r.status = Removed
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("player %s not found", playerID)
+}
+
 func (m *Match) Begin() time.Time {
 	return m.begin
 }

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/FSpruhs/kick-app/backend/match/internal/application"
+	"github.com/FSpruhs/kick-app/backend/match/internal/application/commands"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -42,5 +43,13 @@ func Handle(app application.App) gin.HandlerFunc {
 		}
 
 		context.JSON(http.StatusCreated, nil)
+	}
+}
+
+func toCommand(message *Message) *commands.RemoveRegistration {
+	return &commands.RemoveRegistration{
+		UserID:         message.UserID,
+		MatchID:        message.MatchID,
+		RemovingUserID: message.DeletingUserID,
 	}
 }

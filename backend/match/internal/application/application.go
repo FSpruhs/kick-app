@@ -15,6 +15,7 @@ type Commands interface {
 	CreateMatch(cmd *commands.CreateMatch) (*domain.Match, error)
 	RespondToInvitation(cmd *commands.RespondToInvitation) error
 	AddRegistration(cmd *commands.AddRegistration) error
+	RemoveRegistration(cmd *commands.RemoveRegistration) error
 }
 
 type Queries interface{}
@@ -28,6 +29,7 @@ type appCommands struct {
 	commands.CreateMatchHandler
 	commands.RespondToInvitationHandler
 	commands.AddRegistrationHandler
+	commands.RemoveRegistrationHandler
 }
 
 type appQueries struct{}
@@ -44,6 +46,7 @@ func New(
 			CreateMatchHandler:         commands.NewCreateMatchHandler(matches, groups, eventPublisher),
 			RespondToInvitationHandler: commands.NewRespondToInvitationHandler(matches, groups),
 			AddRegistrationHandler:     commands.NewAddRegistrationHandler(matches, groups),
+			RemoveRegistrationHandler:  commands.NewRemoveRegistrationHandler(matches, groups),
 		},
 		appQueries: appQueries{},
 	}

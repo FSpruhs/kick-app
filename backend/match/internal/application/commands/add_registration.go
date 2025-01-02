@@ -44,5 +44,9 @@ func (h AddRegistrationHandler) AddRegistration(cmd *AddRegistration) error {
 		return fmt.Errorf("adding registration: %w", err)
 	}
 
+	if err := h.MatchRepository.Save(match); err != nil {
+		return fmt.Errorf("saving match: %w", err)
+	}
+
 	return nil
 }

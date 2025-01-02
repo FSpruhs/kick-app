@@ -19,8 +19,8 @@ type Match struct {
 	ddd.Aggregate
 	groupID       string
 	begin         time.Time
-	location      Location
-	playerCount   PlayerCount
+	location      *Location
+	playerCount   *PlayerCount
 	registrations []*Registration
 }
 
@@ -43,7 +43,7 @@ func NewMatch(
 
 }
 
-func CreateNewMatch(begin time.Time, location Location, playerCount PlayerCount, groupID string) (*Match, error) {
+func CreateNewMatch(begin time.Time, location *Location, playerCount *PlayerCount, groupID string) (*Match, error) {
 	match := &Match{
 		Aggregate:     ddd.NewAggregate(uuid.New().String(), MatchAggregate),
 		groupID:       groupID,
@@ -110,11 +110,11 @@ func (m *Match) Begin() time.Time {
 	return m.begin
 }
 
-func (m *Match) Location() Location {
+func (m *Match) Location() *Location {
 	return m.location
 }
 
-func (m *Match) PlayerCount() PlayerCount {
+func (m *Match) PlayerCount() *PlayerCount {
 	return m.playerCount
 }
 

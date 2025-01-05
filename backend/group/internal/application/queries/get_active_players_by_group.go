@@ -24,13 +24,7 @@ func (h GetActivePlayersByGroupHandler) GetActivePlayersByGroup(cmd *GetActivePl
 		return nil, fmt.Errorf("getting group by id %s: %w", cmd.GroupID, err)
 	}
 
-	result := make([]string, 0)
+	activePlayers := group.ActivePlayers()
 
-	for _, player := range group.Players() {
-		if player.Status() == domain.Active {
-			result = append(result, player.UserID())
-		}
-	}
-
-	return result, nil
+	return activePlayers, nil
 }

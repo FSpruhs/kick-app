@@ -117,6 +117,18 @@ func (g *Group) HandleInvitedUserResponse(userID string, accept bool) error {
 	return nil
 }
 
+func (g *Group) ActivePlayers() []string {
+	activePlayers := make([]string, 0)
+
+	for _, p := range g.Players() {
+		if p.Status() == Active {
+			activePlayers = append(activePlayers, p.UserID())
+		}
+	}
+
+	return activePlayers
+}
+
 func (g *Group) acceptInvitation(userID string) error {
 	player, err := findPlayerByUserID(g.Players(), userID)
 	if err != nil {

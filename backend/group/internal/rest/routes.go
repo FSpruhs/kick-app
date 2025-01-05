@@ -18,6 +18,7 @@ import (
 func GroupRouter(router *gin.Engine, app application.App) {
 	api := router.Group("/api/v1")
 	api.Use(ginconfig.JWTValidator())
+	api.Use(ginconfig.UserIDExtractor())
 	{
 		api.POST("/group", creategroup.Handle(app))
 		api.GET("/group/user/:userId", getgroups.Handle(app))

@@ -358,7 +358,7 @@ func updatePlayerStatus(newStatus Status, updatedPlayer, updatingPlayer *Player)
 		return ErrInvalidStatus
 	}
 
-	if notParticipatesInGroup(updatedPlayer) {
+	if notParticipatesInGroup(updatingPlayer) {
 		return ErrInvalidStatus
 	}
 

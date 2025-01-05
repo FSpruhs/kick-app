@@ -17,6 +17,7 @@ import '@mdi/font/css/materialdesignicons.css';
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
 import keycloak from '@/services/keycloakService';
 import { useAuthStore } from '@/store/authStore';
+import { useUserStore } from '@/store/UserStore';
 
 const vuetify = createVuetify({
   components,
@@ -43,15 +44,25 @@ keycloak
   .then((authenticated) => {
     if (authenticated) {
       const authStore = useAuthStore();
+      const userStore = useUserStore();
 
       authStore.setAuthData({
         token: keycloak.token ?? '',
         refreshToken: keycloak.refreshToken ?? '',
         userName: keycloak.tokenParsed?.preferred_username ?? '',
         userId: keycloak.tokenParsed?.sub ?? '',
-        roles: keycloak.tokenParsed?.realm_access.roles ?? [],
+        roles: keycloak.tokenParsed?.realm_access?.roles ?? [],
         email: keycloak.tokenParsed?.email ?? '',
         authenticated: true
+      });
+
+      userStore.saveUser({
+        id: keycloak.tokenParsed?.sub ?? '',
+        firstName: keycloak.tokenParsed?.given_name ?? '',
+        lastName: keycloak.tokenParsed?.family_name ?? '',
+        nickname: keycloak.tokenParsed?.preferred_username ?? '',
+        email: keycloak.tokenParsed?.email ?? '',
+        groups: keycloak.tokenParsed?.realm_access?.roles ?? []
       });
     }
 

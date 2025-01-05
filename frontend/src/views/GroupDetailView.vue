@@ -10,7 +10,7 @@ import { useGroupStore } from '@/store/GroupStore';
 import { useUserStore } from '@/store/UserStore';
 
 const router = useRouter();
-const groupId = router.currentRoute.value.params.id;
+const groupId = String(router.currentRoute.value.params.id);
 const groupDetail = ref<GroupDetailResponse | null>(null);
 const groupStore = useGroupStore();
 const userStore = useUserStore();
@@ -100,6 +100,9 @@ onMounted(() => {
           <v-card-actions>
             <v-btn color="primary" @click="router.push({ name: 'GroupInvite' })"
               >Spieler einladen</v-btn
+            >
+            <v-btn color="primary" @click="router.push({ name: 'CreateMatch' })"
+              >Match erstellen</v-btn
             >
           </v-card-actions>
         </v-card>

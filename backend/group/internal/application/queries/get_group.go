@@ -47,13 +47,16 @@ func (h GetGroupHandler) GetGroup(cmd *GetGroup) (*domain.GroupDetails, error) {
 
 			continue
 		}
+
 		user.SetRole(player.Role().String())
 		user.SetStatus(player.Status().String())
 	}
+
 	if len(notFoundUsers) > 0 {
 		for _, user := range notFoundUsers {
 			group.UserForPlayerNotFound(user)
 		}
+
 		if err := h.GroupRepository.Save(group); err != nil {
 			return nil, fmt.Errorf("saving group %s: %w", group.ID(), err)
 		}

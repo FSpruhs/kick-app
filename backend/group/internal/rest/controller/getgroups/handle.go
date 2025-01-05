@@ -1,13 +1,14 @@
 package getgroups
 
 import (
+	"errors"
+	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/FSpruhs/kick-app/backend/group/internal/application"
 	"github.com/FSpruhs/kick-app/backend/group/internal/application/queries"
 	"github.com/FSpruhs/kick-app/backend/group/internal/domain"
+	"github.com/gin-gonic/gin"
 )
 
 // Handle
@@ -22,10 +23,24 @@ import (
 // @Router       /group/user/{userId} [get].
 func Handle(app application.App) gin.HandlerFunc {
 	return func(context *gin.Context) {
-		userID := context.Param("userId")
+		userID, exists := context.Get("userID")
+		if !exists {
+			context.JSON(http.StatusBadRequest, context.Error(errors.New("user ID not found in context")))
+
+			return
+		}
+
+		userIDStr, ok := userID.(string)
+		if !ok {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": "User ID is not a string"})
+
+			return
+		}
+
+		log.Printf("User ID: %s", userIDStr)
 
 		command := &queries.GetGroupsByUser{
-			UserID: userID,
+			UserID: userIDStr,
 		}
 
 		groups, err := app.GetGroups(command)
@@ -41,6 +56,7 @@ func Handle(app application.App) gin.HandlerFunc {
 
 func toResponse(groups []*domain.Group) []*Response {
 	var response = make([]*Response, len(groups))
+
 	for i, group := range groups {
 		response[i] = &Response{
 			ID:   group.ID(),

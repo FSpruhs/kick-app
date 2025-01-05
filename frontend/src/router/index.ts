@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import keycloak from '@/services/keycloakService';
 import { useAuthStore } from '@/store/authStore';
+import { useUserStore } from '@/store/UserStore';
 
 const routes = [
   {
@@ -74,6 +75,14 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    path: '/match/new',
+    name: 'NewMatch',
+    component: () => import('../views/NewMatchView.vue'),
+    meta: {
+      requiresAuth: true
+    }
   }
 ];
 
@@ -88,15 +97,25 @@ router.beforeEach((to, from, next) => {
       console.log(keycloak.clientId);
       if (authenticated) {
         const authStore = useAuthStore();
+        const userStore = useUserStore();
 
         authStore.setAuthData({
           token: keycloak.token ?? '',
           refreshToken: keycloak.refreshToken ?? '',
           userName: keycloak.tokenParsed?.preferred_username ?? '',
           userId: keycloak.tokenParsed?.sub ?? '',
-          roles: keycloak.tokenParsed?.realm_access.roles ?? [],
+          roles: keycloak.tokenParsed?.realm_access?.roles ?? [],
           email: keycloak.tokenParsed?.email ?? '',
           authenticated: true
+        });
+
+        userStore.saveUser({
+          id: keycloak.tokenParsed?.sub ?? '',
+          firstName: keycloak.tokenParsed?.given_name ?? '',
+          nickname: keycloak.tokenParsed?.preferred_username ?? '',
+          lastName: keycloak.tokenParsed?.family_name ?? '',
+          email: keycloak.tokenParsed?.email ?? '',
+          groups: []
         });
       }
     });

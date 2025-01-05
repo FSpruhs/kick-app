@@ -198,19 +198,22 @@ func TestUpdatePlayer(t *testing.T) {
 		{"1", "3", Admin, Member, Active, Active, Active, Member, ErrUserNotInGroup},
 	}
 
-	for _, test := range tests {
-		group, _ := CreateNewGroup("", "test-group")
-		updatingPlayer := NewPlayer("1", test.updatingStatus, test.updatingRole)
-		updatedPlayer := NewPlayer("2", test.updatedStatus, test.updatedRole)
-		group.players = []*Player{updatingPlayer, updatedPlayer}
-		err := group.UpdatePlayer(test.updatingUserID, test.updatedUserID, test.newRole, test.newStatus)
+	for i, test := range tests {
+		t.Run(fmt.Sprintf("Test: %d", i), func(t *testing.T) {
+			group, _ := CreateNewGroup("", "test-group")
+			updatingPlayer := NewPlayer("1", test.updatingStatus, test.updatingRole)
+			updatedPlayer := NewPlayer("2", test.updatedStatus, test.updatedRole)
+			group.players = []*Player{updatingPlayer, updatedPlayer}
+			err := group.UpdatePlayer(test.updatingUserID, test.updatedUserID, test.newRole, test.newStatus)
 
-		assert.Equal(t, test.expectedErr, err)
+			assert.Equal(t, test.expectedErr, err)
 
-		if err == nil {
-			assert.Equal(t, test.newRole, updatedPlayer.Role())
-			assert.Equal(t, test.newStatus, updatedPlayer.Status())
-		}
+			if err == nil {
+				assert.Equal(t, test.newRole, updatedPlayer.Role())
+				assert.Equal(t, test.newStatus, updatedPlayer.Status())
+			}
+		})
+
 	}
 }
 

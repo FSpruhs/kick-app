@@ -101,7 +101,7 @@ onMounted(() => {
             <v-btn color="primary" @click="router.push({ name: 'GroupInvite' })"
               >Spieler einladen</v-btn
             >
-            <v-btn color="primary" @click="router.push({ name: 'CreateMatch' })"
+            <v-btn color="primary" @click="router.push({ name: 'NewMatch' })"
               >Match erstellen</v-btn
             >
           </v-card-actions>

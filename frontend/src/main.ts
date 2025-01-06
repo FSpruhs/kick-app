@@ -4,7 +4,6 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 
 import App from './App.vue';
-import router from '@/router';
 
 import 'vuetify/styles';
 import { createVuetify } from 'vuetify';
@@ -15,9 +14,8 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import '@mdi/font/css/materialdesignicons.css';
 
 import { aliases, mdi } from 'vuetify/iconsets/mdi';
-import keycloak from '@/services/keycloakService';
-import { useAuthStore } from '@/store/authStore';
-import { useUserStore } from '@/store/UserStore';
+import { vueKeycloak } from '@josempgon/vue-keycloak';
+import initRouter from '@/router';
 
 const vuetify = createVuetify({
   components,
@@ -35,40 +33,20 @@ const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App);
-app.use(router);
+
+await vueKeycloak.install(app, {
+  config: {
+    url: import.meta.env.VITE_KEYCLOAK_URL,
+    realm: import.meta.env.VITE_KEYCLOAK_REALM,
+    clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID
+  },
+  initOptions: {
+    adapter: 'default',
+    onLoad: 'check-sso'
+  }
+});
+
+app.use(initRouter());
 app.use(vuetify);
 app.use(pinia);
-
-keycloak
-  .init({ onLoad: 'check-sso' })
-  .then((authenticated) => {
-    if (authenticated) {
-      const authStore = useAuthStore();
-      const userStore = useUserStore();
-
-      authStore.setAuthData({
-        token: keycloak.token ?? '',
-        refreshToken: keycloak.refreshToken ?? '',
-        userName: keycloak.tokenParsed?.preferred_username ?? '',
-        userId: keycloak.tokenParsed?.sub ?? '',
-        roles: keycloak.tokenParsed?.realm_access?.roles ?? [],
-        email: keycloak.tokenParsed?.email ?? '',
-        authenticated: true
-      });
-
-      userStore.saveUser({
-        id: keycloak.tokenParsed?.sub ?? '',
-        firstName: keycloak.tokenParsed?.given_name ?? '',
-        lastName: keycloak.tokenParsed?.family_name ?? '',
-        nickname: keycloak.tokenParsed?.preferred_username ?? '',
-        email: keycloak.tokenParsed?.email ?? '',
-        groups: keycloak.tokenParsed?.realm_access?.roles ?? []
-      });
-    }
-
-    app.mount('#app');
-  })
-
-  .catch(() => {
-    console.error('Keycloak initialization failed:');
-  });
+app.mount('#app');

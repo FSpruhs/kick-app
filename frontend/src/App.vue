@@ -2,7 +2,7 @@
 import { RouterView, useRouter } from 'vue-router';
 import { useUserStore } from '@/store/UserStore';
 import { useMessageStore } from '@/store/MessageStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/AuthStore';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -14,7 +14,6 @@ function navigateToHome() {
 }
 
 function logout() {
-  //userStore.clearUser();
   authStore.logout();
   router.push({ name: 'Index' });
 }

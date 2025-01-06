@@ -14,12 +14,13 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@josempgon/vue-keycloak": "^3.1.0",
     "@mdi/font": "^7.4.47",
     "axios": "^1.7.2",
     "keycloak-js": "^25.0.6",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^4.0.2",
-    "vue": "^3.3.11",
+    "vue": "^3.5.13",
     "vue-router": "^4.2.5",
     "vuetify": "^3.6.10"
   },

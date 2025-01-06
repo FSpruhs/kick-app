@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import keycloak from '@/services/keycloakService';
-import { useAuthStore } from '@/store/authStore';
-import { useUserStore } from '@/store/UserStore';
+import { useKeycloak } from '@josempgon/vue-keycloak';
+
+const keycloak = useKeycloak();
 
 const routes = [
   {
@@ -86,43 +86,19 @@ const routes = [
   }
 ];
 
-const router = createRouter({
-  history: createWebHistory(),
-  routes
-});
+const initRouter = () => {
+  const history = createWebHistory(import.meta.env.BASE_URL);
+  const router = createRouter({ history, routes });
 
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth && !keycloak.authenticated) {
-    keycloak.login().then((authenticated) => {
-      console.log(keycloak.clientId);
-      if (authenticated) {
-        const authStore = useAuthStore();
-        const userStore = useUserStore();
+  router.beforeEach(async (to, from, next) => {
+    if (to.meta.requiresAuth && !keycloak.isAuthenticated.value) {
+      await keycloak.keycloak.value?.login({ redirectUri: window.location.origin + to.fullPath });
+    } else {
+      next();
+    }
+  });
 
-        authStore.setAuthData({
-          token: keycloak.token ?? '',
-          refreshToken: keycloak.refreshToken ?? '',
-          userName: keycloak.tokenParsed?.preferred_username ?? '',
-          userId: keycloak.tokenParsed?.sub ?? '',
-          roles: keycloak.tokenParsed?.realm_access?.roles ?? [],
-          email: keycloak.tokenParsed?.email ?? '',
-          authenticated: true
-        });
+  return router;
+};
 
-        userStore.saveUser({
-          id: keycloak.tokenParsed?.sub ?? '',
-          firstName: keycloak.tokenParsed?.given_name ?? '',
-          nickname: keycloak.tokenParsed?.preferred_username ?? '',
-          lastName: keycloak.tokenParsed?.family_name ?? '',
-          email: keycloak.tokenParsed?.email ?? '',
-          groups: []
-        });
-      }
-    });
-  } else {
-    console.log('4');
-    next();
-  }
-});
-
-export default router;
+export default initRouter;

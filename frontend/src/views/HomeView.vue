@@ -5,14 +5,13 @@ import { onMounted, ref } from 'vue';
 import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupRestService';
 import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
-import { useAuthStore } from '@/store/authStore';
-import keycloak from '../services/keycloakService';
+import { useAuthStore } from '@/store/AuthStore';
 
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const messageStore = useMessageStore();
 const router = useRouter();
-const groupData = ref<GroupResponse>([]);
+const groupData = ref<GroupResponse[]>([]);
 
 const fetchMessages = async () => {
   getUserMessages(userStore.getUser().id)
@@ -24,7 +23,7 @@ const fetchMessages = async () => {
     });
 };
 
-const leaveGroup = (groupId) => {
+const leaveGroup = (groupId: string) => {
   console.log('Leave Group: ' + groupId);
   userLeaveGroup({
     userId: userStore.getUser().id,
@@ -90,18 +89,18 @@ onMounted(() => {
       </v-sheet>
     </v-container>
 
-    <h3>UserName: {{ authStore.getAuthenticatedData().userName }}</h3>
-    <h3>Authenticated: {{ authStore.getAuthenticatedData().authenticated }}</h3>
-    <h3>UserID: {{ authStore.getAuthenticatedData().userId }}</h3>
-    <h3>clientId: {{ keycloak.clientId }}</h3>
+    <h3>UserName: {{ authStore.getUserName() }}</h3>
+    <h3>Authenticated: {{ authStore.getAuthenticated() }}</h3>
+    <h3>UserID: {{ authStore.getUserId() }}</h3>
+    <h3>clientId: {{ authStore.getClientId() }}</h3>
 
-    <h3>Email: {{ authStore.getAuthenticatedData().email }}</h3>
+    <h3>Email: {{ authStore.getEmail() }}</h3>
 
-    <h3>Roles: {{ authStore.getAuthenticatedData().roles }}</h3>
+    <h3>Roles: {{ authStore.getRoles() }}</h3>
 
-    <h3>Token: {{ authStore.getAuthenticatedData().token }}</h3>
+    <h3>Token: {{ authStore.getToken() }}</h3>
 
-    <h3>Refresher Token: {{ authStore.getAuthenticatedData().refreshToken }}</h3>
+    <h3>Refresher Token: {{ authStore.getRefreshToken() }}</h3>
   </v-app>
 </template>
 

@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service
 class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
     override fun save(user: User) {
         val keycloakUser = UserRepresentation()
-        keycloakUser.id = user.id
-        keycloakUser.username = user.fullName
-        keycloakUser.email = user.email
+        keycloakUser.id = user.id.value
+        keycloakUser.username = user.nickName.value
+        keycloakUser.email = user.email.value
+        keycloakUser.firstName = user.fullName.firstName.value
+        keycloakUser.lastName = user.fullName.lastName.value
         keycloakUser.isEnabled = true
         keycloakUser.isEmailVerified = true
 

@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.application.UserUseCases
+import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
@@ -22,15 +23,7 @@ class UserRestController(var userUseCases: UserUseCases) {
 
     @PostMapping
     fun registerUser(@RequestBody request: RegisterUserRequest) {
-        userUseCases.registerUser(
-            RegisterUserCommand(
-                request.firstName,
-                request.lastName,
-                request.nickName,
-                request.email,
-                request.password
-            )
-        )
+        userUseCases.registerUser(request.toCommand())
     }
 }
 
@@ -40,4 +33,12 @@ data class RegisterUserRequest(
     val nickName: String,
     val email: String,
     val password: String,
+)
+
+private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
+    firstName = FirstName(this.firstName),
+    lastName = LastName(this.lastName),
+    nickName = NickName(this.nickName),
+    email = Email(this.email),
+    password = Password(this.password),
 )

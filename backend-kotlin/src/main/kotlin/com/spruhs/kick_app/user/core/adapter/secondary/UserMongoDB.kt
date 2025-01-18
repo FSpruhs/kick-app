@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
+import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.User
 import com.spruhs.kick_app.user.core.domain.UserPersistencePort
 import org.springframework.data.annotation.Id
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Service
 data class UserDocument(
     @Id
     val id: String,
-    val fullName: String,
+    val firstName: String,
+    val lastName: String,
     val nickName: String,
     val email: String,
     val password: String,
@@ -22,18 +24,25 @@ data class UserDocument(
 @Service
 class UserPersistenceAdapter(val repository: UserRepository) : UserPersistencePort {
     override fun save(user: User) {
-        repository.save(
-            UserDocument(
-                user.id,
-                user.fullName,
-                user.nickName,
-                user.email,
-                user.password,
-                user.groups
-            )
-        )
+        repository.save(user.toDocument())
+    }
+
+    override fun existsByEmail(email: Email): Boolean {
+        return repository.existsByEmail(email.value)
     }
 }
 
 @Repository
-interface UserRepository : MongoRepository<UserDocument, String>
+interface UserRepository : MongoRepository<UserDocument, String> {
+    fun existsByEmail(email: String): Boolean
+}
+
+private fun User.toDocument() = UserDocument(
+    id = id.value,
+    firstName = fullName.firstName.value,
+    lastName = fullName.lastName.value,
+    nickName = nickName.value,
+    email = email.value,
+    password = password.value,
+    groups = groups.map { it.value }
+)

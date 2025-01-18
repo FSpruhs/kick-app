@@ -1,10 +1,7 @@
 package com.spruhs.kick_app.user.core.application
 
-import com.spruhs.kick_app.user.core.domain.User
-import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
-import com.spruhs.kick_app.user.core.domain.UserPersistencePort
+import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
-import java.util.UUID
 
 @Service
 class UserUseCases(val userPersistencePort: UserPersistencePort, val userIdentityProviderPort: UserIdentityProviderPort) {
@@ -13,25 +10,24 @@ class UserUseCases(val userPersistencePort: UserPersistencePort, val userIdentit
     }
 
     fun registerUser(command: RegisterUserCommand) {
+        require(userPersistencePort.existsByEmail(command.email).not()) { "Email already exists" }
 
-        val user = User(
-            UUID.randomUUID().toString(),
-            command.firstName + command.lastName,
+        User(
+            FullName(command.firstName,  command.lastName),
             command.nickName,
             command.email,
             command.password,
-            listOf()
-        )
-
-        userPersistencePort.save(user)
-        userIdentityProviderPort.save(user)
+        ).apply {
+            userPersistencePort.save(this)
+            userIdentityProviderPort.save(this)
+        }
     }
 }
 
 data class RegisterUserCommand(
-    var firstName: String,
-    var lastName: String,
-    var nickName: String,
-    var email: String,
-    var password: String,
+    var firstName: FirstName,
+    var lastName: LastName,
+    var nickName: NickName,
+    var email: Email,
+    var password: Password,
 )

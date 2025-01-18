@@ -2,6 +2,8 @@ package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.application.UserUseCases
+import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -13,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController
 class UserRestController(var userUseCases: UserUseCases) {
 
     @GetMapping
-    fun getUsers() {
+    fun getUsers(@AuthenticationPrincipal jwt: Jwt) {
+        jwt.getClaimAsString("sub")
         userUseCases.getUsers()
     }
 

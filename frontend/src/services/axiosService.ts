@@ -10,8 +10,9 @@ const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use(
   async (config) => {
-    const token = await getToken();
-    config.headers['Authorization'] = `Bearer ${token}`;
+    await getToken()
+        .then((token) => config.headers['Authorization'] = `Bearer ${token}`)
+        .catch((err) => console.log(err));
     return config;
   },
   (error) => {

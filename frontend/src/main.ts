@@ -38,7 +38,7 @@ await vueKeycloak.install(app, {
   config: {
     url: import.meta.env.VITE_KEYCLOAK_URL,
     realm: import.meta.env.VITE_KEYCLOAK_REALM,
-    clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID
+    clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
   },
   initOptions: {
     adapter: 'default',

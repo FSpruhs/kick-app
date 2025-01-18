@@ -12,3 +12,7 @@ class User(
 interface UserPersistencePort {
     fun save(user: User)
 }
+
+interface UserIdentityProviderPort {
+    fun save(user: User)
+}

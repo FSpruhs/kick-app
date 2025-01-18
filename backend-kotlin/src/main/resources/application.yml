@@ -7,5 +7,12 @@ spring:
       uri: mongodb://admin:password123@localhost:6000/kick_app?authSource=admin
       database: kick_app
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/kick-app
+
 server:
   port: 8085
+

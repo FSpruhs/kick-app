@@ -41,11 +41,10 @@ const submit = async () => {
   if (!registerForm.value) return;
   const { valid } = await registerForm.value.validate();
   if (!valid) return;
-  console.log('submit');
   const payload = {
     firstName: firstName.value,
     lastName: lastName.value,
-    nickname: nickname.value,
+    nickName: nickname.value,
     email: email.value,
     password: password.value
   };

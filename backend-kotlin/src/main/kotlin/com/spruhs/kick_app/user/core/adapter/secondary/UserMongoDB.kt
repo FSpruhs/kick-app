@@ -1,8 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
-import com.spruhs.kick_app.user.core.domain.Email
-import com.spruhs.kick_app.user.core.domain.User
-import com.spruhs.kick_app.user.core.domain.UserPersistencePort
+import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
@@ -30,6 +28,10 @@ class UserPersistenceAdapter(val repository: UserRepository) : UserPersistencePo
     override fun existsByEmail(email: Email): Boolean {
         return repository.existsByEmail(email.value)
     }
+
+    override fun findById(userId: UserId): User? {
+        return repository.findById(userId.value).map { it.toDmain() }.orElse(null)
+    }
 }
 
 @Repository
@@ -45,4 +47,13 @@ private fun User.toDocument() = UserDocument(
     email = email.value,
     password = password.value,
     groups = groups.map { it.value }
+)
+
+private fun UserDocument.toDmain() = User(
+    UserId(id),
+    FullName(FirstName(firstName), LastName(lastName)),
+    NickName(nickName),
+    Email(email),
+    Password(password),
+    groups.map { GroupId(it) }
 )

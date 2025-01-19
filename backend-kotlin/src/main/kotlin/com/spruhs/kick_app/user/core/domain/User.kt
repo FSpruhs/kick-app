@@ -104,10 +104,14 @@ data class FullName(val firstName: FirstName, val lastName: LastName)
 
 interface UserPersistencePort {
     fun save(user: User)
-
     fun existsByEmail(email: Email): Boolean
+    fun findById(userId: UserId): User?
 }
 
 interface UserIdentityProviderPort {
     fun save(user: User)
 }
+
+data class UserNotFoundException(val userId: UserId) : RuntimeException("User not found: $userId")
+data class UserWithEmailAlreadyExistsException(val email: Email) : RuntimeException("User with email already exists: $email")
+data class UserNotAuthorizedException(val userId: UserId) : RuntimeException("User not authorized: $userId")

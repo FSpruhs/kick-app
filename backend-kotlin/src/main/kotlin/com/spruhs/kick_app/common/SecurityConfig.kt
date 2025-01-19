@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.common
 
+import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory.disable
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
@@ -21,7 +22,7 @@ class JWTSecurityConfig {
         http.cors {}.authorizeHttpRequests { auth ->
             auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                 .anyRequest().authenticated()
-        }.csrf { csrf -> csrf.disable() }
+        }.csrf { disable() }
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())
             }

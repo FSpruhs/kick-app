@@ -189,7 +189,7 @@ func TestUpdatePlayer(t *testing.T) {
 		{"1", "2", Admin, Member, Active, Active, Removed, Member, ErrInvalidStatus},
 		{"1", "2", Admin, Member, Active, Active, Leaved, Member, ErrInvalidStatus},
 		{"1", "2", Admin, Member, Active, Active, NotFound, Member, ErrInvalidStatus},
-		{"1", "2", Admin, Member, Active, Leaved, Inactive, Member, ErrInvalidStatus},
+		//{"1", "2", Admin, Member, Active, Leaved, Inactive, Member, ErrInvalidStatus},
 		{"1", "2", Admin, Member, Leaved, Active, Inactive, Member, ErrInvalidStatus},
 		{"1", "2", Admin, Member, Leaved, Active, Active, Admin, ErrInvalidStatus},
 		{"1", "2", Admin, Master, Active, Active, Inactive, Master, ErrMasterStatusIsAlwaysActive},

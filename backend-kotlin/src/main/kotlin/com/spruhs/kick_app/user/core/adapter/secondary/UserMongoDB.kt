@@ -1,5 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
+import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document

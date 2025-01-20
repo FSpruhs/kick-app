@@ -1,6 +1,8 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.application.UserUseCases
 import com.spruhs.kick_app.user.core.domain.*
@@ -48,6 +50,9 @@ class UserExceptionHandler {
     @ExceptionHandler
     fun handleUserNotAuthorizedException(e: UserNotAuthorizedException) =
         ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
+
+    @ExceptionHandler
+    fun handleUserNotFoundException(e: UserNotFoundException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
 }
 

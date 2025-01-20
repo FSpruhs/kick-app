@@ -1,5 +1,7 @@
 package com.spruhs.kick_app.user.core.domain
 
+import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.UserId
 import java.util.UUID
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
@@ -36,13 +38,6 @@ class User(
 
     val groups: List<GroupId>
         get() = _groups
-}
-
-@JvmInline
-value class UserId(val value: String) {
-    init {
-        require(value.isNotBlank())
-    }
 }
 
 @JvmInline
@@ -93,13 +88,6 @@ value class Password(val value: String) {
     }
 }
 
-@JvmInline
-value class GroupId(val value: String) {
-    init {
-        require(value.isNotBlank())
-    }
-}
-
 data class FullName(val firstName: FirstName, val lastName: LastName)
 
 interface UserPersistencePort {
@@ -114,4 +102,3 @@ interface UserIdentityProviderPort {
 
 data class UserNotFoundException(val userId: UserId) : RuntimeException("User not found: $userId")
 data class UserWithEmailAlreadyExistsException(val email: Email) : RuntimeException("User with email already exists: $email")
-data class UserNotAuthorizedException(val userId: UserId) : RuntimeException("User not authorized: $userId")

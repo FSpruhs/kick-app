@@ -32,7 +32,11 @@ class UserPersistenceAdapter(val repository: UserRepository) : UserPersistencePo
     }
 
     override fun findById(userId: UserId): User? {
-        return repository.findById(userId.value).map { it.toDmain() }.orElse(null)
+        return repository.findById(userId.value).map { it.toDomain() }.orElse(null)
+    }
+
+    override fun findAll(): List<User> {
+        return repository.findAll().map { it.toDomain() }
     }
 }
 
@@ -51,7 +55,7 @@ private fun User.toDocument() = UserDocument(
     groups = groups.map { it.value }
 )
 
-private fun UserDocument.toDmain() = User(
+private fun UserDocument.toDomain() = User(
     UserId(id),
     FullName(FirstName(firstName), LastName(lastName)),
     NickName(nickName),

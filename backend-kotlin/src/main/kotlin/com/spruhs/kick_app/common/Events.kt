@@ -22,8 +22,8 @@ class EventPublisherAdapter(val applicationEventPublisher: ApplicationEventPubli
 
     override fun publishAll(events: List<DomainEvent>) {
         events.forEach {
+            log.info("Publish event: ${it.javaClass.simpleName}")
             applicationEventPublisher.publishEvent(it)
-            log.info("Event published: $it")
         }
     }
 }

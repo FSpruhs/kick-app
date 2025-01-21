@@ -1,71 +1,58 @@
 package com.spruhs.kick_app.user.core.domain
 
+import com.spruhs.kick_app.common.DomainEvent
+import com.spruhs.kick_app.common.DomainEventList
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import java.util.UUID
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
-class User(
-    private val _id: UserId,
-    private val _fullName: FullName,
-    private val _nickName: NickName,
-    private val _email: Email,
-    private val _password: Password,
-    private val _groups: List<GroupId>
-) {
-    constructor(
-        fullName: FullName,
-        nickName: NickName,
-        email: Email,
-        password: Password
-    ) : this(UserId(UUID.randomUUID().toString()), fullName, nickName, email, password, listOf())
+data class User(
+    val id: UserId,
+    val fullName: FullName,
+    val nickName: NickName,
+    val email: Email,
+    val password: Password,
+    val groups: List<GroupId>,
+    override val domainEvents: List<DomainEvent> = listOf()
+): DomainEventList
 
-    val id: UserId
-        get() = _id
-
-    val fullName: FullName
-        get() = _fullName
-
-    val nickName: NickName
-        get() = _nickName
-
-    val email: Email
-        get() = _email
-
-    val password: Password
-        get() = _password
-
-    val groups: List<GroupId>
-        get() = _groups
+fun createUser(
+    fullName: FullName,
+    nickName: NickName,
+    email: Email,
+    password: Password
+): User {
+    return User(UserId(UUID.randomUUID().toString()), fullName, nickName, email, password, listOf())
 }
 
 @JvmInline
 value class FirstName(val value: String) {
     init {
-        require(value.length in 2..20)
+        require(value.length in 2..20) { "First name must be between 2 and 20 characters" }
     }
 }
 
 @JvmInline
 value class LastName(val value: String) {
     init {
-        require(value.length in 2..20)
+        require(value.length in 2..20) { "Last name must be between 2 and 20 characters" }
     }
 }
 
 @JvmInline
 value class NickName(val value: String) {
     init {
-        require(value.length in 2..20)
+        require(value.length in 2..20) { "Nick name must be between 2 and 20 characters" }
     }
 }
 
 @JvmInline
 value class Email(val value: String) {
     init {
-        require(value.isNotBlank()) { "Email darf nicht leer sein" }
-        require(isValidEmail(value)) { "Ungültige E-Mail-Adresse" }
+        require(value.isNotBlank()) { "Email is not allowed to be blank" }
+        require(isValidEmail(value)) { "Invalid Email" }
     }
 
     companion object {
@@ -94,9 +81,10 @@ interface UserPersistencePort {
     fun save(user: User)
     fun existsByEmail(email: Email): Boolean
     fun findById(userId: UserId): User?
+    fun findAll(): List<User>
 }
 
-interface UserIdentityProviderPort {
+fun interface UserIdentityProviderPort {
     fun save(user: User)
 }
 

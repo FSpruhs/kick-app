@@ -2,10 +2,12 @@ package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.user.core.TestUserBuilder
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
+import com.spruhs.kick_app.user.core.domain.UserNotFoundException
 import com.spruhs.kick_app.user.core.domain.UserPersistencePort
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -47,6 +49,35 @@ class UserUseCasesTest {
 
         assertThatThrownBy { useCases.registerUser(command) }
             .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `getUser should return user from persistence`() {
+        val user = TestUserBuilder().build()
+        every { userPersistencePort.findById(user.id) } returns user
+
+        val result = useCases.getUser(user.id)
+
+        assertThat(result).isEqualTo(user)
+    }
+
+    @Test
+    fun `getUser should throw exception if user not found`() {
+        val user = TestUserBuilder().build()
+        every { userPersistencePort.findById(user.id) } returns null
+
+        assertThatThrownBy { useCases.getUser(user.id) }
+            .isInstanceOf(UserNotFoundException::class.java)
+    }
+
+    @Test
+    fun `getUsers should return all users from persistence`() {
+        val users = listOf(TestUserBuilder().withId("test id 1").build(), TestUserBuilder().withId("test id 2").build())
+        every { userPersistencePort.findAll() } returns users
+
+        val result = useCases.getUsers()
+
+        assertThat(result).isEqualTo(users)
     }
 }
 

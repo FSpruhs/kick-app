@@ -12,7 +12,7 @@ class GroupUseCases(
     val eventPublisher: EventPublisher
 ) {
     fun create(command: CreateGroupCommand) {
-        Group(
+        createGroup(
             user = command.userId,
             name = command.name,
         ).apply {
@@ -21,11 +21,20 @@ class GroupUseCases(
     }
 
     fun inviteUser(command: InviteUserCommand) {
-        groupPersistencePort.findById(command.groupId)?.let {
-            it.inviteUser(command.inviterId, command.inviteeId)
-            groupPersistencePort.save(it)
-            eventPublisher.publishAll(it.domainEvents)
-        } ?: throw GroupNotFoundException(command.groupId)
+        val group = fetchGroup(command.groupId)
+
+        inviteUserToGroup(group, command.inviterId, command.inviteeId).apply {
+            groupPersistencePort.save(this)
+            eventPublisher.publishAll(this.domainEvents)
+        }
+    }
+
+    private fun fetchGroup(groupId: GroupId): Group {
+        return groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
+    }
+
+    fun getGroupsByPlayer(userId: UserId): List<Group> {
+        return groupPersistencePort.findByPlayer(userId)
     }
 }
 

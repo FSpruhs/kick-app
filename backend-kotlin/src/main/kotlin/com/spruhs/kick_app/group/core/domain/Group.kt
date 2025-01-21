@@ -4,45 +4,40 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
 import java.util.UUID
 
-class Group(
-    private val _id: GroupId,
-    private val _name: Name,
-    private val _invitedUsers: List<UserId>,
-    private val _players: List<UserId>
-) : DomainEventList {
-    constructor(
-        name: Name,
-        user: UserId
-    ) : this(GroupId(UUID.randomUUID().toString()), name, listOf(), listOf(user))
+data class Group(
+    val id: GroupId,
+    val name: Name,
+    val players: List<UserId>,
+    val invitedUsers: List<UserId>,
+    override val domainEvents: List<DomainEvent> = listOf()
+) : DomainEventList
 
-    override val domainEvents: List<DomainEvent> = mutableListOf()
+fun createGroup(
+    name: Name,
+    user: UserId
+): Group {
+    return Group(GroupId(UUID.randomUUID().toString()), name, listOf(user), listOf())
+}
 
-    fun inviteUser(inviterId: UserId, inviteeId: UserId) {
-        if (inviterId !in _players) {
-            throw UserNotAuthorizedException(inviterId)
-        }
-        if (inviteeId in _players || inviteeId in _invitedUsers) {
-            throw UserAlreadyInGroupException(inviteeId)
-        }
-        _invitedUsers + inviteeId
-        domainEvents + UserInvitedToGroupEvent(
+fun inviteUserToGroup(
+    group: Group,
+    inviterId: UserId,
+    inviteeId: UserId
+): Group {
+    if (inviterId !in group.players) {
+        throw UserNotAuthorizedException(inviterId)
+    }
+    if (inviteeId in group.players || inviteeId in group.invitedUsers) {
+        throw UserAlreadyInGroupException(inviteeId)
+    }
+    return group.copy(
+        invitedUsers = group.invitedUsers + inviteeId,
+        domainEvents = group.domainEvents + UserInvitedToGroupEvent(
             inviteeId = inviteeId.value,
             inviterId = inviterId.value,
-            groupId = _id.value
+            groupId = group.id.value
         )
-    }
-
-    val id: GroupId
-        get() = _id
-
-    val name: Name
-        get() = _name
-
-    val players: List<UserId>
-        get() = _players
-
-    val invitedUsers: List<UserId>
-        get() = _invitedUsers
+    )
 }
 
 @JvmInline
@@ -55,6 +50,7 @@ value class Name(val value: String) {
 interface GroupPersistencePort {
     fun save(group: Group)
     fun findById(groupId: GroupId): Group?
+    fun findByPlayer(userId: UserId): List<Group>
 }
 
 data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")

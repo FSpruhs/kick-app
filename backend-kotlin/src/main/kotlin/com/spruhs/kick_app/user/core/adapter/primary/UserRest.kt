@@ -33,6 +33,9 @@ class UserRestController(val userUseCases: UserUseCases, val jwtParser: JWTParse
         return userUseCases.getUser(UserId(userId)).toMessage()
     }
 
+    @GetMapping
+    fun getUsers(): List<UserMessage> = userUseCases.getUsers().map { it.toMessage() }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun registerUser(@RequestBody request: RegisterUserRequest) {

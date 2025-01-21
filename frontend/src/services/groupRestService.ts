@@ -60,7 +60,7 @@ export async function postGroup(payload: GroupPayload) {
 }
 
 export async function getGroups(userId: string) {
-  return await apiClient.get<GroupResponse[]>(`api/v1/group/user/${userId}`);
+  return await apiClient.get<GroupResponse[]>(`api/v1/group/player/${userId}`);
 }
 
 export async function getGroupDetails(groupId: string) {
@@ -68,7 +68,7 @@ export async function getGroupDetails(groupId: string) {
 }
 
 export async function inviteUserToGroup(payload: GroupInvitePayload) {
-  return await apiClient.post(`api/v1/group/user`, payload);
+  return await apiClient.post(`api/v1/group/${payload.groupId}/invited-users/${payload.invitedUserId}`, payload);
 }
 
 export async function responseToGroupInvitation(payload: ResponseToGroupInvitation) {

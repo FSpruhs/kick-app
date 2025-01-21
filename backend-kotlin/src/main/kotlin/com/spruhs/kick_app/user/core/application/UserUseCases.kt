@@ -15,12 +15,14 @@ class UserUseCases(
         } ?: throw UserNotFoundException(userId)
     }
 
+    fun getUsers(): List<User> = userPersistencePort.findAll()
+
     fun registerUser(command: RegisterUserCommand) {
         require(
             userPersistencePort.existsByEmail(command.email).not()
         ) { UserWithEmailAlreadyExistsException(command.email) }
 
-        User(
+        createUser(
             FullName(command.firstName, command.lastName),
             command.nickName,
             command.email,

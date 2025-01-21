@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
+import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.core.domain.User
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import org.keycloak.admin.client.Keycloak
@@ -8,6 +9,9 @@ import org.springframework.stereotype.Service
 
 @Service
 class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
+
+    private val log = getLogger(this::class.java)
+
     override fun save(user: User) {
         val keycloakUser = UserRepresentation()
         keycloakUser.id = user.id.value
@@ -23,9 +27,9 @@ class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
         println("Response Status: ${response.status}")
         if (response.status != 201) {
             val errorMessage = response.readEntity(String::class.java)
-            println("Fehler: $errorMessage")
+            log.info("Fehler: $errorMessage")
         } else {
-            println("Benutzer erfolgreich erstellt.")
+            log.info("Benutzer erfolgreich erstellt.")
         }
     }
 }

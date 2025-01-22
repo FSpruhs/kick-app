@@ -19,23 +19,21 @@ fun createGroup(
     return Group(GroupId(UUID.randomUUID().toString()), name, listOf(user), listOf())
 }
 
-fun inviteUserToGroup(
-    group: Group,
+fun Group.inviteUser(
     inviterId: UserId,
     inviteeId: UserId
 ): Group {
-    if (inviterId !in group.players) {
+    if (inviterId !in this.players) {
         throw UserNotAuthorizedException(inviterId)
     }
-    if (inviteeId in group.players || inviteeId in group.invitedUsers) {
+    if (inviteeId in this.players || inviteeId in this.invitedUsers) {
         throw UserAlreadyInGroupException(inviteeId)
     }
-    return group.copy(
-        invitedUsers = group.invitedUsers + inviteeId,
-        domainEvents = group.domainEvents + UserInvitedToGroupEvent(
+    return this.copy(
+        invitedUsers = this.invitedUsers + inviteeId,
+        domainEvents = this.domainEvents + UserInvitedToGroupEvent(
             inviteeId = inviteeId.value,
-            inviterId = inviterId.value,
-            groupId = group.id.value
+            groupId = this.id.value
         )
     )
 }

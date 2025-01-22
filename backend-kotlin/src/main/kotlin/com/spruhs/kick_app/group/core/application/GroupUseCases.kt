@@ -21,9 +21,7 @@ class GroupUseCases(
     }
 
     fun inviteUser(command: InviteUserCommand) {
-        val group = fetchGroup(command.groupId)
-
-        inviteUserToGroup(group, command.inviterId, command.inviteeId).apply {
+        fetchGroup(command.groupId).inviteUser(command.inviterId, command.inviteeId).apply {
             groupPersistencePort.save(this)
             eventPublisher.publishAll(this.domainEvents)
         }

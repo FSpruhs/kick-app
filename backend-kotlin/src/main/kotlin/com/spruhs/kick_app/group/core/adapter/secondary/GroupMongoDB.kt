@@ -17,7 +17,7 @@ class GroupPersistenceAdapter(val repository: GroupRepository): GroupPersistence
     }
 
     override fun findById(groupId: GroupId): Group? {
-        return repository.findById(groupId.value).orElse(null).toDomain()
+        return repository.findById(groupId.value).map { it.toDomain() }.orElse(null)
     }
 
     override fun findByPlayer(userId: UserId): List<Group> {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 
 @Service
-class GroupPersistenceAdapter(val repository: GroupRepository): GroupPersistencePort {
+class GroupPersistenceAdapter(val repository: GroupRepository) : GroupPersistencePort {
     override fun save(group: Group) {
         repository.save(group.toDocument())
     }

@@ -16,7 +16,7 @@ data class User(
     val password: Password,
     val groups: List<GroupId>,
     override val domainEvents: List<DomainEvent> = listOf()
-): DomainEventList
+) : DomainEventList
 
 fun createUser(
     fullName: FullName,
@@ -89,4 +89,5 @@ fun interface UserIdentityProviderPort {
 }
 
 data class UserNotFoundException(val userId: UserId) : RuntimeException("User not found: $userId")
-data class UserWithEmailAlreadyExistsException(val email: Email) : RuntimeException("User with email already exists: $email")
+data class UserWithEmailAlreadyExistsException(val email: Email) :
+    RuntimeException("User with email already exists: $email")

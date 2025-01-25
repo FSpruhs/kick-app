@@ -3,7 +3,6 @@ package com.spruhs.kick_app.group.core.application
 import com.spruhs.kick_app.common.EventPublisher
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.core.domain.GroupPersistencePort
-import com.spruhs.kick_app.group.core.domain.inviteUser
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

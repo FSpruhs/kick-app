@@ -13,3 +13,10 @@ value class GroupId(val value: String) {
         require(value.isNotBlank()) { "Group id must not be blank" }
     }
 }
+
+@JvmInline
+value class MessageId(val value: String) {
+    init {
+        require(value.isNotBlank()) { "Message id must not be blank" }
+    }
+}

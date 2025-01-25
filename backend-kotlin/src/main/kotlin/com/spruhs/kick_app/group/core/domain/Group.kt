@@ -33,6 +33,7 @@ fun Group.inviteUser(
         invitedUsers = this.invitedUsers + inviteeId,
         domainEvents = this.domainEvents + UserInvitedToGroupEvent(
             inviteeId = inviteeId.value,
+            groupName = this.name.value,
             groupId = this.id.value
         )
     )

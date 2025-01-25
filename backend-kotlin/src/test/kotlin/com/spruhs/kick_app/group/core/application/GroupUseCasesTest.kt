@@ -41,7 +41,7 @@ class GroupUseCasesTest {
     @Test
     fun `inviteUser should save group to persistence and publish events`() {
         val command = TestGroupBuilder().buildInviteUserCommand()
-        val group = spyk(TestGroupBuilder().withInvitedUsers(listOf()).build())
+        val group = TestGroupBuilder().withInvitedUsers(listOf()).build()
 
         every { groupPersistencePort.findById(command.groupId) } returns group
         every { groupPersistencePort.save(any()) } just Runs

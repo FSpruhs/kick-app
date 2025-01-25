@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.DomainEvent
 
 data class UserInvitedToGroupEvent(
     val inviteeId: String,
+    val groupName: String,
     val groupId: String,
 ) : DomainEvent {
     override fun eventVersion(): Int = 1

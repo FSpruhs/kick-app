@@ -8,7 +8,8 @@ import java.util.UUID
 object MessageVariables {
     const val GROUP_NAME = "groupName"
     const val GROUP_ID = "groupId"
-    const val USER_ID = "userId"}
+    const val USER_ID = "userId"
+}
 
 interface Message {
     val id: MessageId
@@ -27,7 +28,7 @@ class UserInvitedToGroupMessage(
     override val isRead: Boolean,
     override val variables: Map<String, String>
 ) : Message {
-    constructor(userId: String, groupId: String, groupName: String): this(
+    constructor(userId: String, groupId: String, groupName: String) : this(
         id = MessageId(UUID.randomUUID().toString()),
         text = "You have been invited to group $groupName",
         user = UserId(userId),

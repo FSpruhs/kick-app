@@ -10,15 +10,15 @@ import kotlin.reflect.KClass
 @Service
 class MessageUseCases(val messagePersistencePort: MessagePersistencePort) {
 
-    fun <T: Message> send(messageKClass: KClass<T>, params: Map<String, String>): Message {
+    fun <T : Message> send(messageKClass: KClass<T>, params: Map<String, String>): Message {
         return createMessage(messageKClass, params).apply {
             messagePersistencePort.save(this)
         }
     }
-
 }
 
-private fun getParams(params: Map<String, String>, name: String) = params[name] ?: throw IllegalArgumentException("$name is required")
+private fun getParams(params: Map<String, String>, name: String) =
+    params[name] ?: throw IllegalArgumentException("$name is required")
 
 private fun <T : Message> createMessage(
     messageKClass: KClass<T>,

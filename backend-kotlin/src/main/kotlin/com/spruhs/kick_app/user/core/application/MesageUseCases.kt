@@ -1,38 +1,41 @@
 package com.spruhs.kick_app.user.core.application
 
+import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
-import com.spruhs.kick_app.user.core.domain.MessageVariables
 import com.spruhs.kick_app.user.core.domain.UserInvitedToGroupMessage
 import org.springframework.stereotype.Service
-import kotlin.reflect.KClass
 
 @Service
 class MessageUseCases(val messagePersistencePort: MessagePersistencePort) {
 
-    fun <T : Message> send(messageKClass: KClass<T>, params: Map<String, String>): Message {
-        return createMessage(messageKClass, params).apply {
+    fun send(messageType: MessageType, params: MessageParams): Message {
+        return createMessage(messageType, params).apply {
             messagePersistencePort.save(this)
         }
     }
+
+    fun getByUser(userId: UserId): List<Message> {
+        return messagePersistencePort.findByUser(userId)
+    }
 }
 
-private fun getParams(params: Map<String, String>, name: String) =
-    params[name] ?: throw IllegalArgumentException("$name is required")
+data class MessageParams(
+    val userId: String? = null,
+    val groupId: String? = null,
+    val groupName: String? = null
+)
 
-private fun <T : Message> createMessage(
-    messageKClass: KClass<T>,
-    params: Map<String, String>
-) = when (messageKClass) {
-    UserInvitedToGroupMessage::class -> {
-        UserInvitedToGroupMessage(
-            userId = getParams(params, MessageVariables.USER_ID),
-            groupId = getParams(params, MessageVariables.GROUP_ID),
-            groupName = getParams(params, MessageVariables.GROUP_NAME)
+enum class MessageType {
+    USER_INVITED_TO_GROUP
+}
+
+fun createMessage(type: MessageType, params: MessageParams): Message {
+    return when (type) {
+        MessageType.USER_INVITED_TO_GROUP -> UserInvitedToGroupMessage(
+            userId = params.userId ?: throw IllegalArgumentException("userId is required"),
+            groupId = params.groupId ?: throw IllegalArgumentException("groupId is required"),
+            groupName = params.groupName ?: throw IllegalArgumentException("groupName is required")
         )
-    }
-
-    else -> {
-        throw IllegalArgumentException("Message type not supported")
     }
 }

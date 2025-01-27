@@ -20,7 +20,7 @@ interface Message {
     val variables: Map<String, String>
 }
 
-class UserInvitedToGroupMessage(
+data class UserInvitedToGroupMessage(
     override val id: MessageId,
     override val text: String,
     override val user: UserId,

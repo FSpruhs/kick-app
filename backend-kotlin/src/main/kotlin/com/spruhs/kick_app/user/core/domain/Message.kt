@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.MessageId
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserNotAuthorizedException
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -11,23 +12,30 @@ object MessageVariables {
     const val USER_ID = "userId"
 }
 
-interface Message {
-    val id: MessageId
-    val text: String
-    val user: UserId
-    val timeStamp: LocalDateTime
-    val isRead: Boolean
-    val variables: Map<String, String>
+abstract class Message(
+    open val id: MessageId,
+    open val text: String,
+    open val user: UserId,
+    open val timeStamp: LocalDateTime,
+    open var isRead: Boolean,
+    open val variables: Map<String, String>,
+    ) {
+    fun messageReadBy(userId: UserId) {
+        require(userId == this.user) { UserNotAuthorizedException(userId) }
+
+        this.isRead = true
+    }
 }
 
-data class UserInvitedToGroupMessage(
+class UserInvitedToGroupMessage(
     override val id: MessageId,
     override val text: String,
     override val user: UserId,
     override val timeStamp: LocalDateTime,
-    override val isRead: Boolean,
+    override var isRead: Boolean,
     override val variables: Map<String, String>
-) : Message {
+) : Message(id, text, user, timeStamp, isRead, variables) {
+
     constructor(userId: String, groupId: String, groupName: String) : this(
         id = MessageId(UUID.randomUUID().toString()),
         text = "You have been invited to group $groupName",
@@ -38,7 +46,9 @@ data class UserInvitedToGroupMessage(
     )
 }
 
+
 interface MessagePersistencePort {
     fun save(message: Message)
+    fun findById(messageId: MessageId): Message?
     fun findByUser(userId: UserId): List<Message>
 }

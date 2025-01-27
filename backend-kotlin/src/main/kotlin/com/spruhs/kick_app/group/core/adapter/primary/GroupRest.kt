@@ -23,9 +23,8 @@ class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
 
     @GetMapping("/player/{userId}")
     fun getGroups(@PathVariable userId: String, @AuthenticationPrincipal jwt: Jwt): List<GroupMessage> {
-        if (userId != jwtParser.getUserId(jwt)) {
-            throw UserNotAuthorizedException(UserId(userId))
-        }
+        require(userId == jwtParser.getUserId(jwt)) { UserNotAuthorizedException(UserId(userId)) }
+
         return groupUseCases.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
     }
 

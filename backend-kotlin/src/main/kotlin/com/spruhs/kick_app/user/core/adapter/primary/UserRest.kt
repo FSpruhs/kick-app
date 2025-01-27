@@ -26,11 +26,8 @@ class UserRestController(val userUseCases: UserUseCases, val jwtParser: JWTParse
 
     @GetMapping("/{id}")
     fun getUser(@PathVariable id: String, @AuthenticationPrincipal jwt: Jwt): UserMessage {
-        val userId = jwtParser.getUserId(jwt)
-        if (userId != id) {
-            throw UserNotAuthorizedException(UserId(userId))
-        }
-        return userUseCases.getUser(UserId(userId)).toMessage()
+        require(id == jwtParser.getUserId(jwt)) { UserNotAuthorizedException(UserId(id)) }
+        return userUseCases.getUser(UserId(id)).toMessage()
     }
 
     @GetMapping

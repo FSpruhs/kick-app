@@ -7,6 +7,7 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.application.CreateGroupCommand
 import com.spruhs.kick_app.group.core.application.GroupUseCases
 import com.spruhs.kick_app.group.core.application.InviteUserCommand
+import com.spruhs.kick_app.group.core.application.InviteUserResponseCommand
 import com.spruhs.kick_app.group.core.domain.Group
 import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
 import com.spruhs.kick_app.group.core.domain.Name
@@ -17,12 +18,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 
+// TODO leave group, get group details, update player, remove player
+
 @RestController
 @RequestMapping("/api/v1/group")
 class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
 
     @GetMapping("/player/{userId}")
-    fun getGroups(@PathVariable userId: String, @AuthenticationPrincipal jwt: Jwt): List<GroupMessage> {
+    fun getGroups(
+        @PathVariable userId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): List<GroupMessage> {
         require(userId == jwtParser.getUserId(jwt)) { UserNotAuthorizedException(UserId(userId)) }
 
         return groupUseCases.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
@@ -49,6 +55,16 @@ class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
             )
         )
     }
+
+    @PutMapping("/invited-users")
+    fun invitedUserResponse(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody request: InviteUserResponse
+    ) {
+        val inviterId = jwtParser.getUserId(jwt)
+        require(request.userId == inviterId) { UserNotAuthorizedException(UserId(request.userId)) }
+        groupUseCases.inviteUserResponse(request.toCommand())
+    }
 }
 
 @ControllerAdvice
@@ -68,6 +84,12 @@ data class CreateGroupRequest(
     val name: String,
 )
 
+data class InviteUserResponse(
+    val groupId: String,
+    val userId: String,
+    val response: Boolean,
+)
+
 data class GroupMessage(
     val id: String,
     val name: String,
@@ -76,4 +98,10 @@ data class GroupMessage(
 private fun Group.toMessage() = GroupMessage(
     id = id.value,
     name = name.value
+)
+
+private fun InviteUserResponse.toCommand() = InviteUserResponseCommand(
+    userId = UserId(this.userId),
+    groupId = GroupId(this.groupId),
+    response = this.response
 )

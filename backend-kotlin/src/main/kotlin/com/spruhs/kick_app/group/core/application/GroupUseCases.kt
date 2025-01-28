@@ -27,6 +27,12 @@ class GroupUseCases(
         }
     }
 
+    fun inviteUserResponse(command: InviteUserResponseCommand) {
+        fetchGroup(command.groupId).inviteUserResponse(command.userId, command.response).apply {
+            groupPersistencePort.save(this)
+        }
+    }
+
     private fun fetchGroup(groupId: GroupId): Group {
         return groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
     }
@@ -47,3 +53,8 @@ data class CreateGroupCommand(
     val name: Name,
 )
 
+data class InviteUserResponseCommand(
+    val userId: UserId,
+    val groupId: GroupId,
+    val response: Boolean,
+)

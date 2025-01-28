@@ -3,10 +3,10 @@ package com.spruhs.kick_app.user.core.application
 import com.spruhs.kick_app.common.MessageId
 import com.spruhs.kick_app.common.MessageNotFoundException
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.user.core.domain.Message
-import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
-import com.spruhs.kick_app.user.core.domain.UserInvitedToGroupMessage
+import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class MessageUseCases(val messagePersistencePort: MessagePersistencePort) {
@@ -40,16 +40,27 @@ data class MessageParams(
     val groupName: String? = null
 )
 
-enum class MessageType {
-    USER_INVITED_TO_GROUP
-}
-
 fun createMessage(type: MessageType, params: MessageParams): Message {
     return when (type) {
-        MessageType.USER_INVITED_TO_GROUP -> UserInvitedToGroupMessage(
-            userId = params.userId ?: throw IllegalArgumentException("userId is required"),
-            groupId = params.groupId ?: throw IllegalArgumentException("groupId is required"),
-            groupName = params.groupName ?: throw IllegalArgumentException("groupName is required")
+        MessageType.USER_INVITED_TO_GROUP -> MessageFactory().createUserInvitedToGroupMessage(params)
+    }
+}
+
+private const val GROUP_ID = "groupId"
+
+class MessageFactory {
+    fun createUserInvitedToGroupMessage(params: MessageParams): Message {
+        require(!params.userId.isNullOrBlank())
+        require(!params.groupId.isNullOrBlank())
+        require(!params.groupName.isNullOrBlank())
+        return Message(
+            id = MessageId(UUID.randomUUID().toString()),
+            text = "You have been invited to group ${params.groupName}",
+            type = MessageType.USER_INVITED_TO_GROUP,
+            user = UserId(params.userId),
+            timeStamp = LocalDateTime.now(),
+            isRead = false,
+            variables = mapOf(GROUP_ID to params.groupId)
         )
     }
 }

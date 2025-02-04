@@ -43,6 +43,8 @@ data class MessageParams(
 fun createMessage(type: MessageType, params: MessageParams): Message {
     return when (type) {
         MessageType.USER_INVITED_TO_GROUP -> MessageFactory().createUserInvitedToGroupMessage(params)
+        MessageType.USER_LEAVED_GROUP -> MessageFactory().createUserLeavedGroupMessage(params)
+        MessageType.USER_REMOVED_FROM_GROUP -> MessageFactory().createUserRemovedFromGroupMessage(params)
     }
 }
 
@@ -57,6 +59,36 @@ class MessageFactory {
             id = MessageId(UUID.randomUUID().toString()),
             text = "You have been invited to group ${params.groupName}",
             type = MessageType.USER_INVITED_TO_GROUP,
+            user = UserId(params.userId),
+            timeStamp = LocalDateTime.now(),
+            isRead = false,
+            variables = mapOf(GROUP_ID to params.groupId)
+        )
+    }
+
+    fun createUserLeavedGroupMessage(params: MessageParams): Message {
+        require(!params.userId.isNullOrBlank())
+        require(!params.groupId.isNullOrBlank())
+        require(!params.groupName.isNullOrBlank())
+        return Message(
+            id = MessageId(UUID.randomUUID().toString()),
+            text = "You have leaved group ${params.groupName}",
+            type = MessageType.USER_LEAVED_GROUP,
+            user = UserId(params.userId),
+            timeStamp = LocalDateTime.now(),
+            isRead = false,
+            variables = mapOf(GROUP_ID to params.groupId)
+        )
+    }
+
+    fun createUserRemovedFromGroupMessage(params: MessageParams): Message {
+        require(!params.userId.isNullOrBlank())
+        require(!params.groupId.isNullOrBlank())
+        require(!params.groupName.isNullOrBlank())
+        return Message(
+            id = MessageId(UUID.randomUUID().toString()),
+            text = "You have been removed from group ${params.groupName}",
+            type = MessageType.USER_REMOVED_FROM_GROUP,
             user = UserId(params.userId),
             timeStamp = LocalDateTime.now(),
             isRead = false,

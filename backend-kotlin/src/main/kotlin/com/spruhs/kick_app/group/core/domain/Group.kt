@@ -2,6 +2,8 @@ package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
+import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
+import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
 import java.util.UUID
 
 data class Group(
@@ -54,6 +56,67 @@ fun Group.inviteUserResponse(
     )
 }
 
+fun Group.leave(userId: UserId): Group {
+    val player = players.find { it.id == userId }?.takeIf { it.status != PlayerStatus.REMOVED }
+        ?: throw PlayerNotFoundException(userId)
+
+    val updatedPlayer = player.copy(
+        status = PlayerStatus.LEAVED,
+        role = PlayerRole.PLAYER
+    )
+
+    return copy(
+        players = players - player + updatedPlayer,
+        domainEvents = domainEvents + UserLeavedGroupEvent(
+            userId = userId.value,
+            groupName = name.value,
+            groupId = id.value
+        )
+    )
+}
+
+fun Group.removePlayer(userId: UserId): Group {
+    players.find { it.id == userId }?.takeIf { it.role == PlayerRole.ADMIN }
+        ?: throw UserNotAuthorizedException(userId)
+
+    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
+
+    val updatedPlayer = player.copy(
+        status = PlayerStatus.REMOVED,
+        role = PlayerRole.PLAYER
+    )
+
+    return copy(
+        players = players - player + updatedPlayer,
+        domainEvents = domainEvents + UserRemovedFromGroupEvent(
+            userId = userId.value,
+            groupName = name.value,
+            groupId = id.value
+        )
+    )
+}
+
+fun Group.updatePlayer(
+    requesterId: UserId,
+    userId: UserId,
+    newRole: PlayerRole,
+    newStatus: PlayerStatus
+): Group {
+    require(newStatus == PlayerStatus.ACTIVE || newStatus == PlayerStatus.INACTIVE)
+    players.find { it.id == requesterId }
+        ?.takeIf { it.role == PlayerRole.ADMIN }
+        ?: throw UserNotAuthorizedException(requesterId)
+
+    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
+
+    val updatedPlayer = player.copy(
+        role = newRole,
+        status = newStatus
+    )
+
+    return copy(players = players - player + updatedPlayer)
+}
+
 fun Group.inviteUser(
     inviterId: UserId,
     inviteeId: UserId
@@ -87,6 +150,7 @@ interface GroupPersistencePort {
     fun findByPlayer(userId: UserId): List<Group>
 }
 
+data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")
 data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")
 data class UserAlreadyInGroupException(val userId: UserId) : RuntimeException("User already in group: ${userId.value}")
 data class UserNotInvitedInGroupException(val userId: UserId) :

@@ -4,25 +4,57 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
-import com.spruhs.kick_app.group.core.application.CreateGroupCommand
-import com.spruhs.kick_app.group.core.application.GroupUseCases
-import com.spruhs.kick_app.group.core.application.InviteUserCommand
-import com.spruhs.kick_app.group.core.application.InviteUserResponseCommand
-import com.spruhs.kick_app.group.core.domain.Group
-import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
-import com.spruhs.kick_app.group.core.domain.Name
-import com.spruhs.kick_app.group.core.domain.UserAlreadyInGroupException
+import com.spruhs.kick_app.group.core.application.*
+import com.spruhs.kick_app.group.core.domain.*
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
 
-// TODO leave group, get group details, update player, remove player
-
 @RestController
 @RequestMapping("/api/v1/group")
 class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
+
+    @PutMapping("/{groupId}/players/{userId}")
+    fun updatePlayer(
+        @PathVariable groupId: String,
+        @PathVariable userId: String,
+        @RequestBody request: UpdatePlayerRequest,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        groupUseCases.updatePlayer(
+            UpdatePlayerCommand(
+                requesterId = UserId(jwtParser.getUserId(jwt)),
+                userId = UserId(userId),
+                groupId = GroupId(groupId),
+                newRole = PlayerRole.valueOf(request.role),
+                newStatus = PlayerStatus.valueOf(request.status)
+            )
+        )
+    }
+
+    @GetMapping("/{groupId}")
+    fun getGroup(
+        @PathVariable groupId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): GroupDetail =
+        groupUseCases.getGroup(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+
+
+    @DeleteMapping("/{groupId}/players/{userId}")
+    fun leaveGroup(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable groupId: String,
+        @PathVariable userId: String
+    ) {
+        val requestingUser = jwtParser.getUserId(jwt)
+        if (requestingUser == userId) {
+            groupUseCases.leaveGroup(LeaveGroupCommand(UserId(userId), GroupId(groupId)))
+        } else {
+            groupUseCases.removePlayer(RemovePlayerCommand(UserId(requestingUser), UserId(userId), GroupId(groupId)))
+        }
+    }
 
     @GetMapping("/player/{userId}")
     fun getGroups(
@@ -35,9 +67,11 @@ class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
     }
 
     @PostMapping
-    fun createGroup(@AuthenticationPrincipal jwt: Jwt, @RequestBody request: CreateGroupRequest) {
-        val userId = jwtParser.getUserId(jwt)
-        groupUseCases.create(CreateGroupCommand(UserId(userId), Name(request.name)))
+    fun createGroup(
+        @AuthenticationPrincipal jwt: Jwt,
+        @RequestBody request: CreateGroupRequest
+    ) {
+        groupUseCases.create(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name)))
     }
 
     @PostMapping("{groupId}/invited-users/{userId}")
@@ -46,10 +80,9 @@ class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
         @PathVariable groupId: String,
         @PathVariable userId: String
     ) {
-        val inviterId = jwtParser.getUserId(jwt)
         groupUseCases.inviteUser(
             InviteUserCommand(
-                inviterId = UserId(inviterId),
+                inviterId = UserId(jwtParser.getUserId(jwt)),
                 inviteeId = UserId(userId),
                 groupId = GroupId(groupId)
             )
@@ -82,6 +115,11 @@ class GroupExceptionHandler {
 
 data class CreateGroupRequest(
     val name: String,
+)
+
+data class UpdatePlayerRequest(
+    val role: String,
+    val status: String,
 )
 
 data class InviteUserResponse(

@@ -15,6 +15,8 @@ class UserUseCases(
         } ?: throw UserNotFoundException(userId)
     }
 
+    fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)
+
     fun getUsers(): List<User> = userPersistencePort.findAll()
 
     fun registerUser(command: RegisterUserCommand) {

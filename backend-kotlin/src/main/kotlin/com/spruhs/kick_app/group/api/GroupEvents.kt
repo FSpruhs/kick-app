@@ -9,3 +9,19 @@ data class UserInvitedToGroupEvent(
 ) : DomainEvent {
     override fun eventVersion(): Int = 1
 }
+
+data class UserLeavedGroupEvent(
+    val userId: String,
+    val groupId: String,
+    val groupName: String,
+) : DomainEvent {
+    override fun eventVersion(): Int = 1
+}
+
+data class UserRemovedFromGroupEvent(
+    val userId: String,
+    val groupId: String,
+    val groupName: String,
+) : DomainEvent {
+    override fun eventVersion(): Int = 1
+}

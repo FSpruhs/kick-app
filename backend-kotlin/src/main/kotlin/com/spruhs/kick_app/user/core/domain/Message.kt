@@ -22,7 +22,9 @@ fun Message.messageReadBy(userId: UserId): Message {
 }
 
 enum class MessageType {
-    USER_INVITED_TO_GROUP
+    USER_INVITED_TO_GROUP,
+    USER_LEAVED_GROUP,
+    USER_REMOVED_FROM_GROUP,
 }
 
 interface MessagePersistencePort {

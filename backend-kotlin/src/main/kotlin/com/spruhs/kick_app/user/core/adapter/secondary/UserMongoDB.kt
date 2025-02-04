@@ -35,6 +35,10 @@ class UserPersistenceAdapter(val repository: UserRepository) : UserPersistencePo
         return repository.findById(userId.value).map { it.toDomain() }.orElse(null)
     }
 
+    override fun findByIds(userIds: List<UserId>): List<User> {
+        return repository.findAllById(userIds.map { it.value }).map { it.toDomain() }
+    }
+
     override fun findAll(): List<User> {
         return repository.findAll().map { it.toDomain() }
     }

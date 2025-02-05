@@ -5,7 +5,6 @@ import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
 import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
 import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
-import java.util.UUID
 
 data class Group(
     val id: GroupId,
@@ -33,7 +32,7 @@ fun createGroup(
     name: Name,
     user: UserId
 ): Group = Group(
-    id = GroupId(UUID.randomUUID().toString()),
+    id = GroupId(generateId()),
     name = name,
     players = listOf(Player(user, PlayerStatus.ACTIVE, PlayerRole.ADMIN)),
     invitedUsers = listOf(),

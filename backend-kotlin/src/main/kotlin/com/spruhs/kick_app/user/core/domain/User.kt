@@ -1,10 +1,6 @@
 package com.spruhs.kick_app.user.core.domain
 
-import com.spruhs.kick_app.common.DomainEvent
-import com.spruhs.kick_app.common.DomainEventList
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
-import java.util.UUID
+import com.spruhs.kick_app.common.*
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
@@ -24,7 +20,7 @@ fun createUser(
     email: Email,
     password: Password
 ): User {
-    return User(UserId(UUID.randomUUID().toString()), fullName, nickName, email, password, listOf())
+    return User(UserId(generateId()), fullName, nickName, email, password, listOf())
 }
 
 fun User.leaveGroup(groupId: GroupId): User = this.copy(groups = groups - groupId)

@@ -3,6 +3,7 @@ package com.spruhs.kick_app.user.core.application
 import com.spruhs.kick_app.common.MessageId
 import com.spruhs.kick_app.common.MessageNotFoundException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.generateId
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -56,7 +57,7 @@ class MessageFactory {
         require(!params.groupId.isNullOrBlank())
         require(!params.groupName.isNullOrBlank())
         return Message(
-            id = MessageId(UUID.randomUUID().toString()),
+            id = MessageId(generateId()),
             text = "You have been invited to group ${params.groupName}",
             type = MessageType.USER_INVITED_TO_GROUP,
             user = UserId(params.userId),
@@ -71,7 +72,7 @@ class MessageFactory {
         require(!params.groupId.isNullOrBlank())
         require(!params.groupName.isNullOrBlank())
         return Message(
-            id = MessageId(UUID.randomUUID().toString()),
+            id = MessageId(generateId()),
             text = "You have leaved group ${params.groupName}",
             type = MessageType.USER_LEAVED_GROUP,
             user = UserId(params.userId),
@@ -86,7 +87,7 @@ class MessageFactory {
         require(!params.groupId.isNullOrBlank())
         require(!params.groupName.isNullOrBlank())
         return Message(
-            id = MessageId(UUID.randomUUID().toString()),
+            id = MessageId(generateId()),
             text = "You have been removed from group ${params.groupName}",
             type = MessageType.USER_REMOVED_FROM_GROUP,
             user = UserId(params.userId),

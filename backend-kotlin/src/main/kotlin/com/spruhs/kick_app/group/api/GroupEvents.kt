@@ -25,3 +25,10 @@ data class UserRemovedFromGroupEvent(
 ) : DomainEvent {
     override fun eventVersion(): Int = 1
 }
+
+data class UserEnteredGroupEvent(
+    val userId: String,
+    val groupId: String,
+) : DomainEvent {
+    override fun eventVersion(): Int = 1
+}

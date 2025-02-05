@@ -33,6 +33,7 @@ class GroupUseCases(
     fun inviteUserResponse(command: InviteUserResponseCommand) {
         fetchGroup(command.groupId).inviteUserResponse(command.userId, command.response).apply {
             groupPersistencePort.save(this)
+            eventPublisher.publishAll(this.domainEvents)
         }
     }
 

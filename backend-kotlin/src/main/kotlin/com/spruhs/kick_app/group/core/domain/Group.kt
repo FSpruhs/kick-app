@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
 import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
 import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
@@ -49,6 +50,10 @@ fun Group.inviteUserResponse(
         return this.copy(
             players = this.players + Player(userId, PlayerStatus.ACTIVE, PlayerRole.PLAYER),
             invitedUsers = this.invitedUsers - userId,
+            domainEvents = this.domainEvents + UserEnteredGroupEvent(
+                userId = userId.value,
+                groupId = this.id.value
+            )
         )
     }
     return this.copy(

@@ -27,6 +27,10 @@ fun createUser(
     return User(UserId(UUID.randomUUID().toString()), fullName, nickName, email, password, listOf())
 }
 
+fun User.leaveGroup(groupId: GroupId): User = this.copy(groups = groups - groupId)
+
+fun User.enterGroup(groupId: GroupId): User = this.copy(groups = groups + groupId)
+
 @JvmInline
 value class FirstName(val value: String) {
     init {

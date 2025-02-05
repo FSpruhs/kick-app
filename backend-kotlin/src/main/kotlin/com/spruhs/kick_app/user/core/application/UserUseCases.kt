@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.application
 
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
@@ -13,6 +14,16 @@ class UserUseCases(
         userPersistencePort.findById(userId)?.let {
             return it
         } ?: throw UserNotFoundException(userId)
+    }
+
+    fun userLeavesGroup(userId: UserId, groupId: GroupId) {
+        val user = userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
+        user.leaveGroup(groupId).apply { userPersistencePort.save(this) }
+    }
+
+    fun userEntersGroup(userId: UserId, groupId: GroupId) {
+        val user = userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
+        user.enterGroup(groupId).apply { userPersistencePort.save(this) }
     }
 
     fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)

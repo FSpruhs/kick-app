@@ -9,7 +9,6 @@ data class User(
     val fullName: FullName,
     val nickName: NickName,
     val email: Email,
-    val password: Password,
     val groups: List<GroupId>,
     override val domainEvents: List<DomainEvent> = listOf()
 ) : DomainEventList
@@ -18,9 +17,14 @@ fun createUser(
     fullName: FullName,
     nickName: NickName,
     email: Email,
-    password: Password
 ): User {
-    return User(UserId(generateId()), fullName, nickName, email, password, listOf())
+    return User(
+        id = UserId(generateId()),
+        fullName = fullName,
+        nickName = nickName,
+        email = email,
+        groups = listOf()
+    )
 }
 
 fun User.leaveGroup(groupId: GroupId): User = this.copy(groups = groups - groupId)
@@ -65,13 +69,6 @@ value class Email(val value: String) {
                 false
             }
         }
-    }
-}
-
-@JvmInline
-value class Password(val value: String) {
-    init {
-        require(value.isNotBlank())
     }
 }
 

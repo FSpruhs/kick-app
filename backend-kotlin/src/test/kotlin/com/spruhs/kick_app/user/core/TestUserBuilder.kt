@@ -28,7 +28,6 @@ class TestUserBuilder {
             LastName(lastName),
             NickName(nickName),
             Email(email),
-            Password(password)
         )
     }
 
@@ -38,7 +37,6 @@ class TestUserBuilder {
             FullName(FirstName(firstName), LastName(lastName)),
             NickName(nickName),
             Email(email),
-            Password(password),
             groups.map { GroupId(it) }
         )
     }

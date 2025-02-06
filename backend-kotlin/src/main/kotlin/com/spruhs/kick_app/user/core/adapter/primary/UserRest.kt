@@ -22,10 +22,16 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/user")
-class UserRestController(val userUseCases: UserUseCases, val jwtParser: JWTParser) {
+class UserRestController(
+    private val userUseCases: UserUseCases,
+    private val jwtParser: JWTParser
+) {
 
     @GetMapping("/{id}")
-    fun getUser(@PathVariable id: String, @AuthenticationPrincipal jwt: Jwt): UserMessage {
+    fun getUser(
+        @PathVariable id: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): UserMessage {
         require(id == jwtParser.getUserId(jwt)) { UserNotAuthorizedException(UserId(id)) }
         return userUseCases.getUser(UserId(id)).toMessage()
     }
@@ -53,7 +59,6 @@ class UserExceptionHandler {
 
     @ExceptionHandler
     fun handleUserNotFoundException(e: UserNotFoundException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
-
 }
 
 data class RegisterUserRequest(
@@ -61,7 +66,6 @@ data class RegisterUserRequest(
     val lastName: String,
     val nickName: String,
     val email: String,
-    val password: String,
 )
 
 data class UserMessage(
@@ -77,7 +81,6 @@ private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
     lastName = LastName(this.lastName),
     nickName = NickName(this.nickName),
     email = Email(this.email),
-    password = Password(this.password),
 )
 
 private fun User.toMessage() = UserMessage(

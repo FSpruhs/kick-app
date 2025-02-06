@@ -13,7 +13,7 @@ data class Message(
     val timeStamp: LocalDateTime,
     val isRead: Boolean,
     val variables: Map<String, String>,
-    )
+)
 
 fun Message.messageReadBy(userId: UserId): Message {
     require(userId == this.user) { UserNotAuthorizedException(userId) }

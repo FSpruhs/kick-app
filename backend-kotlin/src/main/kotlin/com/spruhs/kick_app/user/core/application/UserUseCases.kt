@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserUseCases(
-    val userPersistencePort: UserPersistencePort,
-    val userIdentityProviderPort: UserIdentityProviderPort
+    private val userPersistencePort: UserPersistencePort,
+    private val userIdentityProviderPort: UserIdentityProviderPort
 ) {
     fun getUser(userId: UserId): User {
         userPersistencePort.findById(userId)?.let {
@@ -39,7 +39,6 @@ class UserUseCases(
             FullName(command.firstName, command.lastName),
             command.nickName,
             command.email,
-            command.password,
         ).apply {
             userPersistencePort.save(this)
             userIdentityProviderPort.save(this)
@@ -52,5 +51,4 @@ data class RegisterUserCommand(
     var lastName: LastName,
     var nickName: NickName,
     var email: Email,
-    var password: Password,
 )

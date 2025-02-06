@@ -17,12 +17,11 @@ data class UserDocument(
     val lastName: String,
     val nickName: String,
     val email: String,
-    val password: String,
     val groups: List<String>
 )
 
 @Service
-class UserPersistenceAdapter(val repository: UserRepository) : UserPersistencePort {
+class UserPersistenceAdapter(private val repository: UserRepository) : UserPersistencePort {
     override fun save(user: User) {
         repository.save(user.toDocument())
     }
@@ -55,7 +54,6 @@ private fun User.toDocument() = UserDocument(
     lastName = fullName.lastName.value,
     nickName = nickName.value,
     email = email.value,
-    password = password.value,
     groups = groups.map { it.value }
 )
 
@@ -64,6 +62,5 @@ private fun UserDocument.toDomain() = User(
     FullName(FirstName(firstName), LastName(lastName)),
     NickName(nickName),
     Email(email),
-    Password(password),
     groups.map { GroupId(it) }
 )

@@ -4,7 +4,7 @@ services:
     image: mongo:latest
     container_name: mongo
     env_file:
-      - backend/.env
+      - .env
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -18,13 +18,15 @@ services:
     container_name: keycloak
     image: quay.io/keycloak/keycloak:25.0.6
     volumes:
-      - ./.infra/keycloak/v20/imports:/opt/keycloak/data/import
+      - .infra/keycloak/v20/imports:/opt/keycloak/data/import
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: password
+      KC_FEATURES: scripts
+      KEYCLOAK_IMPORT: /opt/keycloak/data/import/kick-realm.json
     ports:
       - 8080:8080
-    command: "start-dev --import-realm"
+    command: "start-dev --import-realm --verbose"
 
 volumes:
   mongo:

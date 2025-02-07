@@ -38,6 +38,10 @@ fun createGroup(
     invitedUsers = listOf(),
 )
 
+fun Group.isActivePlayer(userId: UserId): Boolean {
+    return players.any { it.id == userId && it.status == PlayerStatus.ACTIVE }
+}
+
 fun Group.inviteUserResponse(
     userId: UserId,
     response: Boolean

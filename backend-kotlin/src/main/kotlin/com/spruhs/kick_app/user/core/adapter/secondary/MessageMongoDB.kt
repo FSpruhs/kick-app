@@ -16,6 +16,10 @@ class MessagePersistenceAdapter(val messageRepository: MessageRepository) : Mess
         messageRepository.save(message.toDocument())
     }
 
+    override fun saveAll(messages: List<Message>) {
+        messageRepository.saveAll(messages.map { it.toDocument() })
+    }
+
     override fun findById(messageId: MessageId): Message? {
         return messageRepository.findById(messageId.value).orElse(null)?.toDomain()
     }

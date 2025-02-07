@@ -16,8 +16,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class GroupListener(
-    val messageUseCases: MessageUseCases,
-    val userUseCases: UserUseCases
+    private val messageUseCases: MessageUseCases,
+    private val userUseCases: UserUseCases
 ) {
 
     private val log = getLogger(this::class.java)

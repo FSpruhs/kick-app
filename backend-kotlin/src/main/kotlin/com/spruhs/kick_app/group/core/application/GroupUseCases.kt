@@ -23,6 +23,10 @@ class GroupUseCases(
         }
     }
 
+    fun isActiveMember(groupId: GroupId, userId: UserId): Boolean {
+        return groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
+    }
+
     fun inviteUser(command: InviteUserCommand) {
         fetchGroup(command.groupId).inviteUser(command.inviterId, command.inviteeId).apply {
             groupPersistencePort.save(this)

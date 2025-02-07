@@ -25,10 +25,12 @@ enum class MessageType {
     USER_INVITED_TO_GROUP,
     USER_LEAVED_GROUP,
     USER_REMOVED_FROM_GROUP,
+    MATCH_CREATED,
 }
 
 interface MessagePersistencePort {
     fun save(message: Message)
+    fun saveAll(messages: List<Message>)
     fun findById(messageId: MessageId): Message?
     fun findByUser(userId: UserId): List<Message>
 }

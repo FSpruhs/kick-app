@@ -38,6 +38,10 @@ class UserPersistenceAdapter(private val repository: UserRepository) : UserPersi
         return repository.findAllById(userIds.map { it.value }).map { it.toDomain() }
     }
 
+    override fun findByGroupId(groupId: GroupId): List<User> {
+        return repository.findByGroups(groupId.value).map { it.toDomain() }
+    }
+
     override fun findAll(): List<User> {
         return repository.findAll().map { it.toDomain() }
     }
@@ -46,6 +50,7 @@ class UserPersistenceAdapter(private val repository: UserRepository) : UserPersi
 @Repository
 interface UserRepository : MongoRepository<UserDocument, String> {
     fun existsByEmail(email: String): Boolean
+    fun findByGroups(groupId: String): List<UserDocument>
 }
 
 private fun User.toDocument() = UserDocument(

@@ -8,7 +8,7 @@ import com.spruhs.kick_app.user.core.domain.User
 import org.springframework.stereotype.Service
 
 @Service
-class UserApiAdapter(val userUseCases: UserUseCases) : UserApi {
+class UserApiAdapter(private val userUseCases: UserUseCases) : UserApi {
     override fun findUsersByIds(userIds: List<UserId>): List<UserData> =
         userUseCases.getUsersByIds(userIds).map { it.toData() }
 

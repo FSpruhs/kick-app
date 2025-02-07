@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/group")
-class GroupRest(val groupUseCases: GroupUseCases, val jwtParser: JWTParser) {
+class GroupRest(
+    private val groupUseCases: GroupUseCases,
+    private val jwtParser: JWTParser
+) {
 
     @PutMapping("/{groupId}/players/{userId}")
     fun updatePlayer(

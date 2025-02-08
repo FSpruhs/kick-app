@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
 import com.spruhs.kick_app.AbstractMongoTest
-import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.TestUserBuilder
 import com.spruhs.kick_app.user.core.domain.*

@@ -79,7 +79,6 @@ interface UserPersistencePort {
     fun existsByEmail(email: Email): Boolean
     fun findById(userId: UserId): User?
     fun findByIds(userIds: List<UserId>): List<User>
-    fun findByGroupId(groupId: GroupId): List<User>
     fun findAll(): List<User>
 }
 

@@ -6,14 +6,15 @@ import com.spruhs.kick_app.group.core.domain.GroupPersistencePort
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
-import org.junit.jupiter.api.BeforeEach
+import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
-
+@ExtendWith(MockKExtension::class)
 class GroupUseCasesTest {
 
     @MockK
-    lateinit var groupDetailsPersistencePort: GroupPersistencePort
+    lateinit var groupPersistencePort: GroupPersistencePort
 
     @MockK
     lateinit var eventPublisher: EventPublisher
@@ -21,20 +22,15 @@ class GroupUseCasesTest {
     @InjectMockKs
     lateinit var useCases: GroupUseCases
 
-    @BeforeEach
-    fun setUp() {
-        MockKAnnotations.init(this)
-    }
-
     @Test
     fun `create should save group to persistence`() {
         val command = TestGroupBuilder().buildCreateGroupCommand()
 
-        every { getGroupDetailsPersistencePort.save(any()) } just Runs
+        every { groupPersistencePort.save(any()) } just Runs
 
         useCases.create(command)
 
-        verify { getGroupDetailsPersistencePort.save(any()) }
+        verify { groupPersistencePort.save(any()) }
     }
 
     @Test
@@ -42,13 +38,13 @@ class GroupUseCasesTest {
         val command = TestGroupBuilder().buildInviteUserCommand()
         val group = TestGroupBuilder().withInvitedUsers(listOf()).build()
 
-        every { getGroupDetailsPersistencePort.findById(command.groupId) } returns group
-        every { getGroupDetailsPersistencePort.save(any()) } just Runs
+        every { groupPersistencePort.findById(command.groupId) } returns group
+        every { groupPersistencePort.save(any()) } just Runs
         every { eventPublisher.publishAll(any()) } just Runs
 
         useCases.inviteUser(command)
 
-        verify { getGroupDetailsPersistencePort.save(any()) }
+        verify { groupPersistencePort.save(any()) }
         verify { eventPublisher.publishAll(any()) }
     }
 }

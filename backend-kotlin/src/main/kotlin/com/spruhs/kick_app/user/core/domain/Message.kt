@@ -16,7 +16,7 @@ data class Message(
 )
 
 fun Message.messageReadBy(userId: UserId): Message {
-    require(userId == this.user) { UserNotAuthorizedException(userId) }
+    require(userId == this.user) { throw UserNotAuthorizedException(userId) }
 
     return this.copy(isRead = true)
 }

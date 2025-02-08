@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
 import com.spruhs.kick_app.AbstractMongoTest
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.TestUserBuilder
 import com.spruhs.kick_app.user.core.domain.*
@@ -69,6 +70,19 @@ class UserPersistenceAdapterTest : AbstractMongoTest() {
 
         userPersistencePort.findAll().let { result ->
             assertThat(result).containsExactlyInAnyOrder(user1, user2)
+        }
+    }
+
+    @Test
+    fun `find by ids should return users`() {
+        val user1 = TestUserBuilder().withId("test id 1").build()
+        val user2 = TestUserBuilder().withId("test id 2").build()
+
+        userPersistencePort.save(user1)
+        userPersistencePort.save(user2)
+
+        userPersistencePort.findByIds(listOf(user1.id)).let { result ->
+            assertThat(result).containsExactlyInAnyOrder(user1)
         }
     }
 }

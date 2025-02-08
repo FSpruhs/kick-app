@@ -14,10 +14,13 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(MockKExtension::class)
 class GroupListenerTest {
 
     @MockK
@@ -28,11 +31,6 @@ class GroupListenerTest {
 
     @InjectMockKs
     lateinit var groupListener: GroupListener
-
-    @BeforeEach
-    fun setUp() {
-        MockKAnnotations.init(this)
-    }
 
     @Test
     fun `onEvent should send message when UserInvitedToGroupEvent is received`() {

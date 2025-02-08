@@ -17,17 +17,17 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/message")
-class MessageRestController(val messageUseCases: MessageUseCases, val jwtParser: JWTParser) {
+class MessageRestController(
+    private val messageUseCases: MessageUseCases,
+    private val jwtParser: JWTParser
+) {
 
     @GetMapping("/user/{userId}")
     fun getMessagesByUser(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable userId: String
     ): List<MessageResponse> {
-        val tokenUserId = jwtParser.getUserId(jwt)
-        if (tokenUserId != userId) {
-            throw UserNotAuthorizedException(UserId(userId))
-        }
+        require(jwtParser.getUserId(jwt) == userId) { UserNotAuthorizedException(UserId(userId)) }
         return messageUseCases.getByUser(UserId(userId)).map { it.toResponse() }
     }
 
@@ -36,15 +36,13 @@ class MessageRestController(val messageUseCases: MessageUseCases, val jwtParser:
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable messageId: String
     ) {
-        val userId = jwtParser.getUserId(jwt)
         messageUseCases.markAsRead(
             MarkAsReadCommand(
-            messageId = MessageId(messageId),
-            userId = UserId(userId)
-        )
+                messageId = MessageId(messageId),
+                userId = UserId(jwtParser.getUserId(jwt))
+            )
         )
     }
-
 }
 
 data class MessageResponse(

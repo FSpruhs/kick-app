@@ -23,10 +23,10 @@ class MessageUseCases(
     }
 
     fun markAsRead(command: MarkAsReadCommand) {
-        messagePersistencePort.findById(command.messageId)?.let {
+        fetchMessage(command.messageId).let {
             it.messageReadBy(command.userId)
             messagePersistencePort.save(it)
-        } ?: throw MessageNotFoundException(command.messageId)
+        }
     }
 
     fun sendAllActiveUsersInGroupMessage(
@@ -39,6 +39,10 @@ class MessageUseCases(
             .toList()
             .let { messagePersistencePort.saveAll(it) }
     }
+
+    private fun fetchMessage(messageId: MessageId): Message =
+        messagePersistencePort.findById(messageId) ?: throw MessageNotFoundException(messageId)
+
 }
 
 data class MarkAsReadCommand(
@@ -54,7 +58,7 @@ data class MessageParams(
     val start: LocalDateTime? = null
 )
 
-fun createMessage(type: MessageType, params: MessageParams): Message {
+private fun createMessage(type: MessageType, params: MessageParams): Message {
     return when (type) {
         MessageType.USER_INVITED_TO_GROUP -> MessageFactory().createUserInvitedToGroupMessage(params)
         MessageType.USER_LEAVED_GROUP -> MessageFactory().createUserLeavedGroupMessage(params)

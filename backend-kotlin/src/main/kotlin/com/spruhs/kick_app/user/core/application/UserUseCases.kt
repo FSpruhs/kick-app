@@ -10,20 +10,14 @@ class UserUseCases(
     private val userPersistencePort: UserPersistencePort,
     private val userIdentityProviderPort: UserIdentityProviderPort
 ) {
-    fun getUser(userId: UserId): User {
-        userPersistencePort.findById(userId)?.let {
-            return it
-        } ?: throw UserNotFoundException(userId)
-    }
+    fun getUser(userId: UserId): User = fetchUser(userId)
 
     fun userLeavesGroup(userId: UserId, groupId: GroupId) {
-        val user = userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
-        user.leaveGroup(groupId).apply { userPersistencePort.save(this) }
+        fetchUser(userId).leaveGroup(groupId).apply { userPersistencePort.save(this) }
     }
 
     fun userEntersGroup(userId: UserId, groupId: GroupId) {
-        val user = userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
-        user.enterGroup(groupId).apply { userPersistencePort.save(this) }
+        fetchUser(userId).enterGroup(groupId).apply { userPersistencePort.save(this) }
     }
 
     fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)
@@ -44,6 +38,10 @@ class UserUseCases(
             userIdentityProviderPort.save(this)
         }
     }
+
+    private fun fetchUser(userId: UserId): User =
+        userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
+
 }
 
 data class RegisterUserCommand(

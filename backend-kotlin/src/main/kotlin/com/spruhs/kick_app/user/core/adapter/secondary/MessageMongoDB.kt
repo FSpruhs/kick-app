@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
-class MessagePersistenceAdapter(val messageRepository: MessageRepository) : MessagePersistencePort {
+class MessagePersistenceAdapter(private val messageRepository: MessageRepository) : MessagePersistencePort {
     override fun save(message: Message) {
         messageRepository.save(message.toDocument())
     }
@@ -45,21 +45,21 @@ data class MessageDocument(
 )
 
 private fun Message.toDocument() = MessageDocument(
-    id = id.value,
-    userId = user.value,
-    content = text,
-    timeStamp = timeStamp.toString(),
-    isRead = isRead,
-    type = type.toString(),
-    variables = variables
+    id = this.id.value,
+    userId = this.user.value,
+    content = this.text,
+    timeStamp = this.timeStamp.toString(),
+    isRead = this.isRead,
+    type = this.type.toString(),
+    variables = this.variables
 )
 
 private fun MessageDocument.toDomain() = Message(
-    id = MessageId(id),
-    user = UserId(userId),
-    text = content,
-    timeStamp = LocalDateTime.parse(timeStamp),
-    isRead = isRead,
+    id = MessageId(this.id),
+    user = UserId(this.userId),
+    text = this.content,
+    timeStamp = LocalDateTime.parse(this.timeStamp),
+    isRead = this.isRead,
     type = MessageType.valueOf(this.type),
-    variables = variables
+    variables = this.variables
 )

@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.application
 
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.user.core.TestUserBuilder
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserNotFoundException
@@ -7,11 +8,13 @@ import com.spruhs.kick_app.user.core.domain.UserPersistencePort
 import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(MockKExtension::class)
 class UserUseCasesTest {
 
     @MockK
@@ -22,11 +25,6 @@ class UserUseCasesTest {
 
     @InjectMockKs
     lateinit var useCases: UserUseCases
-
-    @BeforeEach
-    fun setUp() {
-        MockKAnnotations.init(this)
-    }
 
     @Test
     fun `registerUser should save user to persistence and identity provider`() {
@@ -78,6 +76,44 @@ class UserUseCasesTest {
         val result = useCases.getUsers()
 
         assertThat(result).isEqualTo(users)
+    }
+
+    @Test
+    fun `getUsersByIds should return users by ids from persistence`() {
+        val users = listOf(
+            TestUserBuilder().withId("test id 1").build(),
+            TestUserBuilder().withId("test id 2").build()
+        )
+        val userIds = users.map { it.id }
+        every { userPersistencePort.findByIds(userIds) } returns users
+
+        val result = useCases.getUsersByIds(userIds)
+
+        assertThat(result).isEqualTo(users)
+    }
+
+    @Test
+    fun `userLeavesGroup should remove user from group`() {
+        val user = TestUserBuilder().build()
+        val groupId = GroupId("test group id")
+        every { userPersistencePort.findById(user.id) } returns user
+        every { userPersistencePort.save(any()) } just Runs
+
+        useCases.userLeavesGroup(user.id, groupId)
+
+        verify { userPersistencePort.save(any()) }
+    }
+
+    @Test
+    fun `userEntersGroup should add user to group`() {
+        val user = TestUserBuilder().build()
+        val groupId = GroupId("test group id")
+        every { userPersistencePort.findById(user.id) } returns user
+        every { userPersistencePort.save(any()) } just Runs
+
+        useCases.userEntersGroup(user.id, groupId)
+
+        verify { userPersistencePort.save(any()) }
     }
 }
 

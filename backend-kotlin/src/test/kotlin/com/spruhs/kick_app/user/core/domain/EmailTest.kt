@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.user.core.domain
 
-import com.mongodb.assertions.Assertions
 import com.mongodb.assertions.Assertions.doesNotThrow
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.params.ParameterizedTest
@@ -9,6 +8,7 @@ import org.junit.jupiter.params.provider.ValueSource
 class EmailTest {
     @ParameterizedTest
     @ValueSource(strings = [
+        "",
         "plainaddress",
         "@missingusername.com",
         "username@.com",

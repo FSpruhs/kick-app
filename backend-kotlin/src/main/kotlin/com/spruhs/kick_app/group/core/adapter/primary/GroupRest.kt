@@ -19,6 +19,21 @@ class GroupRest(
     private val jwtParser: JWTParser
 ) {
 
+    @PutMapping("/{groupId}/players")
+    fun updateStatus(
+        @PathVariable groupId: String,
+        @RequestParam status: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        groupUseCases.updateStatus(
+            UpdateStatusCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                groupId = GroupId(groupId),
+                newStatus = PlayerStatus.valueOf(status)
+            )
+        )
+    }
+
     @PutMapping("/{groupId}/players/{userId}")
     fun updatePlayer(
         @PathVariable groupId: String,
@@ -42,7 +57,7 @@ class GroupRest(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): GroupDetail =
-        groupUseCases.getGroup(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+        groupUseCases.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
 
 
     @DeleteMapping("/{groupId}/players/{userId}")

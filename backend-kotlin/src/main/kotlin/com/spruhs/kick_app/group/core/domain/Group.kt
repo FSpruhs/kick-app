@@ -104,6 +104,24 @@ fun Group.removePlayer(userId: UserId): Group {
     )
 }
 
+fun Group.updateStatus(
+    userId: UserId,
+    newStatus: PlayerStatus
+): Group {
+    require(newStatus == PlayerStatus.ACTIVE || newStatus == PlayerStatus.INACTIVE)
+    val player = players.find { it.id == userId } ?: throw UserNotAuthorizedException(userId)
+
+    val updatedPlayer = player.copy(
+        status = newStatus
+    )
+
+    return copy(players = players - player + updatedPlayer)
+}
+
+fun Group.isActiveAdmin(userId: UserId): Boolean {
+    return players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatus.ACTIVE }
+}
+
 fun Group.updatePlayer(
     requesterId: UserId,
     userId: UserId,

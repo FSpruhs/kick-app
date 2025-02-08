@@ -23,6 +23,7 @@ data class MatchDocument(
     val id: String,
     val groupId: String,
     val start: String,
+    val status: String,
     val location: String,
     val maxPlayer: Int,
     val minPlayer: Int,
@@ -43,6 +44,7 @@ private fun Match.toDocument() = MatchDocument(
     groupId = groupId.value,
     start = start.toISOString(),
     location = playground.value,
+    status = status.name,
     maxPlayer = playerCount.maxPlayer.value,
     minPlayer = playerCount.minPlayer.value,
     registeredPlayers = registeredPlayers.map { it.toDocument() }
@@ -59,6 +61,7 @@ private fun MatchDocument.toDomain() = Match(
     groupId = GroupId(groupId),
     start = start.toLocalDateTime(),
     playground = Playground(location),
+    status = MatchStatus.valueOf(this.status),
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer)),
     registeredPlayers = registeredPlayers.map { it.toDomain() }
 )

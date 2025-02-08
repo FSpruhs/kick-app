@@ -28,8 +28,30 @@ class MatchUseCases(
         }
     }
 
+    fun cancel(command: CancelMatchCommand) {
+        val match = fetchMatch(command.matchId)
+        require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
+            "User is not an active admin of the group"
+        }
+
+        match.cancel().apply {
+            matchPersistenceAdapter.save(this)
+        }
+    }
+
+    fun cancelPlayer(command: CancelPlayerCommand) {
+        val match = fetchMatch(command.matchId)
+        require(groupApi.isActiveAdmin(match.groupId, command.cancelingUserId)) {
+            "User is not an active admin of the group"
+        }
+
+        match.cancelPlayer(command.userId).apply {
+            matchPersistenceAdapter.save(this)
+        }
+    }
+
     fun addRegistration(command: AddRegistrationCommand) {
-        val match = matchPersistenceAdapter.findById(command.matchId) ?: throw MatchNotFoundException(command.matchId)
+        val match = fetchMatch(command.matchId)
         require(groupApi.isActiveMember(match.groupId, command.userId)) {
             "User is not an active member of the group"
         }
@@ -37,7 +59,15 @@ class MatchUseCases(
         match.addRegistration(command.userId, command.registrationStatus)
         matchPersistenceAdapter.save(match)
     }
+
+    private fun fetchMatch(matchId: MatchId): Match =
+        matchPersistenceAdapter.findById(matchId) ?: throw MatchNotFoundException(matchId)
 }
+
+data class CancelMatchCommand(
+    val userId: UserId,
+    val matchId: MatchId
+)
 
 data class AddRegistrationCommand(
     val userId: UserId,
@@ -50,4 +80,10 @@ data class PlanMatchCommand(
     val start: LocalDateTime,
     val playground: Playground,
     val playerCount: PlayerCount,
+)
+
+data class CancelPlayerCommand(
+    val userId: UserId,
+    val cancelingUserId: UserId,
+    val matchId: MatchId
 )

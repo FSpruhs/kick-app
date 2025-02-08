@@ -23,8 +23,16 @@ class GroupUseCases(
         }
     }
 
+    fun getActivePlayers(groupId: GroupId): List<UserId> {
+        return groupPersistencePort.findById(groupId)?.players?.map { it.id } ?: throw GroupNotFoundException(groupId)
+    }
+
     fun isActiveMember(groupId: GroupId, userId: UserId): Boolean {
         return groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
+    }
+
+    fun isActiveAdmin(groupId: GroupId, userId: UserId): Boolean {
+        return groupPersistencePort.findById(groupId)?.isActiveAdmin(userId) ?: false
     }
 
     fun inviteUser(command: InviteUserCommand) {
@@ -38,6 +46,12 @@ class GroupUseCases(
         fetchGroup(command.groupId).inviteUserResponse(command.userId, command.response).apply {
             groupPersistencePort.save(this)
             eventPublisher.publishAll(this.domainEvents)
+        }
+    }
+
+    fun updateStatus(command: UpdateStatusCommand) {
+        fetchGroup(command.groupId).updateStatus(command.userId, command.newStatus).apply {
+            groupPersistencePort.save(this)
         }
     }
 
@@ -63,7 +77,7 @@ class GroupUseCases(
         }
     }
 
-    fun getGroup(groupId: GroupId, userId: UserId): GroupDetail {
+    fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
             if (this.players.none { player -> player.id == userId }) {
                 throw UserNotAuthorizedException(userId)
@@ -105,6 +119,12 @@ data class UpdatePlayerCommand(
     val groupId: GroupId,
     val newRole: PlayerRole,
     val newStatus: PlayerStatus
+)
+
+data class UpdateStatusCommand(
+    val userId: UserId,
+    val groupId: GroupId,
+    val newStatus: PlayerStatus,
 )
 
 data class GroupDetail(

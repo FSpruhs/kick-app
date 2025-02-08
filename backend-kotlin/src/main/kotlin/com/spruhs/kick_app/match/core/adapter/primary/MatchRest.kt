@@ -4,9 +4,7 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
-import com.spruhs.kick_app.match.core.application.MatchUseCases
-import com.spruhs.kick_app.match.core.application.PlanMatchCommand
+import com.spruhs.kick_app.match.core.application.*
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -25,6 +23,34 @@ class MatchRestController(
     @ResponseStatus(HttpStatus.CREATED)
     fun planMatch(@RequestBody request: PlanMatchRequest) {
         matchUseCases.plan(request.toCommand())
+    }
+
+    @DeleteMapping("/{matchId}/players/{userId}")
+    fun cancelPlayer(
+        @PathVariable matchId: String,
+        @PathVariable userId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchUseCases.cancelPlayer(
+            CancelPlayerCommand(
+                cancelingUserId = UserId(userId),
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId)
+            )
+        )
+    }
+
+    @DeleteMapping("/{matchId}")
+    fun cancelMatch(
+        @PathVariable matchId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchUseCases.cancel(
+            CancelMatchCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId)
+            )
+        )
     }
 
     @PutMapping("/{matchId}/registeredPlayers/{registrationStatus}")

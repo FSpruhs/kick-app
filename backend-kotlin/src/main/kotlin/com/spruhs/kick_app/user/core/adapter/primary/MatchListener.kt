@@ -2,7 +2,7 @@ package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.getLogger
-import com.spruhs.kick_app.match.core.domain.MatchCreatedEvent
+import com.spruhs.kick_app.match.api.MatchCreatedEvent
 import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
@@ -19,7 +19,7 @@ class MatchListener(
     @EventListener(MatchCreatedEvent::class)
     fun onEvent(event: MatchCreatedEvent) {
         log.info("MatchCreatedEvent received: $event")
-        messageUseCases.sendAllUsersInGroupMessage(
+        messageUseCases.sendAllActiveUsersInGroupMessage(
             messageType = MessageType.MATCH_CREATED,
             params = event.toMessageParams(),
             groupId = GroupId(event.groupId)

@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -8,7 +9,7 @@ import java.time.LocalDateTime
 @Service
 class MessageUseCases(
     private val messagePersistencePort: MessagePersistencePort,
-    private val userPersistencePort: UserPersistencePort
+    private val groupApi: GroupApi,
 ) {
 
     fun send(messageType: MessageType, params: MessageParams) {
@@ -28,13 +29,12 @@ class MessageUseCases(
         } ?: throw MessageNotFoundException(command.messageId)
     }
 
-    fun sendAllUsersInGroupMessage(
+    fun sendAllActiveUsersInGroupMessage(
         messageType: MessageType,
         params: MessageParams,
         groupId: GroupId
     ) {
-        userPersistencePort.findByGroupId(groupId)
-            .map { it.id }
+        groupApi.getActivePlayers(groupId)
             .map { createMessage(messageType, params.copy(userId = it.value)) }
             .toList()
             .let { messagePersistencePort.saveAll(it) }

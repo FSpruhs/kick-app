@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 class GroupUseCasesTest {
 
     @MockK
-    lateinit var groupPersistencePort: GroupPersistencePort
+    lateinit var groupDetailsPersistencePort: GroupPersistencePort
 
     @MockK
     lateinit var eventPublisher: EventPublisher
@@ -30,11 +30,11 @@ class GroupUseCasesTest {
     fun `create should save group to persistence`() {
         val command = TestGroupBuilder().buildCreateGroupCommand()
 
-        every { groupPersistencePort.save(any()) } just Runs
+        every { getGroupDetailsPersistencePort.save(any()) } just Runs
 
         useCases.create(command)
 
-        verify { groupPersistencePort.save(any()) }
+        verify { getGroupDetailsPersistencePort.save(any()) }
     }
 
     @Test
@@ -42,13 +42,13 @@ class GroupUseCasesTest {
         val command = TestGroupBuilder().buildInviteUserCommand()
         val group = TestGroupBuilder().withInvitedUsers(listOf()).build()
 
-        every { groupPersistencePort.findById(command.groupId) } returns group
-        every { groupPersistencePort.save(any()) } just Runs
+        every { getGroupDetailsPersistencePort.findById(command.groupId) } returns group
+        every { getGroupDetailsPersistencePort.save(any()) } just Runs
         every { eventPublisher.publishAll(any()) } just Runs
 
         useCases.inviteUser(command)
 
-        verify { groupPersistencePort.save(any()) }
+        verify { getGroupDetailsPersistencePort.save(any()) }
         verify { eventPublisher.publishAll(any()) }
     }
 }

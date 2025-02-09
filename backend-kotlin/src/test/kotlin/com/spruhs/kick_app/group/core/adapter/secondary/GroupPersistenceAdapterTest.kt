@@ -5,6 +5,9 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.core.domain.GroupPersistencePort
+import com.spruhs.kick_app.group.core.domain.Player
+import com.spruhs.kick_app.group.core.domain.PlayerRole
+import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +41,7 @@ class GroupPersistenceAdapterTest : AbstractMongoTest() {
 
     @Test
     fun `find by player should return groups when player exists`() {
-        val playerToFind = "test player"
+        val playerToFind = Player(UserId("test player"), PlayerStatus.ACTIVE, PlayerRole.ADMIN)
 
         val group1 = TestGroupBuilder()
             .withId("test id 1")
@@ -52,14 +55,14 @@ class GroupPersistenceAdapterTest : AbstractMongoTest() {
 
         val group3 = TestGroupBuilder()
             .withId("test id 3")
-            .withPlayers(listOf("player not to find"))
+            .withPlayers(listOf(Player(UserId("player not to find"), PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
             .build()
 
         groupPersistencePort.save(group1)
         groupPersistencePort.save(group2)
         groupPersistencePort.save(group3)
 
-        groupPersistencePort.findByPlayer(UserId(playerToFind)).let { result ->
+        groupPersistencePort.findByPlayer(playerToFind.id).let { result ->
             assertThat(result.map { it.id.value }).containsExactlyInAnyOrder("test id 1", "test id 2")
         }
     }

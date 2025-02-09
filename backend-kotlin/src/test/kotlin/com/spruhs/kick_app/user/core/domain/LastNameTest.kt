@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.mongodb.assertions.Assertions.doesNotThrow
+import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -27,8 +28,8 @@ class LastNameTest {
         ]
     )
     fun `should not throw exception for valid last name`(validLastName: String) {
-        doesNotThrow {
+        assertThatCode {
             LastName(validLastName)
-        }
+        }.doesNotThrowAnyException()
     }
 }

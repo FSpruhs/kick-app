@@ -143,6 +143,8 @@ fun Group.updatePlayer(
     return copy(players = players - player + updatedPlayer)
 }
 
+
+
 fun Group.inviteUser(
     inviterId: UserId,
     inviteeId: UserId

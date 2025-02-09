@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user.core.domain
 
 
 import com.mongodb.assertions.Assertions.doesNotThrow
+import org.assertj.core.api.Assertions.assertThatCode
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -28,8 +29,8 @@ class FirstNameTest {
         ]
     )
     fun `should not throw exception for valid first name`(validFirstName: String) {
-        doesNotThrow {
+        assertThatCode {
             FirstName(validFirstName)
-        }
+        }.doesNotThrowAnyException()
     }
 }

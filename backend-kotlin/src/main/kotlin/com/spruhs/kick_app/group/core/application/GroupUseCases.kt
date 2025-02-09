@@ -6,13 +6,14 @@ import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.domain.*
 import com.spruhs.kick_app.user.api.UserApi
+import com.spruhs.kick_app.user.api.UserData
 import org.springframework.stereotype.Service
 
 @Service
 class GroupUseCases(
-    val groupPersistencePort: GroupPersistencePort,
-    val userApi: UserApi,
-    val eventPublisher: EventPublisher
+    private val groupPersistencePort: GroupPersistencePort,
+    private val userApi: UserApi,
+    private val eventPublisher: EventPublisher
 ) {
     fun create(command: CreateGroupCommand) {
         createGroup(
@@ -23,17 +24,18 @@ class GroupUseCases(
         }
     }
 
-    fun getActivePlayers(groupId: GroupId): List<UserId> {
-        return groupPersistencePort.findById(groupId)?.players?.map { it.id } ?: throw GroupNotFoundException(groupId)
-    }
+    fun getActivePlayers(groupId: GroupId): List<UserId> =
+        fetchGroup(groupId).players.filter { it.status == PlayerStatus.ACTIVE }.map { it.id }
 
-    fun isActiveMember(groupId: GroupId, userId: UserId): Boolean {
-        return groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
-    }
+    fun isActiveMember(
+        groupId: GroupId,
+        userId: UserId
+    ): Boolean = groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
 
-    fun isActiveAdmin(groupId: GroupId, userId: UserId): Boolean {
-        return groupPersistencePort.findById(groupId)?.isActiveAdmin(userId) ?: false
-    }
+    fun isActiveAdmin(
+        groupId: GroupId,
+        userId: UserId
+    ): Boolean = groupPersistencePort.findById(groupId)?.isActiveAdmin(userId) ?: false
 
     fun inviteUser(command: InviteUserCommand) {
         fetchGroup(command.groupId).inviteUser(command.inviterId, command.inviteeId).apply {
@@ -55,13 +57,7 @@ class GroupUseCases(
         }
     }
 
-    private fun fetchGroup(groupId: GroupId): Group {
-        return groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
-    }
-
-    fun getGroupsByPlayer(userId: UserId): List<Group> {
-        return groupPersistencePort.findByPlayer(userId)
-    }
+    fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
 
     fun leaveGroup(command: LeaveGroupCommand) {
         fetchGroup(command.groupId).leave(command.userId).apply {
@@ -79,26 +75,12 @@ class GroupUseCases(
 
     fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
-            if (this.players.none { player -> player.id == userId }) {
-                throw UserNotAuthorizedException(userId)
-            }
+            require(this.players.any { it.id == userId}) { throw UserNotAuthorizedException(userId) }
         }
 
         val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
 
-        return GroupDetail(
-            id = group.id.value,
-            name = group.name.value,
-            players = group.players.map { player ->
-                PlayerDetail(
-                    id = player.id.value,
-                    nickName = users.getValue(player.id).nickName,
-                    role = player.role,
-                    status = player.status,
-                )
-            },
-            invitedUsers = group.invitedUsers.map { it.value },
-        )
+        return group.toGroupDetails(users)
     }
 
     fun updatePlayer(command: UpdatePlayerCommand) {
@@ -111,7 +93,25 @@ class GroupUseCases(
             groupPersistencePort.save(this)
         }
     }
+
+    private fun fetchGroup(groupId: GroupId): Group =
+        groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
+
 }
+
+private fun Group.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = GroupDetail(
+    id = id.value,
+    name = name.value,
+    players = players.map { player ->
+        PlayerDetail(
+            id = player.id.value,
+            nickName = users.getValue(player.id).nickName,
+            role = player.role,
+            status = player.status,
+        )
+    },
+    invitedUsers = invitedUsers.map { it.value },
+)
 
 data class UpdatePlayerCommand(
     val requesterId: UserId,

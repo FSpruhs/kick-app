@@ -67,7 +67,7 @@ class GroupUseCases(
     }
 
     fun removePlayer(command: RemovePlayerCommand) {
-        fetchGroup(command.groupId).removePlayer(command.userId).apply {
+        fetchGroup(command.groupId).removePlayer(command.requesterId, command.userId).apply {
             groupPersistencePort.save(this)
             eventPublisher.publishAll(this.domainEvents)
         }

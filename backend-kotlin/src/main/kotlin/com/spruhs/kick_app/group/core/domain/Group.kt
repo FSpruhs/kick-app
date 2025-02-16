@@ -38,9 +38,7 @@ fun createGroup(
     invitedUsers = listOf(),
 )
 
-fun Group.isActivePlayer(userId: UserId): Boolean {
-    return players.any { it.id == userId && it.status == PlayerStatus.ACTIVE }
-}
+fun Group.isActivePlayer(userId: UserId): Boolean = players.any { it.id == userId && it.status == PlayerStatus.ACTIVE }
 
 fun Group.inviteUserResponse(
     userId: UserId,
@@ -49,20 +47,18 @@ fun Group.inviteUserResponse(
     if (userId !in this.invitedUsers) {
         throw UserNotInvitedInGroupException(userId)
     }
-    if (response) {
-        return this.copy(
-            players = this.players + Player(userId, PlayerStatus.ACTIVE, PlayerRole.PLAYER),
-            invitedUsers = this.invitedUsers - userId,
-            domainEvents = this.domainEvents + UserEnteredGroupEvent(
-                userId = userId.value,
-                groupId = this.id.value
-            )
-        )
-    }
-    return this.copy(
-        invitedUsers = this.invitedUsers - userId
-    )
+    return if (response) acceptUser(userId) else rejectUser(userId)
 }
+
+private fun Group.acceptUser(userId: UserId): Group = copy(
+    players = players + Player(userId, PlayerStatus.ACTIVE, PlayerRole.PLAYER),
+    invitedUsers = invitedUsers - userId,
+    domainEvents = domainEvents + UserEnteredGroupEvent(userId.value, id.value)
+)
+
+private fun Group.rejectUser(userId: UserId): Group = copy(
+    invitedUsers = invitedUsers - userId
+)
 
 fun Group.leave(userId: UserId): Group {
     val player = players.find { it.id == userId }?.takeIf { it.status != PlayerStatus.REMOVED }
@@ -83,8 +79,8 @@ fun Group.leave(userId: UserId): Group {
     )
 }
 
-fun Group.removePlayer(userId: UserId): Group {
-    players.find { it.id == userId }?.takeIf { it.role == PlayerRole.ADMIN }
+fun Group.removePlayer(requesterId: UserId, userId: UserId): Group {
+    players.find { it.id == requesterId }?.takeIf { it.role == PlayerRole.ADMIN }
         ?: throw UserNotAuthorizedException(userId)
 
     val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
@@ -118,9 +114,8 @@ fun Group.updateStatus(
     return copy(players = players - player + updatedPlayer)
 }
 
-fun Group.isActiveAdmin(userId: UserId): Boolean {
-    return players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatus.ACTIVE }
-}
+fun Group.isActiveAdmin(userId: UserId): Boolean =
+    players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatus.ACTIVE }
 
 fun Group.updatePlayer(
     requesterId: UserId,
@@ -142,8 +137,6 @@ fun Group.updatePlayer(
 
     return copy(players = players - player + updatedPlayer)
 }
-
-
 
 fun Group.inviteUser(
     inviterId: UserId,

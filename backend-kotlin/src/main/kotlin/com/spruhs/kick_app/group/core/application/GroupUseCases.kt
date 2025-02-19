@@ -32,6 +32,14 @@ class GroupUseCases(
         userId: UserId
     ): Boolean = groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
 
+    fun areActiveMembers(
+        groupId: GroupId,
+        userIds: Set<UserId>
+    ): Boolean {
+        val group = groupPersistencePort.findById(groupId) ?: return false
+        return userIds.all { group.isActivePlayer(it) }
+    }
+
     fun isActiveAdmin(
         groupId: GroupId,
         userId: UserId

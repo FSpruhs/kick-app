@@ -2,6 +2,7 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.api.MatchCreatedEvent
+import com.spruhs.kick_app.match.api.ResultAddedEvent
 import java.time.LocalDateTime
 
 data class Match(
@@ -12,6 +13,8 @@ data class Match(
     val playground: Playground,
     val playerCount: PlayerCount,
     val registeredPlayers: List<RegisteredPlayer>,
+    val result: Result? = null,
+    val participatingPlayers: List<ParticipatingPlayer> = emptyList(),
     override val domainEvents: List<DomainEvent> = listOf()
 ) : DomainEventList
 
@@ -31,7 +34,7 @@ fun planMatch(
         status = MatchStatus.PLANNED,
         playerCount = playerCount,
         registeredPlayers = emptyList(),
-        domainEvents = listOf(MatchCreatedEvent(groupId.value, newId,start))
+        domainEvents = listOf(MatchCreatedEvent(groupId.value, newId, start))
     )
 }
 
@@ -67,10 +70,39 @@ fun Match.addRegistration(userId: UserId, registrationStatus: RegistrationStatus
     )
 }
 
+fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Match {
+    require(this.status != MatchStatus.CANCELLED) { "Cannot add result to cancelled match" }
+    require(this.start.isBefore(LocalDateTime.now())) { "Cannot add result to future match" }
+    require(teamA.none { teamB.contains(it) }) { "Players cannot be in both teams" }
+
+    return this.copy(
+        status = MatchStatus.FINISHED,
+        result = result,
+        participatingPlayers = teamA.map { ParticipatingPlayer(it, Team.A) } + teamB.map { ParticipatingPlayer(it, Team.B) },
+        domainEvents = this.domainEvents + ResultAddedEvent(this.id.value, result.toString(), teamA.map { it.value }, teamB.map { it.value })
+    )
+}
+
 enum class MatchStatus {
     PLANNED,
     CANCELLED,
     FINISHED
+}
+
+enum class Result {
+    WINNER_TEAM_A,
+    WINNER_TEAM_B,
+    DRAW
+}
+
+data class ParticipatingPlayer(
+    val userId: UserId,
+    val team: Team
+)
+
+enum class Team {
+    A,
+    B
 }
 
 data class RegisteredPlayer(

@@ -10,3 +10,18 @@ data class MatchCreatedEvent(
 ) : DomainEvent {
     override fun eventVersion(): Int = 1
 }
+
+data class MatchCancelledEvent(
+    val matchId: String
+) : DomainEvent {
+    override fun eventVersion(): Int = 1
+}
+
+data class ResultAddedEvent(
+    val matchId: String,
+    val result: String,
+    val teamA: List<String>,
+    val teamB: List<String>
+) : DomainEvent {
+    override fun eventVersion(): Int = 1
+}

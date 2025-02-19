@@ -67,7 +67,30 @@ class MatchRestController(
             )
         )
     }
+
+    @PostMapping("/{matchId}/result")
+    fun addResult(
+        @PathVariable matchId: String,
+        @RequestBody request: AddResultRequest,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchUseCases.addResult(
+            AddResultCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId),
+                result = request.result,
+                teamA = request.teamA.map { UserId(it) }.toSet(),
+                teamB = request.teamB.map { UserId(it) }.toSet()
+            )
+        )
+    }
 }
+
+data class AddResultRequest(
+    val teamA: List<String>,
+    val teamB: List<String>,
+    val result: Result
+)
 
 data class PlanMatchRequest(
     val groupId: String,

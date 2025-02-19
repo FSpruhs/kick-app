@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 
 @Service
-class MatchPersistenceAdapter(val repository: MatchRepository) : MatchPersistencePort {
+class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPersistencePort {
     override fun save(match: Match) {
         repository.save(match.toDocument())
     }
@@ -27,6 +27,8 @@ data class MatchDocument(
     val location: String,
     val maxPlayer: Int,
     val minPlayer: Int,
+    val result: String?,
+    val participatingPlayers: List<ParticipatingPlayerDocument>,
     val registeredPlayers: List<RegisteredPlayerDocument>
 )
 
@@ -34,6 +36,11 @@ data class RegisteredPlayerDocument(
     val userId: String,
     val registrationTime: String,
     val status: String
+)
+
+data class ParticipatingPlayerDocument(
+    val userId: String,
+    val team: String
 )
 
 @Repository
@@ -47,13 +54,20 @@ private fun Match.toDocument() = MatchDocument(
     status = status.name,
     maxPlayer = playerCount.maxPlayer.value,
     minPlayer = playerCount.minPlayer.value,
-    registeredPlayers = registeredPlayers.map { it.toDocument() }
+    registeredPlayers = registeredPlayers.map { it.toDocument() },
+    participatingPlayers = participatingPlayers.map { it.toDocument() },
+    result = result?.toString()
 )
 
 private fun RegisteredPlayer.toDocument() = RegisteredPlayerDocument(
     userId = userId.value,
     registrationTime = registrationTime.toISOString(),
     status = status.name
+)
+
+private fun ParticipatingPlayer.toDocument() = ParticipatingPlayerDocument(
+    userId = userId.value,
+    team = team.name
 )
 
 private fun MatchDocument.toDomain() = Match(
@@ -63,11 +77,18 @@ private fun MatchDocument.toDomain() = Match(
     playground = Playground(location),
     status = MatchStatus.valueOf(this.status),
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer)),
-    registeredPlayers = registeredPlayers.map { it.toDomain() }
+    registeredPlayers = registeredPlayers.map { it.toDomain() },
+    participatingPlayers = participatingPlayers.map { it.toDomain() },
+    result = result?.let { Result.valueOf(it) }
 )
 
 private fun RegisteredPlayerDocument.toDomain() = RegisteredPlayer(
     userId = UserId(userId),
     registrationTime = registrationTime.toLocalDateTime(),
     status = RegistrationStatus.valueOf(status)
+)
+
+private fun ParticipatingPlayerDocument.toDomain() = ParticipatingPlayer(
+    userId = UserId(userId),
+    team = Team.valueOf(team)
 )

@@ -12,6 +12,10 @@ class GroupApiAdapter(private val groupUseCases: GroupUseCases) : GroupApi {
         return groupUseCases.isActiveMember(groupId, userId)
     }
 
+    override fun areActiveMembers(groupId: GroupId, userIds: Set<UserId>): Boolean {
+        return groupUseCases.areActiveMembers(groupId, userIds)
+    }
+
     override fun isActiveAdmin(groupId: GroupId, userId: UserId): Boolean {
         return groupUseCases.isActiveAdmin(groupId, userId)
     }

@@ -1,9 +1,6 @@
 package com.spruhs.kick_app.match.core.application
 
-import com.spruhs.kick_app.common.EventPublisher
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.core.adapter.secondary.MatchPersistenceAdapter
 import com.spruhs.kick_app.match.core.domain.*
@@ -31,7 +28,7 @@ class MatchUseCases(
     fun cancel(command: CancelMatchCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
-            "User is not an active admin of the group"
+            throw UserNotAuthorizedException(command.userId)
         }
 
         match.cancel().apply {
@@ -42,7 +39,7 @@ class MatchUseCases(
     fun cancelPlayer(command: CancelPlayerCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveAdmin(match.groupId, command.cancelingUserId)) {
-            "User is not an active admin of the group"
+            throw UserNotAuthorizedException(command.userId)
         }
 
         match.cancelPlayer(command.userId).apply {
@@ -53,16 +50,41 @@ class MatchUseCases(
     fun addRegistration(command: AddRegistrationCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveMember(match.groupId, command.userId)) {
-            "User is not an active member of the group"
+            throw UserNotAuthorizedException(command.userId)
         }
 
         match.addRegistration(command.userId, command.registrationStatus)
         matchPersistenceAdapter.save(match)
     }
 
+    fun addResult(command: AddResultCommand) {
+        val match = fetchMatch(command.matchId)
+        require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
+            throw UserNotAuthorizedException(command.userId)
+        }
+
+        require(groupApi.areActiveMembers(match.groupId, command.teamA + command.teamB)) {
+            "Not all players are active members of the group"
+        }
+
+        match.addResult(command.result, command.teamA, command.teamB).apply {
+            matchPersistenceAdapter.save(this)
+            eventPublisher.publishAll(this.domainEvents)
+        }
+
+    }
+
     private fun fetchMatch(matchId: MatchId): Match =
         matchPersistenceAdapter.findById(matchId) ?: throw MatchNotFoundException(matchId)
 }
+
+data class AddResultCommand(
+    val userId: UserId,
+    val matchId: MatchId,
+    val result: Result,
+    val teamA: Set<UserId>,
+    val teamB: Set<UserId>
+)
 
 data class CancelMatchCommand(
     val userId: UserId,

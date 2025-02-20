@@ -79,7 +79,7 @@ class GroupRest(
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<GroupMessage> {
-        require(userId == jwtParser.getUserId(jwt)) { UserNotAuthorizedException(UserId(userId)) }
+        require(userId == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(userId)) }
 
         return groupUseCases.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
     }

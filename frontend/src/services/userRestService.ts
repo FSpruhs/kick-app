@@ -46,5 +46,5 @@ export async function postRegister(payload: RegisterPayload) {
 }
 
 export async function getUserAll(groupId: string) {
-  return await apiClient.get<UserInfo[]>('api/v1/user?exceptGroupID=' + groupId);
+  return await apiClient.get<UserInfo[]>('api/v1/user?exceptGroupId=' + groupId);
 }

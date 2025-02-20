@@ -22,7 +22,7 @@ class UserUseCases(
 
     fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)
 
-    fun getUsers(): List<User> = userPersistencePort.findAll()
+    fun getUsers(exceptGroupId: GroupId? = null): List<User> = userPersistencePort.findAll(exceptGroupId)
 
     fun registerUser(command: RegisterUserCommand) {
         require(

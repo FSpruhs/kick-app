@@ -2,7 +2,6 @@ export interface Group {
   id: string;
   name: string;
   players: Player[];
-  inviteLevel: number;
 }
 
 export interface Player {

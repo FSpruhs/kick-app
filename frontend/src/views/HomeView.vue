@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useUserStore } from '@/store/UserStore';
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupRestService';
@@ -7,14 +6,13 @@ import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
 import { useAuthStore } from '@/store/AuthStore';
 
-const userStore = useUserStore();
 const authStore = useAuthStore();
 const messageStore = useMessageStore();
 const router = useRouter();
 const groupData = ref<GroupResponse[]>([]);
 
 const fetchMessages = async () => {
-  getUserMessages(userStore.getUser().id)
+  getUserMessages(authStore.getUserId())
     .then((response) => {
       messageStore.setMessages(response.data);
     })
@@ -26,11 +24,11 @@ const fetchMessages = async () => {
 const leaveGroup = (groupId: string) => {
   console.log('Leave Group: ' + groupId);
   userLeaveGroup({
-    userId: userStore.getUser().id,
+    userId: authStore.getUserId(),
     groupId: groupId
   })
     .then(() => {
-      getGroups(userStore.getUser().id)
+      getGroups(authStore.getUserId())
         .then((response) => {
           groupData.value = response.data;
         })
@@ -44,7 +42,7 @@ const leaveGroup = (groupId: string) => {
 };
 
 onMounted(() => {
-  getGroups(userStore.getUser().id)
+  getGroups(authStore.getUserId())
     .then((response) => {
       groupData.value = response.data;
     })

@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { RouterView, useRouter } from 'vue-router';
-import { useUserStore } from '@/store/UserStore';
 import { useMessageStore } from '@/store/MessageStore';
 import { useAuthStore } from '@/store/AuthStore';
 
 const router = useRouter();
-const userStore = useUserStore();
 const authStore = useAuthStore();
 const messageStore = useMessageStore();
 
@@ -27,7 +25,7 @@ function logout() {
       </template>
       <v-app-bar-title @click="navigateToHome" style="cursor: pointer">Kick App</v-app-bar-title>
       <v-spacer></v-spacer>
-      <p>{{ userStore.getUser().nickname }}</p>
+      <p>{{ authStore.getUserName() }}</p>
       <v-btn @click="router.push({ name: 'Mailbox' })"
         ><v-icon>mdi-bell-outline</v-icon>
         <span class="notification-counter">{{ messageStore.getUnreadMessageCount() }}</span></v-btn

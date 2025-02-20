@@ -16,7 +16,7 @@ export interface MessageReadPayload {
 }
 
 export async function getUserMessages(userId: string) {
-  return await apiClient.get<Message[]>('api/v1/message/' + userId);
+  return await apiClient.get<Message[]>('api/v1/message/user/' + userId);
 }
 
 export async function readMessage(payload: MessageReadPayload) {

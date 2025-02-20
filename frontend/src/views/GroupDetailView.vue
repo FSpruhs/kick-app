@@ -7,19 +7,19 @@ import {
   removePlayer
 } from '@/services/groupRestService';
 import { useGroupStore } from '@/store/GroupStore';
-import { useUserStore } from '@/store/UserStore';
+import {useAuthStore} from "@/store/AuthStore";
 
 const router = useRouter();
 const groupId = String(router.currentRoute.value.params.id);
 const groupDetail = ref<GroupDetailResponse | null>(null);
 const groupStore = useGroupStore();
-const userStore = useUserStore();
+const authStore = useAuthStore();
 
 const handleRemovePlayer = (id: string) => {
   removePlayer({
     groupId: groupId,
     removeUserId: id,
-    removingUserId: userStore.getUser().id
+    removingUserId: authStore.getUserId()
   })
     .then((response) => {
       console.log(response);
@@ -33,19 +33,18 @@ onMounted(() => {
   getGroupDetails(groupId)
     .then((response) => {
       groupDetail.value = response.data;
-      const players = response.data.users.map((user) => {
+      const players = response.data.players.map((player) => {
         return {
-          id: user.id,
-          name: user.name,
-          role: user.role,
-          status: user.status
+          id: player.id,
+          name: player.nickName,
+          role: player.role,
+          status: player.status
         };
       });
       const group = {
         id: response.data.id,
         name: response.data.name,
         players: players,
-        inviteLevel: response.data.inviteLevel
       };
       groupStore.saveGroup(group);
     })

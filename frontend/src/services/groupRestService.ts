@@ -13,13 +13,12 @@ export interface GroupResponse {
 export interface GroupDetailResponse {
   id: string;
   name: string;
-  users: GroupUserResponse[];
-  inviteLevel: number;
+  players: GroupUserResponse[];
 }
 
 export interface GroupUserResponse {
   id: string;
-  name: string;
+  nickName: string;
   role: string;
   status: string;
 }

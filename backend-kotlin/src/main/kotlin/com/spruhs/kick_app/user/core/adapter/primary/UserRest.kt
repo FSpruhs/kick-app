@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
@@ -37,7 +39,8 @@ class UserRestController(
     }
 
     @GetMapping
-    fun getUsers(): List<UserMessage> = userUseCases.getUsers().map { it.toMessage() }
+    fun getUsers(@RequestParam exceptGroupId: String?): List<UserMessage> =
+        userUseCases.getUsers(exceptGroupId?.let { GroupId(it) }).map { it.toMessage() }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

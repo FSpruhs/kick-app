@@ -6,6 +6,7 @@ import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.Query
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 
@@ -38,14 +39,21 @@ class UserPersistenceAdapter(private val repository: UserRepository) : UserPersi
         return repository.findAllById(userIds.map { it.value }).map { it.toDomain() }
     }
 
-    override fun findAll(): List<User> {
-        return repository.findAll().map { it.toDomain() }
+    override fun findAll(exceptGroupId: GroupId?): List<User> {
+        return if (exceptGroupId != null) {
+            repository.findByGroupNotContaining(exceptGroupId.value).map { it.toDomain() }
+        } else {
+            repository.findAll().map { it.toDomain() }
+        }
     }
 }
 
 @Repository
 interface UserRepository : MongoRepository<UserDocument, String> {
     fun existsByEmail(email: String): Boolean
+
+    @Query("{ 'groups': { \$nin: [?0] } }")
+    fun findByGroupNotContaining(group: String): List<UserDocument>
 }
 
 private fun User.toDocument() = UserDocument(

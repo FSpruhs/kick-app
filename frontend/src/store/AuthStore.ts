@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
       return keycloak.keycloak.value?.authenticated;
     },
     getUserId() {
-      return keycloak.keycloak.value?.tokenParsed?.sub;
+      return keycloak.keycloak.value?.tokenParsed?.sub ?? "";
     },
     getClientId() {
       return keycloak.keycloak.value?.clientId;

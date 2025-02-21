@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.user.core.domain.MessageType
+import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
@@ -34,6 +35,7 @@ interface MessageRepository : MongoRepository<MessageDocument, String> {
     fun findByUserId(userId: String): List<MessageDocument>
 }
 
+@Document(collation = "messages")
 data class MessageDocument(
     val id: String,
     val userId: String,

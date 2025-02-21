@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
 import com.spruhs.kick_app.AbstractMongoTest
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.TestUserBuilder
 import com.spruhs.kick_app.user.core.domain.*
@@ -69,6 +70,25 @@ class UserPersistenceAdapterTest : AbstractMongoTest() {
 
         userPersistencePort.findAll().let { result ->
             assertThat(result).containsExactlyInAnyOrder(user1, user2)
+        }
+    }
+
+    @Test
+    fun `find all except group id should find all users not in group`() {
+        val user1 = TestUserBuilder()
+            .withId("test id 1")
+            .withGroups(listOf("group id 1"))
+            .build()
+        val user2 = TestUserBuilder()
+            .withId("test id 2")
+            .withGroups(listOf("group id 2"))
+            .build()
+
+        userPersistencePort.save(user1)
+        userPersistencePort.save(user2)
+
+        userPersistencePort.findAll(GroupId("group id 1")).let { result ->
+            assertThat(result).containsExactly(user2)
         }
     }
 

@@ -79,9 +79,9 @@ onMounted(() => {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="item in groupDetail?.users" :key="item.id">
+                <tr v-for="item in groupDetail?.players" :key="item.id">
                   <td>{{ item.id }}</td>
-                  <td>{{ item.name }}</td>
+                  <td>{{ item.nickName }}</td>
                   <td>{{ item.role }}</td>
                   <td>{{ item.status }}</td>
                   <td>

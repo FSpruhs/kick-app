@@ -1,10 +1,7 @@
 package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.*
-import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
-import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
-import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
-import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
+import com.spruhs.kick_app.group.api.*
 
 data class Group(
     val id: GroupId,
@@ -20,8 +17,115 @@ data class Player(
     val role: PlayerRole
 )
 
-enum class PlayerStatus {
+enum class PlayerStatusType {
     ACTIVE, INACTIVE, LEAVED, REMOVED
+}
+
+interface PlayerStatus {
+    fun active(player: Player, requestingPlayer: Player): PlayerStatus
+    fun inactive(player: Player, requestingPlayer: Player): PlayerStatus
+    fun leave(player: Player, requestingPlayer: Player): PlayerStatus
+    fun remove(player: Player, requestingPlayer: Player): PlayerStatus
+    fun type(): PlayerStatusType
+}
+
+class Active : PlayerStatus {
+    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+        return Inactive()
+    }
+
+    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player == requestingPlayer)
+        return Leaved()
+    }
+
+    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player != requestingPlayer)
+        require(requestingPlayer.role == PlayerRole.ADMIN)
+        return Removed()
+    }
+
+    override fun type(): PlayerStatusType {
+        return PlayerStatusType.ACTIVE
+    }
+}
+
+class Inactive : PlayerStatus {
+    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+        return Active()
+    }
+
+    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player == requestingPlayer)
+        return Leaved()
+    }
+
+    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player != requestingPlayer)
+        require(requestingPlayer.role == PlayerRole.ADMIN)
+        return Removed()
+    }
+
+    override fun type(): PlayerStatusType {
+        return PlayerStatusType.INACTIVE
+    }
+}
+
+class Leaved : PlayerStatus {
+    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player == requestingPlayer)
+        return Active()
+    }
+
+    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player != requestingPlayer)
+        require(requestingPlayer.role == PlayerRole.ADMIN)
+        return Removed()
+    }
+
+    override fun type(): PlayerStatusType {
+        return PlayerStatusType.LEAVED
+    }
+}
+
+class Removed : PlayerStatus {
+    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+        require(player != requestingPlayer)
+        require(requestingPlayer.role == PlayerRole.ADMIN)
+        return Active()
+    }
+
+    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+        return this
+    }
+
+    override fun type(): PlayerStatusType {
+        return PlayerStatusType.REMOVED
+    }
 }
 
 enum class PlayerRole {
@@ -34,11 +138,12 @@ fun createGroup(
 ): Group = Group(
     id = GroupId(generateId()),
     name = name,
-    players = listOf(Player(user, PlayerStatus.ACTIVE, PlayerRole.ADMIN)),
+    players = listOf(Player(user, Active(), PlayerRole.ADMIN)),
     invitedUsers = listOf(),
 )
 
-fun Group.isActivePlayer(userId: UserId): Boolean = players.any { it.id == userId && it.status == PlayerStatus.ACTIVE }
+fun Group.isActivePlayer(userId: UserId): Boolean =
+    players.any { it.id == userId && it.status.type() == PlayerStatusType.ACTIVE }
 
 fun Group.inviteUserResponse(
     userId: UserId,
@@ -51,7 +156,7 @@ fun Group.inviteUserResponse(
 }
 
 private fun Group.acceptUser(userId: UserId): Group = copy(
-    players = players + Player(userId, PlayerStatus.ACTIVE, PlayerRole.PLAYER),
+    players = players + Player(userId, Active(), PlayerRole.PLAYER),
     invitedUsers = invitedUsers - userId,
     domainEvents = domainEvents + UserEnteredGroupEvent(userId.value, id.value)
 )
@@ -60,62 +165,47 @@ private fun Group.rejectUser(userId: UserId): Group = copy(
     invitedUsers = invitedUsers - userId
 )
 
-fun Group.leave(userId: UserId): Group {
-    val player = players.find { it.id == userId }?.takeIf { it.status != PlayerStatus.REMOVED }
-        ?: throw PlayerNotFoundException(userId)
-
-    val updatedPlayer = player.copy(
-        status = PlayerStatus.LEAVED,
-        role = PlayerRole.PLAYER
-    )
-
-    return copy(
-        players = players - player + updatedPlayer,
-        domainEvents = domainEvents + UserLeavedGroupEvent(
-            userId = userId.value,
-            groupName = name.value,
-            groupId = id.value
-        )
-    )
-}
-
-fun Group.removePlayer(requesterId: UserId, userId: UserId): Group {
-    players.find { it.id == requesterId }?.takeIf { it.role == PlayerRole.ADMIN }
-        ?: throw UserNotAuthorizedException(userId)
-
-    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
-
-    val updatedPlayer = player.copy(
-        status = PlayerStatus.REMOVED,
-        role = PlayerRole.PLAYER
-    )
-
-    return copy(
-        players = players - player + updatedPlayer,
-        domainEvents = domainEvents + UserRemovedFromGroupEvent(
-            userId = userId.value,
-            groupName = name.value,
-            groupId = id.value
-        )
-    )
-}
-
 fun Group.updateStatus(
     userId: UserId,
-    newStatus: PlayerStatus
+    requestingUserId: UserId,
+    newStatus: PlayerStatusType
 ): Group {
-    require(newStatus == PlayerStatus.ACTIVE || newStatus == PlayerStatus.INACTIVE)
-    val player = players.find { it.id == userId } ?: throw UserNotAuthorizedException(userId)
+    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
+    val requestingPlayer = if (userId == requestingUserId) {
+        player
+    } else {
+        players.find { it.id == requestingUserId } ?: throw PlayerNotFoundException(userId)
+    }
 
-    val updatedPlayer = player.copy(
-        status = newStatus
-    )
+    val updatedStatus = when (newStatus) {
+        PlayerStatusType.ACTIVE -> player.status.active(player, requestingPlayer)
+        PlayerStatusType.INACTIVE -> player.status.inactive(player, requestingPlayer)
+        PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
+        PlayerStatusType.REMOVED -> player.status.remove(player, requestingPlayer)
+    }
 
-    return copy(players = players - player + updatedPlayer)
+    return if (updatedStatus == player.status) {
+        this
+    } else {
+        val updatedPlayer = player.copy(status = updatedStatus)
+
+        this.copy(
+            players = players - player + updatedPlayer,
+            domainEvents = domainEvents + PlayerStatusUpdated(
+                userId = player.id.value,
+                groupId = this.id.value,
+                groupName = this.name.value,
+                newStatus = updatedPlayer.status.type().toString()
+            )
+        )
+    }
+
+
 }
 
+
 fun Group.isActiveAdmin(userId: UserId): Boolean =
-    players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatus.ACTIVE }
+    players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status.type() == PlayerStatusType.ACTIVE }
 
 fun Group.updatePlayer(
     requesterId: UserId,
@@ -123,7 +213,7 @@ fun Group.updatePlayer(
     newRole: PlayerRole,
     newStatus: PlayerStatus
 ): Group {
-    require(newStatus == PlayerStatus.ACTIVE || newStatus == PlayerStatus.INACTIVE)
+    require(newStatus.type() == PlayerStatusType.ACTIVE || newStatus.type() == PlayerStatusType.INACTIVE)
     players.find { it.id == requesterId }
         ?.takeIf { it.role == PlayerRole.ADMIN }
         ?: throw UserNotAuthorizedException(requesterId)

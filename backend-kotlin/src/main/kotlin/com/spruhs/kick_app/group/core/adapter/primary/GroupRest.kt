@@ -19,35 +19,21 @@ class GroupRest(
     private val jwtParser: JWTParser
 ) {
 
-    @PutMapping("/{groupId}/players")
-    fun updateStatus(
-        @PathVariable groupId: String,
-        @RequestParam status: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ) {
-        groupUseCases.updateStatus(
-            UpdateStatusCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
-                groupId = GroupId(groupId),
-                newStatus = PlayerStatus.valueOf(status)
-            )
-        )
-    }
-
     @PutMapping("/{groupId}/players/{userId}")
     fun updatePlayer(
         @PathVariable groupId: String,
         @PathVariable userId: String,
-        @RequestBody request: UpdatePlayerRequest,
+        @RequestParam status: String?,
+        @RequestParam role: String?,
         @AuthenticationPrincipal jwt: Jwt
     ) {
         groupUseCases.updatePlayer(
             UpdatePlayerCommand(
-                requesterId = UserId(jwtParser.getUserId(jwt)),
                 userId = UserId(userId),
+                updatingUserId = UserId(jwtParser.getUserId(jwt)),
                 groupId = GroupId(groupId),
-                newRole = PlayerRole.valueOf(request.role),
-                newStatus = PlayerStatus.valueOf(request.status)
+                newStatus = status?.let { PlayerStatusType.valueOf(status) },
+                newRole = role?.let { PlayerRole.valueOf(role) }
             )
         )
     }
@@ -58,21 +44,6 @@ class GroupRest(
         @AuthenticationPrincipal jwt: Jwt
     ): GroupDetail =
         groupUseCases.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
-
-
-    @DeleteMapping("/{groupId}/players/{userId}")
-    fun leaveGroup(
-        @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable groupId: String,
-        @PathVariable userId: String
-    ) {
-        val requestingUser = jwtParser.getUserId(jwt)
-        if (requestingUser == userId) {
-            groupUseCases.leaveGroup(LeaveGroupCommand(UserId(userId), GroupId(groupId)))
-        } else {
-            groupUseCases.removePlayer(RemovePlayerCommand(UserId(requestingUser), UserId(userId), GroupId(groupId)))
-        }
-    }
 
     @GetMapping("/player/{userId}")
     fun getGroups(
@@ -133,11 +104,6 @@ class GroupExceptionHandler {
 
 data class CreateGroupRequest(
     val name: String,
-)
-
-data class UpdatePlayerRequest(
-    val role: String,
-    val status: String,
 )
 
 data class InviteUserResponse(

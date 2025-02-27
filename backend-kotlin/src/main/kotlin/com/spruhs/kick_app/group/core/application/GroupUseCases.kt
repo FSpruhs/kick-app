@@ -25,7 +25,7 @@ class GroupUseCases(
     }
 
     fun getActivePlayers(groupId: GroupId): List<UserId> =
-        fetchGroup(groupId).players.filter { it.status == PlayerStatus.ACTIVE }.map { it.id }
+        fetchGroup(groupId).players.filter { it.status.type() == PlayerStatusType.ACTIVE }.map { it.id }
 
     fun isActiveMember(
         groupId: GroupId,
@@ -59,27 +59,30 @@ class GroupUseCases(
         }
     }
 
-    fun updateStatus(command: UpdateStatusCommand) {
-        fetchGroup(command.groupId).updateStatus(command.userId, command.newStatus).apply {
+    fun updatePlayer(command: UpdatePlayerCommand) {
+        fetchGroup(command.groupId).apply {
+            if (command.newStatus != null) {
+                this.updatePlayerStatus(
+                    userId = command.userId,
+                    requestingUserId = command.updatingUserId,
+                    newStatus = command.newStatus
+                )
+            }
+        }.apply {
+            if (command.newRole != null) {
+                this.updatePlayerRole(
+                    userId = command.userId,
+                    requesterId = command.updatingUserId,
+                    newRole = command.newRole
+                )
+            }
+        }.apply {
             groupPersistencePort.save(this)
+            eventPublisher.publishAll(this.domainEvents)
         }
     }
 
     fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
-
-    fun leaveGroup(command: LeaveGroupCommand) {
-        fetchGroup(command.groupId).leave(command.userId).apply {
-            groupPersistencePort.save(this)
-            eventPublisher.publishAll(this.domainEvents)
-        }
-    }
-
-    fun removePlayer(command: RemovePlayerCommand) {
-        fetchGroup(command.groupId).removePlayer(command.requesterId, command.userId).apply {
-            groupPersistencePort.save(this)
-            eventPublisher.publishAll(this.domainEvents)
-        }
-    }
 
     fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
@@ -91,16 +94,6 @@ class GroupUseCases(
         return group.toGroupDetails(users)
     }
 
-    fun updatePlayer(command: UpdatePlayerCommand) {
-        fetchGroup(command.groupId).updatePlayer(
-            command.requesterId,
-            command.userId,
-            command.newRole,
-            command.newStatus
-        ).apply {
-            groupPersistencePort.save(this)
-        }
-    }
 
     private fun fetchGroup(groupId: GroupId): Group =
         groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
@@ -122,17 +115,11 @@ private fun Group.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = Gr
 )
 
 data class UpdatePlayerCommand(
-    val requesterId: UserId,
     val userId: UserId,
+    val updatingUserId: UserId,
     val groupId: GroupId,
-    val newRole: PlayerRole,
-    val newStatus: PlayerStatus
-)
-
-data class UpdateStatusCommand(
-    val userId: UserId,
-    val groupId: GroupId,
-    val newStatus: PlayerStatus,
+    val newStatus: PlayerStatusType?,
+    val newRole: PlayerRole?,
 )
 
 data class GroupDetail(

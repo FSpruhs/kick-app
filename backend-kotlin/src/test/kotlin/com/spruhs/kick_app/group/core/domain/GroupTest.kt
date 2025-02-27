@@ -177,7 +177,7 @@ class GroupTest {
             .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
             .build()
 
-        group.updateStatus(playerId, PlayerStatus.INACTIVE).let { result ->
+        group.updatePlayerStatus(playerId, PlayerStatus.INACTIVE).let { result ->
             assertThat(result.players).hasSize(1)
             assertThat(result.players.first().status).isEqualTo(PlayerStatus.INACTIVE)
         }
@@ -191,7 +191,7 @@ class GroupTest {
             .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
             .build()
 
-        assertThatThrownBy { group.updateStatus(playerId, playerStatus) }
+        assertThatThrownBy { group.updatePlayerStatus(playerId, playerStatus) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
 
@@ -239,7 +239,7 @@ class GroupTest {
             .build()
 
 
-        group.updatePlayer(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE).let { result ->
+        group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE).let { result ->
             assertThat(result.players).hasSize(2)
             assertThat(result.players.last().status).isEqualTo(PlayerStatus.INACTIVE)
             assertThat(result.players.last().role).isEqualTo(PlayerRole.PLAYER)
@@ -254,7 +254,7 @@ class GroupTest {
             .withPlayers(listOf(Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
             .build()
 
-        assertThatThrownBy { group.updatePlayer(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
+        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
             .isInstanceOf(PlayerNotFoundException::class.java)
     }
 
@@ -266,7 +266,7 @@ class GroupTest {
             .withPlayers(listOf(Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.PLAYER)))
             .build()
 
-        assertThatThrownBy { group.updatePlayer(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
+        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
             .isInstanceOf(UserNotAuthorizedException::class.java)
     }
 
@@ -279,7 +279,7 @@ class GroupTest {
             .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
             .build()
 
-        assertThatThrownBy { group.updatePlayer(requesterId, playerId, PlayerRole.PLAYER, playerStatus) }
+        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, playerStatus) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
 

@@ -151,7 +151,7 @@ class GroupUseCasesTest {
     @Test
     fun `updateStatus should save group to persistence`() {
         val group = TestGroupBuilder().build()
-        val command = UpdateStatusCommand(
+        val command = UpdatePlayerCommand(
             groupId = group.id,
             userId = group.players.first().id,
             newStatus = PlayerStatus.ACTIVE
@@ -160,7 +160,7 @@ class GroupUseCasesTest {
         every { groupPersistencePort.findById(command.groupId) } returns group
         every { groupPersistencePort.save(any()) } just Runs
 
-        useCases.updateStatus(command)
+        useCases.updatePlayer(command)
 
         verify { groupPersistencePort.save(any()) }
     }
@@ -252,7 +252,7 @@ class GroupUseCasesTest {
     @Test
     fun `updatePlayer should save group to persistence`() {
         val group = TestGroupBuilder().build()
-        val command = UpdatePlayerCommand(
+        val command = UpdatePlayerRoleCommand(
             groupId = group.id,
             requesterId = group.players.first().id,
             userId = group.players.first().id,
@@ -263,7 +263,7 @@ class GroupUseCasesTest {
         every { groupPersistencePort.findById(command.groupId) } returns group
         every { groupPersistencePort.save(any()) } just Runs
 
-        useCases.updatePlayer(command)
+        useCases.updatePlayerRole(command)
 
         verify { groupPersistencePort.save(any()) }
     }

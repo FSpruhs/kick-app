@@ -22,19 +22,19 @@ enum class PlayerStatusType {
 }
 
 interface PlayerStatus {
-    fun active(player: Player, requestingPlayer: Player): PlayerStatus
-    fun inactive(player: Player, requestingPlayer: Player): PlayerStatus
+    fun activate(player: Player, requestingPlayer: Player): PlayerStatus
+    fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus
     fun leave(player: Player, requestingPlayer: Player): PlayerStatus
     fun remove(player: Player, requestingPlayer: Player): PlayerStatus
     fun type(): PlayerStatusType
 }
 
 class Active : PlayerStatus {
-    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
         return this
     }
 
-    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
         return Inactive()
     }
 
@@ -55,11 +55,11 @@ class Active : PlayerStatus {
 }
 
 class Inactive : PlayerStatus {
-    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
         return Active()
     }
 
-    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
         return this
     }
 
@@ -80,12 +80,12 @@ class Inactive : PlayerStatus {
 }
 
 class Leaved : PlayerStatus {
-    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player == requestingPlayer)
         return Active()
     }
 
-    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
         return this
     }
 
@@ -105,13 +105,13 @@ class Leaved : PlayerStatus {
 }
 
 class Removed : PlayerStatus {
-    override fun active(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player != requestingPlayer)
         require(requestingPlayer.role == PlayerRole.ADMIN)
         return Active()
     }
 
-    override fun inactive(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
         return this
     }
 
@@ -165,7 +165,7 @@ private fun Group.rejectUser(userId: UserId): Group = copy(
     invitedUsers = invitedUsers - userId
 )
 
-fun Group.updateStatus(
+fun Group.updatePlayerStatus(
     userId: UserId,
     requestingUserId: UserId,
     newStatus: PlayerStatusType
@@ -178,8 +178,8 @@ fun Group.updateStatus(
     }
 
     val updatedStatus = when (newStatus) {
-        PlayerStatusType.ACTIVE -> player.status.active(player, requestingPlayer)
-        PlayerStatusType.INACTIVE -> player.status.inactive(player, requestingPlayer)
+        PlayerStatusType.ACTIVE -> player.status.activate(player, requestingPlayer)
+        PlayerStatusType.INACTIVE -> player.status.inactivate(player, requestingPlayer)
         PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
         PlayerStatusType.REMOVED -> player.status.remove(player, requestingPlayer)
     }
@@ -199,21 +199,17 @@ fun Group.updateStatus(
             )
         )
     }
-
-
 }
 
 
 fun Group.isActiveAdmin(userId: UserId): Boolean =
     players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status.type() == PlayerStatusType.ACTIVE }
 
-fun Group.updatePlayer(
+fun Group.updatePlayerRole(
     requesterId: UserId,
     userId: UserId,
     newRole: PlayerRole,
-    newStatus: PlayerStatus
 ): Group {
-    require(newStatus.type() == PlayerStatusType.ACTIVE || newStatus.type() == PlayerStatusType.INACTIVE)
     players.find { it.id == requesterId }
         ?.takeIf { it.role == PlayerRole.ADMIN }
         ?: throw UserNotAuthorizedException(requesterId)
@@ -222,7 +218,6 @@ fun Group.updatePlayer(
 
     val updatedPlayer = player.copy(
         role = newRole,
-        status = newStatus
     )
 
     return copy(players = players - player + updatedPlayer)

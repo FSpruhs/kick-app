@@ -35,14 +35,6 @@ export interface ResponseToGroupInvitation {
   accepted: boolean;
 }
 
-export interface UpdatePlayerPayload {
-  groupId: string;
-  updatedUserId: string;
-  updatingUserId: string;
-  role: string;
-  status: string;
-}
-
 export interface UserLeaveGroupPayload {
   groupId: string;
   userId: string;
@@ -74,14 +66,14 @@ export async function responseToGroupInvitation(payload: ResponseToGroupInvitati
   return await apiClient.put(`api/v1/group/user`, payload);
 }
 
-export async function updatePlayer(payload: UpdatePlayerPayload) {
-  return await apiClient.put(`api/v1/group/player`, payload);
+export async function updatePlayer(groupId: string, userId: string, newRole: string, newStatus: string | undefined) {
+  return await apiClient.put(`api/v1/group/${groupId}/players/${userId}?status=${newStatus}&role=${newRole}`);
 }
 
 export async function userLeaveGroup(payload: UserLeaveGroupPayload) {
   return await apiClient.delete(`api/v1/group/${payload.groupId}/user/${payload.userId}`);
 }
 
-export async function removePlayer(payload: RemovePlayerPayload) {
-  return await apiClient.put(`api/v1/group/player/status`, payload);
+export async function removePlayer(groupId: string, userId: string) {
+  return await apiClient.put(`api/v1/group/${groupId}/players/${userId}?status=REMOVED`);
 }

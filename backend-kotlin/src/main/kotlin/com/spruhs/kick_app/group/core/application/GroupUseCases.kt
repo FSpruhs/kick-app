@@ -62,10 +62,22 @@ class GroupUseCases(
     fun updatePlayer(command: UpdatePlayerCommand) {
         fetchGroup(command.groupId)
             .run {
-                command.newStatus?.let { updatePlayerStatus(command.userId, command.updatingUserId, it) } ?: this
+                command.newStatus?.let {
+                    updatePlayerStatus(
+                        userId = command.userId,
+                        requestingUserId = command.updatingUserId,
+                        newStatus = it
+                    )
+                } ?: this
             }
             .run {
-                command.newRole?.let { updatePlayerRole(command.userId, command.updatingUserId, it) } ?: this
+                command.newRole?.let {
+                    updatePlayerRole(
+                        userId = command.userId,
+                        requesterId = command.updatingUserId,
+                        newRole = it
+                    )
+                } ?: this
             }.apply {
                 groupPersistencePort.save(this)
                 eventPublisher.publishAll(domainEvents)
@@ -98,7 +110,7 @@ private fun Group.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = Gr
             id = player.id.value,
             nickName = users.getValue(player.id).nickName,
             role = player.role,
-            status = player.status,
+            status = player.status.type(),
         )
     },
     invitedUsers = invitedUsers.map { it.value },
@@ -123,7 +135,7 @@ data class PlayerDetail(
     val id: String,
     val nickName: String,
     val role: PlayerRole,
-    val status: PlayerStatus,
+    val status: PlayerStatusType,
 )
 
 data class InviteUserCommand(

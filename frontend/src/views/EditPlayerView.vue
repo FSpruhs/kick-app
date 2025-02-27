@@ -1,28 +1,27 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useGroupStore } from '@/store/GroupStore';
-import type { VForm } from 'vuetify/components';
 import { ref } from 'vue';
 import { updatePlayer } from '@/services/groupRestService';
-import { useUserStore } from '@/store/UserStore';
 
 const router = useRouter();
 const groupStore = useGroupStore();
-const userStore = useUserStore();
 const playerId = router.currentRoute.value.params.id;
-const player = groupStore.getPlayer(playerId);
+const player = groupStore.getPlayer(playerId as string);
 const selectedRole = ref(player?.role || '');
 const selectedStatus = ref(player?.status || '');
 
 const submit = () => {
+  if (!player) {
+    return
+  }
   if (player.role !== selectedRole.value || player.status !== selectedStatus.value) {
-    updatePlayer({
-      groupId: groupStore.getGroup().id,
-      updatedUserId: player.id,
-      updatingUserId: userStore.getUser().id,
-      role: selectedRole.value,
-      status: selectedStatus.value
-    }).then(() => {
+    updatePlayer(
+      groupStore.getGroup().id,
+      player.id,
+      selectedRole.value === player.role ? '' : selectedRole.value,
+      selectedStatus.value === player.status ? '' : selectedStatus.value
+    ).then(() => {
       console.log('Role updated');
     });
   }
@@ -34,6 +33,7 @@ const submit = () => {
 <template>
   <v-form ref="editPlayerForm" @submit.prevent="submit">
     <v-text-field
+        v-if="player"
       color="primary"
       v-model="player.name"
       label="Spieler Name"
@@ -41,12 +41,12 @@ const submit = () => {
     ></v-text-field>
     <v-select
       v-model="selectedRole"
-      :items="['admin', 'master', 'member']"
+      :items="['ADMIN', 'PLAYER']"
       label="Rolle"
     ></v-select>
     <v-select
       v-model="selectedStatus"
-      :items="['active', 'inactive', 'removed', 'leaved', 'not found']"
+      :items="['ACTIVE', 'INACTIVE', 'REMOVED', 'LEAVE']"
       label="Status"
     ></v-select>
     <v-btn class="mt-2" type="submit" block>Speichern</v-btn>

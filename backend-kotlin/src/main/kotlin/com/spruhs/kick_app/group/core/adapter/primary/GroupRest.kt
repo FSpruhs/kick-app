@@ -32,8 +32,8 @@ class GroupRest(
                 userId = UserId(userId),
                 updatingUserId = UserId(jwtParser.getUserId(jwt)),
                 groupId = GroupId(groupId),
-                newStatus = status?.let { PlayerStatusType.valueOf(status) },
-                newRole = role?.let { PlayerRole.valueOf(role) }
+                newStatus = status.takeIf { !it.isNullOrBlank() }?.let { PlayerStatusType.valueOf(it) },
+                newRole = role.takeIf { !it.isNullOrBlank() }?.let { PlayerRole.valueOf(it) }
             )
         )
     }

@@ -7,20 +7,14 @@ import {
   removePlayer
 } from '@/services/groupRestService';
 import { useGroupStore } from '@/store/GroupStore';
-import {useAuthStore} from "@/store/AuthStore";
 
 const router = useRouter();
 const groupId = String(router.currentRoute.value.params.id);
 const groupDetail = ref<GroupDetailResponse | null>(null);
 const groupStore = useGroupStore();
-const authStore = useAuthStore();
 
 const handleRemovePlayer = (id: string) => {
-  removePlayer({
-    groupId: groupId,
-    removeUserId: id,
-    removingUserId: authStore.getUserId()
-  })
+  removePlayer(groupId, id)
     .then((response) => {
       console.log(response);
     })
@@ -90,7 +84,7 @@ onMounted(() => {
                       @click="router.push({ name: 'EditPlayer', params: { id: item.id } })"
                       >Bearbeiten</v-btn
                     >
-                    <v-btn color="warning" @click="handleRemovePlayer(item.id)">Entfernen</v-btn>
+                    <v-btn v-if="item.status != 'REMOVED'" color="warning" @click="handleRemovePlayer(item.id)">Entfernen</v-btn>
                   </td>
                 </tr>
               </tbody>

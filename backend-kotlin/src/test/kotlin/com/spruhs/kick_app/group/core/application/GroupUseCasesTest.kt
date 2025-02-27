@@ -61,8 +61,8 @@ class GroupUseCasesTest {
     fun `get active players`() {
         val group = TestGroupBuilder()
             .withPlayers(listOf(
-                Player(UserId("1"), PlayerStatus.ACTIVE, PlayerRole.PLAYER),
-                Player(UserId("2"), PlayerStatus.INACTIVE, PlayerRole.PLAYER),
+                Player(UserId("1"), Active(), PlayerRole.PLAYER),
+                Player(UserId("2"), Inactive(), PlayerRole.PLAYER),
             ))
             .build()
 
@@ -77,7 +77,7 @@ class GroupUseCasesTest {
     fun `isActiveMember should return true if user is active member`() {
         val group = TestGroupBuilder()
             .withPlayers(listOf(
-                Player(UserId("1"), PlayerStatus.ACTIVE, PlayerRole.PLAYER),
+                Player(UserId("1"), Active(), PlayerRole.PLAYER),
             ))
             .build()
 
@@ -92,7 +92,7 @@ class GroupUseCasesTest {
     fun `isActiveMember should return false if user is not active member`() {
         val group = TestGroupBuilder()
             .withPlayers(listOf(
-                Player(UserId("1"), PlayerStatus.INACTIVE, PlayerRole.PLAYER),
+                Player(UserId("1"), Inactive(), PlayerRole.PLAYER),
             ))
             .build()
 
@@ -107,7 +107,7 @@ class GroupUseCasesTest {
     fun `isActiveAdmin should return true if user is active admin`() {
         val group = TestGroupBuilder()
             .withPlayers(listOf(
-                Player(UserId("1"), PlayerStatus.ACTIVE, PlayerRole.ADMIN),
+                Player(UserId("1"), Active(), PlayerRole.ADMIN),
             ))
             .build()
 
@@ -122,7 +122,7 @@ class GroupUseCasesTest {
     fun `isActiveAdmin should return false if user is not active admin`() {
         val group = TestGroupBuilder()
             .withPlayers(listOf(
-                Player(UserId("1"), PlayerStatus.ACTIVE, PlayerRole.PLAYER),
+                Player(UserId("1"), Active(), PlayerRole.PLAYER),
             ))
             .build()
 
@@ -149,20 +149,23 @@ class GroupUseCasesTest {
     }
 
     @Test
-    fun `updateStatus should save group to persistence`() {
+    fun `updatePlayer should update status save group to persistence`() {
         val group = TestGroupBuilder().build()
         val command = UpdatePlayerCommand(
             groupId = group.id,
+            updatingUserId = group.players.first().id,
             userId = group.players.first().id,
-            newStatus = PlayerStatus.ACTIVE
+            newStatus = PlayerStatusType.INACTIVE,
         )
 
         every { groupPersistencePort.findById(command.groupId) } returns group
         every { groupPersistencePort.save(any()) } just Runs
+        every { eventPublisher.publishAll(any()) } just Runs
 
         useCases.updatePlayer(command)
 
         verify { groupPersistencePort.save(any()) }
+        verify { eventPublisher.publishAll(any()) }
     }
 
     @Test
@@ -178,44 +181,6 @@ class GroupUseCasesTest {
         useCases.getGroupsByPlayer(userId).let { result ->
             assertThat(result).containsExactlyElementsOf(groups)
         }
-    }
-
-    @Test
-    fun `leaveGroup should save group to persistence and publish events`() {
-        val group = TestGroupBuilder().build()
-        val command = LeaveGroupCommand(
-            groupId = group.id,
-            userId = group.players.first().id
-        )
-
-
-        every { groupPersistencePort.findById(command.groupId) } returns group
-        every { groupPersistencePort.save(any()) } just Runs
-        every { eventPublisher.publishAll(any()) } just Runs
-
-        useCases.leaveGroup(command)
-
-        verify { groupPersistencePort.save(any()) }
-        verify { eventPublisher.publishAll(any()) }
-    }
-
-    @Test
-    fun `removePlayer should save group to persistence and publish events`() {
-        val group = TestGroupBuilder().build()
-        val command = RemovePlayerCommand(
-            groupId = group.id,
-            userId = group.players.first().id,
-            requesterId = group.players.first().id
-        )
-
-        every { groupPersistencePort.findById(command.groupId) } returns group
-        every { groupPersistencePort.save(any()) } just Runs
-        every { eventPublisher.publishAll(any()) } just Runs
-
-        useCases.removePlayer(command)
-
-        verify { groupPersistencePort.save(any()) }
-        verify { eventPublisher.publishAll(any()) }
     }
 
     @Test
@@ -247,24 +212,5 @@ class GroupUseCasesTest {
         assertThatThrownBy {
             useCases.getGroupDetails(groupId, userId)
         }.isInstanceOf(GroupNotFoundException::class.java)
-    }
-
-    @Test
-    fun `updatePlayer should save group to persistence`() {
-        val group = TestGroupBuilder().build()
-        val command = UpdatePlayerRoleCommand(
-            groupId = group.id,
-            requesterId = group.players.first().id,
-            userId = group.players.first().id,
-            newRole = PlayerRole.ADMIN,
-            newStatus = PlayerStatus.ACTIVE
-        )
-
-        every { groupPersistencePort.findById(command.groupId) } returns group
-        every { groupPersistencePort.save(any()) } just Runs
-
-        useCases.updatePlayerRole(command)
-
-        verify { groupPersistencePort.save(any()) }
     }
 }

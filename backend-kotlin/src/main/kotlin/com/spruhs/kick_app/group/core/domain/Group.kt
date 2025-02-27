@@ -18,7 +18,16 @@ data class Player(
 )
 
 enum class PlayerStatusType {
-    ACTIVE, INACTIVE, LEAVED, REMOVED
+    ACTIVE, INACTIVE, LEAVED, REMOVED;
+
+    fun toStatus(): PlayerStatus {
+        return when(this) {
+            ACTIVE -> Active()
+            INACTIVE -> Inactive()
+            LEAVED -> Leaved()
+            REMOVED -> Removed()
+        }
+    }
 }
 
 interface PlayerStatus {
@@ -174,7 +183,7 @@ fun Group.updatePlayerStatus(
     val requestingPlayer = if (userId == requestingUserId) {
         player
     } else {
-        players.find { it.id == requestingUserId } ?: throw PlayerNotFoundException(userId)
+        players.find { it.id == requestingUserId } ?: throw PlayerNotFoundException(requestingUserId)
     }
 
     val updatedStatus = when (newStatus) {

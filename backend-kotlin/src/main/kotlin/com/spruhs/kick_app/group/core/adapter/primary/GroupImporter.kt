@@ -5,7 +5,7 @@ import com.spruhs.kick_app.group.core.adapter.secondary.GroupDocument
 import com.spruhs.kick_app.group.core.adapter.secondary.GroupRepository
 import com.spruhs.kick_app.group.core.adapter.secondary.PlayerDocument
 import com.spruhs.kick_app.group.core.domain.PlayerRole
-import com.spruhs.kick_app.group.core.domain.PlayerStatus
+import com.spruhs.kick_app.group.core.domain.PlayerStatusType
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -43,102 +43,102 @@ private val defaultGroups: List<GroupDocument> = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
                 role = PlayerRole.ADMIN.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-2",
                 role = PlayerRole.ADMIN.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-3",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-4",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-5",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-6",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-7",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.INACTIVE.toString(),
+                status = PlayerStatusType.INACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-8",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-9",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-10",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.INACTIVE.toString(),
+                status = PlayerStatusType.INACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-11",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-12",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-13",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-14",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-15",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-16",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-17",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-18",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-19",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.LEAVED.toString(),
+                status = PlayerStatusType.LEAVED.toString(),
             ),
             PlayerDocument(
                 id = "user-id-20",
                 role = PlayerRole.PLAYER.toString(),
-                status = PlayerStatus.REMOVED.toString(),
+                status = PlayerStatusType.REMOVED.toString(),
             ),
         ),
     ),
@@ -150,7 +150,7 @@ private val defaultGroups: List<GroupDocument> = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
                 role = PlayerRole.ADMIN.toString(),
-                status = PlayerStatus.ACTIVE.toString(),
+                status = PlayerStatusType.ACTIVE.toString(),
             )
         )
     )

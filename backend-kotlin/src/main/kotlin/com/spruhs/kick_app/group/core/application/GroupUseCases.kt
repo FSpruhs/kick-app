@@ -60,33 +60,23 @@ class GroupUseCases(
     }
 
     fun updatePlayer(command: UpdatePlayerCommand) {
-        fetchGroup(command.groupId).apply {
-            if (command.newStatus != null) {
-                this.updatePlayerStatus(
-                    userId = command.userId,
-                    requestingUserId = command.updatingUserId,
-                    newStatus = command.newStatus
-                )
+        fetchGroup(command.groupId)
+            .run {
+                command.newStatus?.let { updatePlayerStatus(command.userId, command.updatingUserId, it) } ?: this
             }
-        }.apply {
-            if (command.newRole != null) {
-                this.updatePlayerRole(
-                    userId = command.userId,
-                    requesterId = command.updatingUserId,
-                    newRole = command.newRole
-                )
+            .run {
+                command.newRole?.let { updatePlayerRole(command.userId, command.updatingUserId, it) } ?: this
+            }.apply {
+                groupPersistencePort.save(this)
+                eventPublisher.publishAll(domainEvents)
             }
-        }.apply {
-            groupPersistencePort.save(this)
-            eventPublisher.publishAll(this.domainEvents)
-        }
     }
 
     fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
 
     fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
-            require(this.players.any { it.id == userId}) { throw UserNotAuthorizedException(userId) }
+            require(this.players.any { it.id == userId }) { throw UserNotAuthorizedException(userId) }
         }
 
         val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
@@ -118,8 +108,8 @@ data class UpdatePlayerCommand(
     val userId: UserId,
     val updatingUserId: UserId,
     val groupId: GroupId,
-    val newStatus: PlayerStatusType?,
-    val newRole: PlayerRole?,
+    val newStatus: PlayerStatusType? = null,
+    val newRole: PlayerRole? = null,
 )
 
 data class GroupDetail(
@@ -134,17 +124,6 @@ data class PlayerDetail(
     val nickName: String,
     val role: PlayerRole,
     val status: PlayerStatus,
-)
-
-data class LeaveGroupCommand(
-    val userId: UserId,
-    val groupId: GroupId,
-)
-
-data class RemovePlayerCommand(
-    val requesterId: UserId,
-    val userId: UserId,
-    val groupId: GroupId,
 )
 
 data class InviteUserCommand(

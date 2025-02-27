@@ -13,7 +13,7 @@ class TestGroupBuilder {
     private var players: List<Player> = listOf(
         Player(
             id = UserId("test player"),
-            status = PlayerStatus.ACTIVE,
+            status = Active(),
             role = PlayerRole.ADMIN
         )
     )

@@ -45,13 +45,13 @@ interface GroupRepository : MongoRepository<GroupDocument, String> {
 private fun Group.toDocument() = GroupDocument(
     id = id.value,
     name = name.value,
-    players = players.map { PlayerDocument(it.id.value, it.status.name, it.role.name) },
+    players = players.map { PlayerDocument(it.id.value, it.status.type().name, it.role.name) },
     invitedUsers = invitedUsers.map { it.value }
 )
 
 private fun GroupDocument.toDomain() = Group(
     id = GroupId(id),
     name = Name(name),
-    players = players.map { Player(UserId(it.id), PlayerStatus.valueOf(it.status), PlayerRole.valueOf(it.role)) },
+    players = players.map { Player(UserId(it.id), PlayerStatusType.valueOf(it.status).toStatus(), PlayerRole.valueOf(it.role)) },
     invitedUsers = invitedUsers.map { UserId(it) }
 )

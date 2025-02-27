@@ -5,8 +5,6 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
-import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
-import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -32,18 +30,18 @@ class GroupTest {
     fun `is active player should return true if user is active player`() {
         val playerId = UserId("user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(playerId, Active(), PlayerRole.ADMIN)))
             .build()
 
         assertThat(group.isActivePlayer(playerId)).isTrue()
     }
 
     @ParameterizedTest
-    @EnumSource(PlayerStatus::class, names = ["INACTIVE", "LEAVED", "REMOVED"])
-    fun `is active player should return false if user is not active player`(playerStatus: PlayerStatus) {
+    @EnumSource(PlayerStatusType::class, names = ["INACTIVE", "LEAVED", "REMOVED"])
+    fun `is active player should return false if user is not active player`(playerStatus: PlayerStatusType) {
         val playerId = UserId("user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, playerStatus, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(playerId, playerStatus.toStatus(), PlayerRole.ADMIN)))
             .build()
 
         assertThat(group.isActivePlayer(playerId)).isFalse()
@@ -89,117 +87,10 @@ class GroupTest {
     }
 
     @Test
-    fun `leave should remove player from group`() {
-        val playerId = UserId("user-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
-            .build()
-
-        group.leave(playerId).let { result ->
-            assertThat(result.players).hasSize(1)
-            assertThat(result.players.first().status).isEqualTo(PlayerStatus.LEAVED)
-            assertThat(result.players.first().role).isEqualTo(PlayerRole.PLAYER)
-            assertThat(result.domainEvents).hasSize(1)
-            assertThat(result.domainEvents.first()).isInstanceOf(UserLeavedGroupEvent::class.java)
-        }
-    }
-
-    @Test
-    fun `leave should throw exception if player not in group`() {
-        val playerId = UserId("user-id")
-        val group = TestGroupBuilder().build()
-
-        assertThatThrownBy { group.leave(playerId) }
-            .isInstanceOf(PlayerNotFoundException::class.java)
-    }
-
-    @Test
-    fun `leave should throw exception if was removed`() {
-        val playerId = UserId("user-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.REMOVED, PlayerRole.ADMIN)))
-            .build()
-
-        assertThatThrownBy { group.leave(playerId) }
-            .isInstanceOf(PlayerNotFoundException::class.java)
-    }
-
-    @Test
-    fun `remove player should remove player from group`() {
-        val playerId = UserId("user-id")
-        val requesterId = UserId("requester-id")
-        val group = TestGroupBuilder()
-            .withPlayers(
-                listOf(
-                    Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN),
-                    Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)
-                )
-            )
-            .build()
-
-        group.removePlayer(requesterId, playerId).let { result ->
-            assertThat(result.players).hasSize(2)
-            assertThat(result.players.last().status).isEqualTo(PlayerStatus.REMOVED)
-            assertThat(result.players.last().role).isEqualTo(PlayerRole.PLAYER)
-            assertThat(result.domainEvents).hasSize(1)
-            assertThat(result.domainEvents.first()).isInstanceOf(UserRemovedFromGroupEvent::class.java)
-        }
-    }
-
-    @Test
-    fun `remove player should throw exception if player not in group`() {
-        val playerId = UserId("user-id")
-        val requesterId = UserId("requester-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
-            .build()
-
-        assertThatThrownBy { group.removePlayer(requesterId, playerId) }
-            .isInstanceOf(PlayerNotFoundException::class.java)
-    }
-
-    @Test
-    fun `remove player should throw exception if user not authorized`() {
-        val playerId = UserId("user-id")
-        val requesterId = UserId("requester-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.PLAYER)))
-            .build()
-
-        assertThatThrownBy { group.removePlayer(requesterId, playerId) }
-            .isInstanceOf(UserNotAuthorizedException::class.java)
-    }
-
-    @Test
-    fun `update status should update status`() {
-        val playerId = UserId("user-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
-            .build()
-
-        group.updatePlayerStatus(playerId, PlayerStatus.INACTIVE).let { result ->
-            assertThat(result.players).hasSize(1)
-            assertThat(result.players.first().status).isEqualTo(PlayerStatus.INACTIVE)
-        }
-    }
-
-    @ParameterizedTest
-    @EnumSource(PlayerStatus::class, names = ["LEAVED", "REMOVED"])
-    fun `update status should throw exception if wrong status`(playerStatus: PlayerStatus) {
-        val playerId = UserId("user-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
-            .build()
-
-        assertThatThrownBy { group.updatePlayerStatus(playerId, playerStatus) }
-            .isInstanceOf(IllegalArgumentException::class.java)
-    }
-
-    @Test
     fun `is active admin should return true if active admin`() {
         val playerId = UserId("user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(playerId, Active(), PlayerRole.ADMIN)))
             .build()
 
         assertThat(group.isActiveAdmin(playerId)).isTrue()
@@ -209,7 +100,7 @@ class GroupTest {
     fun `is active admin should return false if not active admin`() {
         val playerId = UserId("user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.PLAYER)))
+            .withPlayers(listOf(Player(playerId, Active(), PlayerRole.PLAYER)))
             .build()
 
         assertThat(group.isActiveAdmin(playerId)).isFalse()
@@ -219,29 +110,29 @@ class GroupTest {
     fun `is active admin should return false if not active`() {
         val playerId = UserId("user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.INACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(playerId, Inactive(), PlayerRole.ADMIN)))
             .build()
 
         assertThat(group.isActiveAdmin(playerId)).isFalse()
     }
 
     @Test
-    fun `update player should update player`() {
+    fun `update player should update player role`() {
         val playerId = UserId("user-id")
         val requesterId = UserId("requester-id")
         val group = TestGroupBuilder()
             .withPlayers(
                 listOf(
-                    Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN),
-                    Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)
+                    Player(playerId, Active(), PlayerRole.ADMIN),
+                    Player(requesterId, Active(), PlayerRole.ADMIN)
                 )
             )
             .build()
 
 
-        group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE).let { result ->
+        group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER).let { result ->
             assertThat(result.players).hasSize(2)
-            assertThat(result.players.last().status).isEqualTo(PlayerStatus.INACTIVE)
+            assertThat(result.players.last().status.type()).isEqualTo(PlayerStatusType.INACTIVE)
             assertThat(result.players.last().role).isEqualTo(PlayerRole.PLAYER)
         }
     }
@@ -251,10 +142,10 @@ class GroupTest {
         val playerId = UserId("user-id")
         val requesterId = UserId("requester-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(requesterId, Active(), PlayerRole.ADMIN)))
             .build()
 
-        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
+        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER) }
             .isInstanceOf(PlayerNotFoundException::class.java)
     }
 
@@ -263,24 +154,11 @@ class GroupTest {
         val playerId = UserId("user-id")
         val requesterId = UserId("requester-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(requesterId, PlayerStatus.ACTIVE, PlayerRole.PLAYER)))
+            .withPlayers(listOf(Player(requesterId, Active(), PlayerRole.PLAYER)))
             .build()
 
-        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, PlayerStatus.INACTIVE) }
+        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER) }
             .isInstanceOf(UserNotAuthorizedException::class.java)
-    }
-
-    @ParameterizedTest
-    @EnumSource(PlayerStatus::class, names = ["LEAVED", "REMOVED"])
-    fun `update player should throw exception if wrong status`(playerStatus: PlayerStatus) {
-        val playerId = UserId("user-id")
-        val requesterId = UserId("requester-id")
-        val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(playerId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
-            .build()
-
-        assertThatThrownBy { group.updatePlayerRole(requesterId, playerId, PlayerRole.PLAYER, playerStatus) }
-            .isInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test
@@ -288,7 +166,7 @@ class GroupTest {
         val invitedUserId = UserId("invited-user-id")
         val inviterUserId = UserId("inviter-user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(inviterUserId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(inviterUserId, Active(), PlayerRole.ADMIN)))
             .withInvitedUsers(emptyList())
             .build()
 
@@ -305,7 +183,7 @@ class GroupTest {
         val invitedUserId = UserId("invited-user-id")
         val inviterUserId = UserId("inviter-user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(invitedUserId, PlayerStatus.ACTIVE, PlayerRole.PLAYER)))
+            .withPlayers(listOf(Player(invitedUserId, Active(), PlayerRole.PLAYER)))
             .withInvitedUsers(emptyList())
             .build()
 
@@ -318,7 +196,7 @@ class GroupTest {
         val invitedUserId = UserId("invited-user-id")
         val inviterUserId = UserId("inviter-user-id")
         val group = TestGroupBuilder()
-            .withPlayers(listOf(Player(inviterUserId, PlayerStatus.ACTIVE, PlayerRole.ADMIN)))
+            .withPlayers(listOf(Player(inviterUserId, Active(), PlayerRole.ADMIN)))
             .withInvitedUsers(listOf(invitedUserId.value))
             .build()
 

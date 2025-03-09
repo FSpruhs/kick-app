@@ -47,16 +47,13 @@ fun Match.cancel(): Match {
     return this.copy(status = MatchStatus.CANCELLED)
 }
 
-fun Match.cancelPlayer(userId: UserId): Match {
-    require(this.status == MatchStatus.PLANNED) { "Cannot cancel player in match with status: ${this.status}" }
-    val player = this.findRegisteredPlayer(userId)?.takeIf { it.status == RegistrationStatus.REGISTERED }
-        ?: throw IllegalArgumentException("Cannot cancel player")
-    return this.copy(registeredPlayers = this.registeredPlayers - player + player.copy(status = RegistrationStatus.CANCELLED))
-}
-
 fun Match.addRegistration(userId: UserId, registrationStatus: RegistrationStatus): Match {
-    require(registrationStatus != RegistrationStatus.CANCELLED) { "Cannot register with cancelled status" }
+    require(
+        registrationStatus == RegistrationStatus.REGISTERED ||
+                registrationStatus == RegistrationStatus.DEREGISTERED
+    ) { "Can only register or deregister" }
     require(this.start.isBefore(LocalDateTime.now())) { "Cannot register to past match" }
+
     val player = this.findRegisteredPlayer(userId)
         ?: return this.copy(
             registeredPlayers = this.registeredPlayers + RegisteredPlayer(
@@ -66,7 +63,24 @@ fun Match.addRegistration(userId: UserId, registrationStatus: RegistrationStatus
             )
         )
     return this.copy(
-        registeredPlayers = this.registeredPlayers - player + player.copy(status = registrationStatus)
+        registeredPlayers = this.registeredPlayers - player + player.copy(
+            status = registrationStatus,
+            registrationTime = LocalDateTime.now()
+        )
+    )
+}
+
+fun Match.updateRegistration(updatedUser: UserId, registrationStatus: RegistrationStatus): Match {
+    require(
+        registrationStatus == RegistrationStatus.CANCELLED ||
+                registrationStatus == RegistrationStatus.ADDED
+    ) { "Can only cancel or add" }
+    require(this.start.isBefore(LocalDateTime.now())) { "Cannot register to past match" }
+    val player = this.findRegisteredPlayer(updatedUser) ?: throw IllegalStateException("Player not found")
+    return this.copy(
+        registeredPlayers = this.registeredPlayers - player + player.copy(
+            status = registrationStatus,
+        )
     )
 }
 
@@ -78,10 +92,33 @@ fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Mat
     return this.copy(
         status = MatchStatus.FINISHED,
         result = result,
-        participatingPlayers = teamA.map { ParticipatingPlayer(it, Team.A) } + teamB.map { ParticipatingPlayer(it, Team.B) },
-        domainEvents = this.domainEvents + ResultAddedEvent(this.id.value, result.toString(), teamA.map { it.value }, teamB.map { it.value })
+        participatingPlayers = teamA.map { ParticipatingPlayer(it, Team.A) } + teamB.map {
+            ParticipatingPlayer(
+                it,
+                Team.B
+            )
+        },
+        domainEvents = this.domainEvents + ResultAddedEvent(
+            this.id.value,
+            result.toString(),
+            teamA.map { it.value },
+            teamB.map { it.value })
     )
 }
+
+fun Match.acceptedPlayers(): List<UserId> {
+    val registeredPlayer = this.registeredPlayers
+        .filter { it.status == RegistrationStatus.DEREGISTERED  }
+        .sortedBy { it.registrationTime }
+        .take(this.playerCount.maxPlayer.value)
+
+    val addedPlayers = this.registeredPlayers.filter { it.status == RegistrationStatus.ADDED }
+
+    return (registeredPlayer + addedPlayers).map { it.userId }
+}
+
+fun Match.waitingBenchPlayers(): List<UserId> {}
+
 
 enum class MatchStatus {
     PLANNED,
@@ -123,7 +160,8 @@ data class PlayerCount(
 enum class RegistrationStatus {
     REGISTERED,
     DEREGISTERED,
-    CANCELLED
+    CANCELLED,
+    ADDED
 }
 
 @JvmInline

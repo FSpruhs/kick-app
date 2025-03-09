@@ -25,17 +25,27 @@ class MatchRestController(
         matchUseCases.plan(request.toCommand())
     }
 
-    @DeleteMapping("/{matchId}/players/{userId}")
-    fun cancelPlayer(
+    @GetMapping("/{matchId}")
+    fun getMatch(
+        @PathVariable matchId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): MatchMessage {
+        return matchUseCases.getMatch(MatchId(matchId), UserId(jwtParser.getUserId(jwt))).toMessage()
+    }
+
+    @PutMapping("/{matchId}/players/{userId}")
+    fun updatePlayerRegistration(
         @PathVariable matchId: String,
         @PathVariable userId: String,
+        @RequestParam status: String,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        matchUseCases.cancelPlayer(
-            CancelPlayerCommand(
-                cancelingUserId = UserId(userId),
-                userId = UserId(jwtParser.getUserId(jwt)),
-                matchId = MatchId(matchId)
+        matchUseCases.updatePlayerRegistration(
+            UpdatePlayerRegistrationCommand(
+                updatedUser = UserId(userId),
+                updatingUser = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId),
+                status = RegistrationStatus.valueOf(status),
             )
         )
     }
@@ -49,21 +59,6 @@ class MatchRestController(
             CancelMatchCommand(
                 userId = UserId(jwtParser.getUserId(jwt)),
                 matchId = MatchId(matchId)
-            )
-        )
-    }
-
-    @PutMapping("/{matchId}/registeredPlayers/{registrationStatus}")
-    fun addRegistration(
-        @PathVariable matchId: String,
-        @PathVariable registrationStatus: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ) {
-        matchUseCases.addRegistration(
-            AddRegistrationCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
-                matchId = MatchId(matchId),
-                registrationStatus = RegistrationStatus.valueOf(registrationStatus)
             )
         )
     }
@@ -98,6 +93,36 @@ data class PlanMatchRequest(
     val playground: String,
     val maxPlayer: Int,
     val minPlayer: Int
+)
+
+data class MatchMessage(
+    val matchId: String,
+    val groupId: String,
+    val start: LocalDateTime,
+    val playground: String,
+    val maxPlayer: Int,
+    val minPlayer: Int,
+    val acceptedPlayers: List<String>,
+    val deregisteredPlayers: List<String>,
+    val waitingBenchPlayers: List<String>,
+    val teamA: List<String>,
+    val teamB: List<String>,
+    val result: String?
+)
+
+fun Match.toMessage() = MatchMessage(
+    matchId = this.id.value,
+    groupId = this.groupId.value,
+    start = this.start,
+    playground = this.playground.value,
+    maxPlayer = this.playerCount.maxPlayer.value,
+    minPlayer = this.playerCount.minPlayer.value,
+    acceptedPlayers = listOf(),
+    deregisteredPlayers = listOf(),
+    waitingBenchPlayers = listOf(),
+    teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
+    teamB = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
+    result = this.result?.name
 )
 
 fun PlanMatchRequest.toCommand() = PlanMatchCommand(

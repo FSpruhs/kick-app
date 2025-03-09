@@ -12,7 +12,7 @@ class MatchUseCases(
     private val matchPersistenceAdapter: MatchPersistenceAdapter,
     private val groupApi: GroupApi,
     private val eventPublisher: EventPublisher
-    ) {
+) {
     fun plan(command: PlanMatchCommand) {
         planMatch(
             groupId = command.groupId,
@@ -36,25 +36,32 @@ class MatchUseCases(
         }
     }
 
-    fun cancelPlayer(command: CancelPlayerCommand) {
-        val match = fetchMatch(command.matchId)
-        require(groupApi.isActiveAdmin(match.groupId, command.cancelingUserId)) {
-            throw UserNotAuthorizedException(command.userId)
+    fun updatePlayerRegistration(command: UpdatePlayerRegistrationCommand) {
+        val match = fetchMatch(command.matchId).apply {
+            handleUpdatePlayerRegistration(this, command)
+        }.apply {
+            matchPersistenceAdapter.save(this)
         }
 
-        match.cancelPlayer(command.userId).apply {
-            matchPersistenceAdapter.save(this)
+        matchPersistenceAdapter.save(match)
+    }
+
+    private fun handleUpdatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+        return if (command.updatingUser == command.updatedUser) {
+            addPlayerRegistration(match, command)
+        } else {
+            updatePlayerRegistration(match, command)
         }
     }
 
-    fun addRegistration(command: AddRegistrationCommand) {
-        val match = fetchMatch(command.matchId)
-        require(groupApi.isActiveMember(match.groupId, command.userId)) {
-            throw UserNotAuthorizedException(command.userId)
-        }
+    private fun addPlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+        require(groupApi.isActiveMember(match.groupId, command.updatingUser))
+        return match.addRegistration(command.updatedUser, command.status)
+    }
 
-        match.addRegistration(command.userId, command.registrationStatus)
-        matchPersistenceAdapter.save(match)
+    private fun updatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+        require(groupApi.isActiveAdmin(match.groupId, command.updatingUser))
+        return match.updateRegistration(command.updatedUser, command.status)
     }
 
     fun addResult(command: AddResultCommand) {
@@ -71,7 +78,10 @@ class MatchUseCases(
             matchPersistenceAdapter.save(this)
             eventPublisher.publishAll(this.domainEvents)
         }
+    }
 
+    fun getMatch(matchId: MatchId, requestingUserId: UserId): Match {
+        return Match()
     }
 
     private fun fetchMatch(matchId: MatchId): Match =
@@ -91,12 +101,6 @@ data class CancelMatchCommand(
     val matchId: MatchId
 )
 
-data class AddRegistrationCommand(
-    val userId: UserId,
-    val matchId: MatchId,
-    val registrationStatus: RegistrationStatus
-)
-
 data class PlanMatchCommand(
     val groupId: GroupId,
     val start: LocalDateTime,
@@ -104,8 +108,9 @@ data class PlanMatchCommand(
     val playerCount: PlayerCount,
 )
 
-data class CancelPlayerCommand(
-    val userId: UserId,
-    val cancelingUserId: UserId,
-    val matchId: MatchId
+data class UpdatePlayerRegistrationCommand(
+    val updatingUser: UserId,
+    val updatedUser: UserId,
+    val matchId: MatchId,
+    val status: RegistrationStatus
 )

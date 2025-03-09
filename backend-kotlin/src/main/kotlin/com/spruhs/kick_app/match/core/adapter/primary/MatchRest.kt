@@ -117,9 +117,9 @@ fun Match.toMessage() = MatchMessage(
     playground = this.playground.value,
     maxPlayer = this.playerCount.maxPlayer.value,
     minPlayer = this.playerCount.minPlayer.value,
-    acceptedPlayers = listOf(),
-    deregisteredPlayers = listOf(),
-    waitingBenchPlayers = listOf(),
+    acceptedPlayers = this.acceptedPlayers().map { it.value },
+    deregisteredPlayers = this.registeredPlayers.filter { it.status == RegistrationStatus.DEREGISTERED }.map { it.userId.value },
+    waitingBenchPlayers = this.waitingBenchPlayers().map { it.value },
     teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
     teamB = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
     result = this.result?.name

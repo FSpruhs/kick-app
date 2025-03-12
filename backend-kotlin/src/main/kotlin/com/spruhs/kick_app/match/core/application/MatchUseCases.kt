@@ -25,6 +25,11 @@ class MatchUseCases(
         }
     }
 
+    fun getMatchesByGroupId(groupId: GroupId, requestingUserId: UserId): List<Match> {
+        require(groupApi.isActiveMember(groupId, requestingUserId)) { throw UserNotAuthorizedException(requestingUserId) }
+        return matchPersistenceAdapter.findAllByGroupId(groupId)
+    }
+
     fun cancel(command: CancelMatchCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
@@ -81,7 +86,13 @@ class MatchUseCases(
     }
 
     fun getMatch(matchId: MatchId, requestingUserId: UserId): Match {
-        return Match()
+        val match = fetchMatch(matchId)
+        require(groupApi.isActiveMember(match.groupId, requestingUserId)) {
+            throw UserNotAuthorizedException(
+                requestingUserId
+            )
+        }
+        return match
     }
 
     private fun fetchMatch(matchId: MatchId): Match =

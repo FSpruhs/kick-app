@@ -198,6 +198,7 @@ value class MinPlayer(val value: Int) {
 interface MatchPersistencePort {
     fun save(match: Match)
     fun findById(matchId: MatchId): Match?
+    fun findAllByGroupId(groupId: GroupId): List<Match>
 }
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")

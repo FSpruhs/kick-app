@@ -9,16 +9,10 @@ export interface Message {
   read: boolean;
 }
 
-export interface MessageReadPayload {
-  messageId: string;
-  userId: string;
-  read: boolean;
-}
-
 export async function getUserMessages(userId: string) {
-  return await apiClient.get<Message[]>('api/v1/message/user/' + userId);
+  return await apiClient.get<Message[]>(`api/v1/message/user/${userId}`);
 }
 
-export async function readMessage(payload: MessageReadPayload) {
-  return await apiClient.put('api/v1/message/read', payload);
+export async function readMessage(messageId: string) {
+  return await apiClient.put(`api/v1/message/${messageId}/read`);
 }

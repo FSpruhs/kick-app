@@ -33,6 +33,14 @@ class MatchRestController(
         return matchUseCases.getMatch(MatchId(matchId), UserId(jwtParser.getUserId(jwt))).toMessage()
     }
 
+    @GetMapping("/group/{groupId}")
+    fun getMatchPreviews(
+        @PathVariable groupId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): List<MatchPreviewMessage> {
+       return matchUseCases.getMatchesByGroupId(GroupId(groupId), UserId(jwtParser.getUserId(jwt))).map { it.toPreviewMessage() }
+    }
+
     @PutMapping("/{matchId}/players/{userId}")
     fun updatePlayerRegistration(
         @PathVariable matchId: String,
@@ -95,6 +103,12 @@ data class PlanMatchRequest(
     val minPlayer: Int
 )
 
+data class MatchPreviewMessage(
+    val matchId: String,
+    val status: String,
+    val start: LocalDateTime,
+)
+
 data class MatchMessage(
     val matchId: String,
     val groupId: String,
@@ -108,6 +122,12 @@ data class MatchMessage(
     val teamA: List<String>,
     val teamB: List<String>,
     val result: String?
+)
+
+fun Match.toPreviewMessage() = MatchPreviewMessage(
+    matchId = this.id.value,
+    status = this.status.name,
+    start = this.start,
 )
 
 fun Match.toMessage() = MatchMessage(

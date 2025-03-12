@@ -16,6 +16,10 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPe
     override fun findById(matchId: MatchId): Match? =
         repository.findById(matchId.value).map { it.toDomain() }.orElse(null)
 
+    override fun findAllByGroupId(groupId: GroupId): List<Match> {
+        return repository.findByGroupId(groupId.value).map { it.toDomain() }
+    }
+
 }
 
 @Document(collection = "matches")
@@ -44,7 +48,9 @@ data class ParticipatingPlayerDocument(
 )
 
 @Repository
-interface MatchRepository : MongoRepository<MatchDocument, String>
+interface MatchRepository : MongoRepository<MatchDocument, String> {
+    fun findByGroupId(groupId: String): List<MatchDocument>
+}
 
 private fun Match.toDocument() = MatchDocument(
     id = id.value,

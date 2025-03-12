@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { getUserMessages, readMessage } from '@/services/messageRestService';
-import { useUserStore } from '@/store/UserStore';
 import { useMessageStore } from '@/store/MessageStore';
 import { responseToGroupInvitation } from '@/services/groupRestService';
+import {useAuthStore} from "@/store/AuthStore";
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const messageStore = useMessageStore();
 const selectedMailIndex = ref<number | null>(null);
 
 onMounted(() => {
-  getUserMessages(userStore.getUser().id).then((response) => {
+  getUserMessages(authStore.getUserId()).then((response) => {
     messageStore.setMessages(response.data);
   });
 });
@@ -18,7 +18,7 @@ onMounted(() => {
 const sendInvitationResponse = (accept: boolean) => {
   responseToGroupInvitation({
     groupId: selectedMail.value?.groupId ?? '',
-    userId: userStore.getUser().id,
+    userId: authStore.getUserId(),
     accepted: accept
   }).then(() => {
     console.log('Invitation response sent: ' + accept);
@@ -37,11 +37,7 @@ function selectMail(index: number) {
   const message = messageStore.getMessages()[selectedMailIndex.value];
   if (message.read === false) {
     message.read = true;
-    readMessage({
-      userId: userStore.getUser().id,
-      messageId: message.id,
-      read: true
-    })
+    readMessage(message.id)
       .then(() => {
         console.log('Message read: ' + message.id);
       })

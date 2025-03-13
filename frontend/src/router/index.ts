@@ -75,6 +75,14 @@ const routes = [
     meta: {
       requiresAuth: true
     }
+  },
+  {
+    path: '/match/:id',
+    name: 'MatchDetails',
+    component: () => import('../views/MatchDetailsView.vue'),
+    meta: {
+      requiresAuth: true
+    }
   }
 ];
 

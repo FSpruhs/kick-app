@@ -27,7 +27,7 @@ class MatchUseCases(
 
     fun getMatchesByGroupId(groupId: GroupId, requestingUserId: UserId): List<Match> {
         require(groupApi.isActiveMember(groupId, requestingUserId)) { throw UserNotAuthorizedException(requestingUserId) }
-        return matchPersistenceAdapter.findAllByGroupId(groupId)
+        return matchPersistenceAdapter.findAllByGroupId(groupId).sortedByDescending { it.start }
     }
 
     fun cancel(command: CancelMatchCommand) {

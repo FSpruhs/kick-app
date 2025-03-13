@@ -104,7 +104,7 @@ data class PlanMatchRequest(
 )
 
 data class MatchPreviewMessage(
-    val matchId: String,
+    val id: String,
     val status: String,
     val start: LocalDateTime,
 )
@@ -116,6 +116,7 @@ data class MatchMessage(
     val playground: String,
     val maxPlayer: Int,
     val minPlayer: Int,
+    val status: String,
     val acceptedPlayers: List<String>,
     val deregisteredPlayers: List<String>,
     val waitingBenchPlayers: List<String>,
@@ -125,7 +126,7 @@ data class MatchMessage(
 )
 
 fun Match.toPreviewMessage() = MatchPreviewMessage(
-    matchId = this.id.value,
+    id = this.id.value,
     status = this.status.name,
     start = this.start,
 )
@@ -142,7 +143,8 @@ fun Match.toMessage() = MatchMessage(
     waitingBenchPlayers = this.waitingBenchPlayers().map { it.value },
     teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
     teamB = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
-    result = this.result?.name
+    result = this.result?.name,
+    status = this.status.name
 )
 
 fun PlanMatchRequest.toCommand() = PlanMatchCommand(

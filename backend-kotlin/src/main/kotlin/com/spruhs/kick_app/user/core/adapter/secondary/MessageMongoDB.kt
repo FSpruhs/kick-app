@@ -35,7 +35,7 @@ interface MessageRepository : MongoRepository<MessageDocument, String> {
     fun findByUserId(userId: String): List<MessageDocument>
 }
 
-@Document(collation = "messages")
+@Document(collection = "messages")
 data class MessageDocument(
     val id: String,
     val userId: String,

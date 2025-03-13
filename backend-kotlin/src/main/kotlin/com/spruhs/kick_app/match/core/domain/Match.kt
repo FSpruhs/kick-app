@@ -108,7 +108,7 @@ fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Mat
 
 fun Match.acceptedPlayers(): List<UserId> {
     val registeredPlayer = this.registeredPlayers
-        .filter { it.status == RegistrationStatus.DEREGISTERED  }
+        .filter { it.status == RegistrationStatus.REGISTERED  }
         .sortedBy { it.registrationTime }
         .take(this.playerCount.maxPlayer.value)
 
@@ -128,10 +128,10 @@ fun Match.waitingBenchPlayers(): List<UserId> {
     return (benchPlayers + canceledPlayers).map { it.userId }
 }
 
-
 enum class MatchStatus {
     PLANNED,
     CANCELLED,
+    ENTER_RESULT,
     FINISHED
 }
 

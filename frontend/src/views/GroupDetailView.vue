@@ -64,7 +64,7 @@ onMounted(() => {
       <v-sheet >
         <v-card class="mx-auto pa-6" elevation="12" width="1000" rounded>
           <v-card-title class="text-center">
-            <span class="headline">Gruppe: {{ groupDetail?.name }}</span>
+            <span class="headline">Gruppe: {{ groupDetail?.name }} Matches</span>
           </v-card-title>
           <v-card-text>
             <v-row>
@@ -87,11 +87,21 @@ onMounted(() => {
                   <td>{{ item.start }}</td>
                   <td>{{ item.status }}</td>
                   <td>
+                    <v-btn
+                        color="primary"
+                        @click="router.push({ name: 'MatchDetails', params: { id: item.id } })"
+                    >Details
+                    </v-btn>
                   </td>
                 </tr>
               </tbody>
             </v-table>
           </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" @click="router.push({ name: 'NewMatch' })"
+            >Match erstellen
+            </v-btn>
+          </v-card-actions>
         </v-card>
       </v-sheet>
     </v-container>
@@ -99,7 +109,7 @@ onMounted(() => {
       <v-sheet>
         <v-card class="mx-auto pa-6" elevation="12" width="1000" rounded>
           <v-card-title class="text-center">
-            <span class="headline">Gruppe: {{ groupDetail?.name }}</span>
+            <span class="headline">Gruppe: {{ groupDetail?.name }} Spieler</span>
           </v-card-title>
           <v-card-text>
             <v-row>
@@ -144,9 +154,6 @@ onMounted(() => {
           <v-card-actions>
             <v-btn color="primary" @click="router.push({ name: 'GroupInvite' })"
               >Spieler einladen
-            </v-btn>
-            <v-btn color="primary" @click="router.push({ name: 'NewMatch' })"
-              >Match erstellen
             </v-btn>
           </v-card-actions>
         </v-card>

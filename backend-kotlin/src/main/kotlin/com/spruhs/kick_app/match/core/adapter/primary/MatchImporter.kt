@@ -158,7 +158,7 @@ private val defaultMatches = listOf(
         location = "Olympia Halle",
         minPlayer = 8,
         maxPlayer = 12,
-        result = Result.WINNER_TEAM_A.name,
+        result = null,
         participatingPlayers = emptyList(),
         registeredPlayers = listOf(
             RegisteredPlayerDocument(

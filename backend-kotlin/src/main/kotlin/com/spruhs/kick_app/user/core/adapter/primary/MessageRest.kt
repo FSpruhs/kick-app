@@ -7,8 +7,6 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.Message
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeout
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping

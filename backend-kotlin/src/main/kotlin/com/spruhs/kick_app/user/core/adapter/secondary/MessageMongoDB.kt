@@ -6,10 +6,7 @@ import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.user.core.domain.MessageType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactive.awaitLast
-import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository

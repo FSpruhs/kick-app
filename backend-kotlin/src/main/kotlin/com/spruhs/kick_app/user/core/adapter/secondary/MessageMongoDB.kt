@@ -5,34 +5,40 @@ import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.user.core.domain.MessageType
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.data.mongodb.core.mapping.Document
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 
 @Service
 class MessagePersistenceAdapter(private val messageRepository: MessageRepository) : MessagePersistencePort {
-    override fun save(message: Message) {
-        messageRepository.save(message.toDocument())
+    override suspend fun save(message: Message) {
+        messageRepository.save(message.toDocument()).awaitFirstOrNull()
     }
 
-    override fun saveAll(messages: List<Message>) {
-        messageRepository.saveAll(messages.map { it.toDocument() })
+    override suspend fun saveAll(messages: List<Message>) {
+        messageRepository.saveAll(messages.map { it.toDocument() }).collectList().awaitSingle()
     }
 
-    override fun findById(messageId: MessageId): Message? {
-        return messageRepository.findById(messageId.value).orElse(null)?.toDomain()
+    override suspend fun findById(messageId: MessageId): Message? {
+        return messageRepository.findById(messageId.value).awaitFirstOrNull()?.toDomain()
     }
 
-    override fun findByUser(userId: UserId): List<Message> {
-        return messageRepository.findByUserId(userId.value).map { it.toDomain() }
+    override suspend fun findByUser(userId: UserId): List<Message> {
+        return messageRepository.findByUserId(userId.value).collectList().awaitSingle().map { it.toDomain() }
     }
 }
 
 @Repository
-interface MessageRepository : MongoRepository<MessageDocument, String> {
-    fun findByUserId(userId: String): List<MessageDocument>
+interface MessageRepository : ReactiveMongoRepository<MessageDocument, String> {
+    fun findByUserId(userId: String): Flux<MessageDocument>
 }
 
 @Document(collection = "messages")

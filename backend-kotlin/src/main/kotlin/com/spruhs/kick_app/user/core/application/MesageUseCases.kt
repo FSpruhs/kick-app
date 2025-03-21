@@ -12,24 +12,24 @@ class MessageUseCases(
     private val groupApi: GroupApi,
 ) {
 
-    fun send(messageType: MessageType, params: MessageParams) {
+    suspend fun send(messageType: MessageType, params: MessageParams) {
         createMessage(messageType, params).apply {
             messagePersistencePort.save(this)
         }
     }
 
-    fun getByUser(userId: UserId): List<Message> {
+    suspend fun getByUser(userId: UserId): List<Message> {
         return messagePersistencePort.findByUser(userId)
     }
 
-    fun markAsRead(command: MarkAsReadCommand) {
+    suspend fun markAsRead(command: MarkAsReadCommand) {
         fetchMessage(command.messageId).let {
             it.messageReadBy(command.userId)
             messagePersistencePort.save(it)
         }
     }
 
-    fun sendAllActiveUsersInGroupMessage(
+    suspend fun sendAllActiveUsersInGroupMessage(
         messageType: MessageType,
         params: MessageParams,
         groupId: GroupId
@@ -40,7 +40,7 @@ class MessageUseCases(
             .let { messagePersistencePort.saveAll(it) }
     }
 
-    private fun fetchMessage(messageId: MessageId): Message =
+    private suspend fun fetchMessage(messageId: MessageId): Message =
         messagePersistencePort.findById(messageId) ?: throw MessageNotFoundException(messageId)
 
 }

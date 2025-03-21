@@ -29,8 +29,8 @@ enum class MessageType {
 }
 
 interface MessagePersistencePort {
-    fun save(message: Message)
-    fun saveAll(messages: List<Message>)
-    fun findById(messageId: MessageId): Message?
-    fun findByUser(userId: UserId): List<Message>
+    suspend fun save(message: Message)
+    suspend fun saveAll(messages: List<Message>)
+    suspend fun findById(messageId: MessageId): Message?
+    suspend fun findByUser(userId: UserId): List<Message>
 }

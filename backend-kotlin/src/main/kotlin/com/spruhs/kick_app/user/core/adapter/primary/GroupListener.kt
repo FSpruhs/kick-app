@@ -11,13 +11,24 @@ import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.application.UserUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.mono
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
+
+
 
 @Component
 class GroupListener(
     private val messageUseCases: MessageUseCases,
-    private val userUseCases: UserUseCases
+    private val userUseCases: UserUseCases,
+    private val applicationScope: CoroutineScope
 ) {
 
     private val log = getLogger(this::class.java)
@@ -25,21 +36,27 @@ class GroupListener(
     @EventListener(UserInvitedToGroupEvent::class)
     fun onEvent(event: UserInvitedToGroupEvent) {
         log.info("UserInvitedToGroupEvent received: $event")
-        messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, event.toMessageParams())
+        applicationScope.launch {
+            messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, event.toMessageParams())
+        }
     }
 
     @EventListener(UserLeavedGroupEvent::class)
     fun onEvent(event: UserLeavedGroupEvent) {
         log.info("UserLeavedGroupEvent received: $event")
         userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
-        messageUseCases.send(MessageType.USER_LEAVED_GROUP, event.toMessageParams())
+        applicationScope.launch {
+            messageUseCases.send(MessageType.USER_LEAVED_GROUP, event.toMessageParams())
+        }
     }
 
     @EventListener(UserRemovedFromGroupEvent::class)
     fun onEvent(event: UserRemovedFromGroupEvent) {
         log.info("UserRemovedFromGroupEvent received: $event")
         userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
-        messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
+        applicationScope.launch {
+            messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
+        }
     }
 
     @EventListener(UserEnteredGroupEvent::class)

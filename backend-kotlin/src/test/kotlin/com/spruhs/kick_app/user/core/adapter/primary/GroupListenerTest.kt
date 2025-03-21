@@ -10,11 +10,14 @@ import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.application.UserUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -31,16 +34,16 @@ class GroupListenerTest {
     lateinit var groupListener: GroupListener
 
     @Test
-    fun `onEvent should send message when UserInvitedToGroupEvent is received`() {
+    fun `onEvent should send message when UserInvitedToGroupEvent is received`() = runBlocking {
         // given
         val event = UserInvitedToGroupEvent("inviteeId", "groupId", "groupName")
-        every { messageUseCases.send(any(), any()) } returns Unit
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
 
         // when
         groupListener.onEvent(event)
 
         // then
-        verify {
+        coVerify {
             messageUseCases.send(
                 MessageType.USER_INVITED_TO_GROUP,
                 MessageParams(userId = event.inviteeId, groupId = event.groupId, groupName = event.groupName)
@@ -49,10 +52,10 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should send message when UserLeavedGroupEvent is received`() {
+    fun `onEvent should send message when UserLeavedGroupEvent is received`() = runBlocking {
         // given
         val event = UserLeavedGroupEvent("userId", "groupId", "groupName")
-        every { messageUseCases.send(any(), any()) } returns Unit
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
         every { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
 
 
@@ -60,7 +63,7 @@ class GroupListenerTest {
         groupListener.onEvent(event)
 
         // then
-        verify {
+        coVerify {
             messageUseCases.send(
                 MessageType.USER_LEAVED_GROUP,
                 MessageParams(userId = event.userId, groupId = event.groupId, groupName = event.groupName)
@@ -71,17 +74,17 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should send message when UserRemovedFromGroupEvent is received`() {
+    fun `onEvent should send message when UserRemovedFromGroupEvent is received`() = runBlocking {
         // given
         val event = UserRemovedFromGroupEvent("userId", "groupId", "groupName")
-        every { messageUseCases.send(any(), any()) } returns Unit
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
         every { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
 
         // when
         groupListener.onEvent(event)
 
         // then
-        verify {
+        coVerify {
             messageUseCases.send(
                 MessageType.USER_REMOVED_FROM_GROUP,
                 MessageParams(userId = event.userId, groupId = event.groupId, groupName = event.groupName)
@@ -92,7 +95,7 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should call userEntersGroup when UserEnteredGroupEvent is received`() {
+    fun `onEvent should call userEntersGroup when UserEnteredGroupEvent is received`() = runBlocking {
         // given
         val event = UserEnteredGroupEvent("userId", "groupId")
         every { userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit

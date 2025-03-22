@@ -9,11 +9,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class UserApiAdapter(private val userUseCases: UserUseCases) : UserApi {
-    override fun findUsersByIds(userIds: List<UserId>): List<UserData> =
+    override suspend fun findUsersByIds(userIds: List<UserId>): List<UserData> =
         userUseCases.getUsersByIds(userIds).map { it.toData() }
 
-
-    override fun findUserById(userId: UserId): UserData = userUseCases.getUser(userId).toData()
+    override suspend fun findUserById(userId: UserId): UserData = userUseCases.getUser(userId).toData()
 
 }
 

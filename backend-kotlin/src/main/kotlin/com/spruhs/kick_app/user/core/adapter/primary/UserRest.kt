@@ -30,7 +30,7 @@ class UserRestController(
 ) {
 
     @GetMapping("/{id}")
-    fun getUser(
+    suspend fun getUser(
         @PathVariable id: String,
         @AuthenticationPrincipal jwt: Jwt
     ): UserMessage {
@@ -39,12 +39,12 @@ class UserRestController(
     }
 
     @GetMapping
-    fun getUsers(@RequestParam exceptGroupId: String?): List<UserMessage> =
+    suspend fun getUsers(@RequestParam exceptGroupId: String?): List<UserMessage> =
         userUseCases.getUsers(exceptGroupId?.let { GroupId(it) }).map { it.toMessage() }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun registerUser(@RequestBody request: RegisterUserRequest) {
+    suspend fun registerUser(@RequestBody request: RegisterUserRequest) {
         userUseCases.registerUser(request.toCommand())
     }
 }

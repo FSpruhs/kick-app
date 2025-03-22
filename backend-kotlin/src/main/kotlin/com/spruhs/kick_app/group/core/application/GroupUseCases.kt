@@ -7,13 +7,14 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.domain.*
 import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.api.UserData
+import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
 
 @Service
 class GroupUseCases(
     private val groupPersistencePort: GroupPersistencePort,
     private val userApi: UserApi,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
 ) {
     fun create(command: CreateGroupCommand) {
         createGroup(
@@ -91,7 +92,9 @@ class GroupUseCases(
             require(this.players.any { it.id == userId }) { throw UserNotAuthorizedException(userId) }
         }
 
-        val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
+        val users = runBlocking {
+            userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
+        }
 
         return group.toGroupDetails(users)
     }

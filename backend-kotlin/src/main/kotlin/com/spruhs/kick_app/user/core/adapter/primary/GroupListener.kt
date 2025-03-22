@@ -16,8 +16,6 @@ import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-
-
 @Component
 class GroupListener(
     private val messageUseCases: MessageUseCases,
@@ -38,8 +36,8 @@ class GroupListener(
     @EventListener(UserLeavedGroupEvent::class)
     fun onEvent(event: UserLeavedGroupEvent) {
         log.info("UserLeavedGroupEvent received: $event")
-        userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
         applicationScope.launch {
+            userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
             messageUseCases.send(MessageType.USER_LEAVED_GROUP, event.toMessageParams())
         }
     }
@@ -47,8 +45,8 @@ class GroupListener(
     @EventListener(UserRemovedFromGroupEvent::class)
     fun onEvent(event: UserRemovedFromGroupEvent) {
         log.info("UserRemovedFromGroupEvent received: $event")
-        userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
         applicationScope.launch {
+            userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
         }
     }
@@ -56,7 +54,9 @@ class GroupListener(
     @EventListener(UserEnteredGroupEvent::class)
     fun onEvent(event: UserEnteredGroupEvent) {
         log.info("UserEnteredGroupEvent received: $event")
-        userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId))
+        applicationScope.launch {
+            userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId))
+        }
     }
 }
 

@@ -75,11 +75,11 @@ value class Email(val value: String) {
 data class FullName(val firstName: FirstName, val lastName: LastName)
 
 interface UserPersistencePort {
-    fun save(user: User)
-    fun existsByEmail(email: Email): Boolean
-    fun findById(userId: UserId): User?
-    fun findByIds(userIds: List<UserId>): List<User>
-    fun findAll(exceptGroupId: GroupId? = null): List<User>
+    suspend fun save(user: User)
+    suspend fun existsByEmail(email: Email): Boolean
+    suspend fun findById(userId: UserId): User?
+    suspend fun findByIds(userIds: List<UserId>): List<User>
+    suspend fun findAll(exceptGroupId: GroupId? = null): List<User>
 }
 
 fun interface UserIdentityProviderPort {

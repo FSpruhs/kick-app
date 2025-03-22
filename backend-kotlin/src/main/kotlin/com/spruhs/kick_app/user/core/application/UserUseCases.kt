@@ -10,21 +10,21 @@ class UserUseCases(
     private val userPersistencePort: UserPersistencePort,
     private val userIdentityProviderPort: UserIdentityProviderPort
 ) {
-    fun getUser(userId: UserId): User = fetchUser(userId)
+    suspend fun getUser(userId: UserId): User = fetchUser(userId)
 
-    fun userLeavesGroup(userId: UserId, groupId: GroupId) {
+    suspend fun userLeavesGroup(userId: UserId, groupId: GroupId) {
         fetchUser(userId).leaveGroup(groupId).apply { userPersistencePort.save(this) }
     }
 
-    fun userEntersGroup(userId: UserId, groupId: GroupId) {
+    suspend fun userEntersGroup(userId: UserId, groupId: GroupId) {
         fetchUser(userId).enterGroup(groupId).apply { userPersistencePort.save(this) }
     }
 
-    fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)
+    suspend fun getUsersByIds(userIds: List<UserId>): List<User> = userPersistencePort.findByIds(userIds)
 
-    fun getUsers(exceptGroupId: GroupId? = null): List<User> = userPersistencePort.findAll(exceptGroupId)
+    suspend fun getUsers(exceptGroupId: GroupId? = null): List<User> = userPersistencePort.findAll(exceptGroupId)
 
-    fun registerUser(command: RegisterUserCommand) {
+    suspend fun registerUser(command: RegisterUserCommand) {
         require(
             userPersistencePort.existsByEmail(command.email).not()
         ) { UserWithEmailAlreadyExistsException(command.email) }
@@ -39,7 +39,7 @@ class UserUseCases(
         }
     }
 
-    private fun fetchUser(userId: UserId): User =
+    private suspend  fun fetchUser(userId: UserId): User =
         userPersistencePort.findById(userId) ?: throw UserNotFoundException(userId)
 
 }

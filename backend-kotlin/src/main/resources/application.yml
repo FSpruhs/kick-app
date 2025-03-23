@@ -2,6 +2,21 @@ spring:
   application:
     name: kick-app
 
+  r2dbc:
+    name: kick_app
+    password: password123
+    username: admin
+    url: r2dbc:postgresql://localhost:5432/kick_app
+    pool:
+      max-size: 20
+
+  flyway:
+    validate-on-migrate: true
+    user: admin
+    password: password123
+    url: jdbc:postgresql://localhost:5432/kick_app
+    schemas: ["kick_app"]
+
   data:
     mongodb:
       uri: mongodb://admin:password123@localhost:6000/kick_app?authSource=admin
@@ -15,4 +30,3 @@ spring:
 
 server:
   port: 8085
-

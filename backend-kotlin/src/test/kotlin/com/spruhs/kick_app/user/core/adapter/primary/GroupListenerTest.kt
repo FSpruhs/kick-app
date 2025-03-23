@@ -56,7 +56,7 @@ class GroupListenerTest {
         // given
         val event = UserLeavedGroupEvent("userId", "groupId", "groupName")
         coEvery { messageUseCases.send(any(), any()) } returns Unit
-        every { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
+        coEvery { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
 
 
         // when
@@ -70,7 +70,7 @@ class GroupListenerTest {
             )
         }
 
-        verify { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) }
+        coVerify { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) }
     }
 
     @Test
@@ -78,7 +78,7 @@ class GroupListenerTest {
         // given
         val event = UserRemovedFromGroupEvent("userId", "groupId", "groupName")
         coEvery { messageUseCases.send(any(), any()) } returns Unit
-        every { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
+        coEvery { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
 
         // when
         groupListener.onEvent(event)
@@ -91,20 +91,20 @@ class GroupListenerTest {
             )
         }
 
-        verify { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) }
+        coVerify { userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId)) }
     }
 
     @Test
     fun `onEvent should call userEntersGroup when UserEnteredGroupEvent is received`() = runBlocking {
         // given
         val event = UserEnteredGroupEvent("userId", "groupId")
-        every { userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
+        coEvery { userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId)) } returns Unit
 
         // when
         groupListener.onEvent(event)
 
         // then
-        verify { userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId)) }
+        coVerify { userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId)) }
     }
 
 }

@@ -260,9 +260,9 @@ value class Name(val value: String) {
 }
 
 interface GroupPersistencePort {
-    fun save(group: Group)
-    fun findById(groupId: GroupId): Group?
-    fun findByPlayer(userId: UserId): List<Group>
+    suspend fun save(group: Group)
+    suspend fun findById(groupId: GroupId): Group?
+    suspend fun findByPlayer(userId: UserId): List<Group>
 }
 
 data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")

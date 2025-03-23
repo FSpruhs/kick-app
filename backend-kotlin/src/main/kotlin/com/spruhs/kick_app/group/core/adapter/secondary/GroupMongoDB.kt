@@ -3,23 +3,27 @@ package com.spruhs.kick_app.group.core.adapter.secondary
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.core.domain.*
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 @Service
 class GroupPersistenceAdapter(val repository: GroupRepository) : GroupPersistencePort {
-    override fun save(group: Group) {
-        repository.save(group.toDocument())
+    override suspend fun save(group: Group) {
+        repository.save(group.toDocument()).awaitFirstOrNull()
     }
 
-    override fun findById(groupId: GroupId): Group? {
-        return repository.findById(groupId.value).map { it.toDomain() }.orElse(null)
+    override suspend fun findById(groupId: GroupId): Group? {
+        return repository.findById(groupId.value).map { it.toDomain() }.awaitFirstOrNull()
     }
 
-    override fun findByPlayer(userId: UserId): List<Group> {
-        return repository.findAllByPlayersIdContains(userId.value).map { it.toDomain() }
+    override suspend fun findByPlayer(userId: UserId): List<Group> {
+        return repository.findAllByPlayersIdContains(userId.value).collectList().awaitFirst().map { it.toDomain() }
     }
 }
 
@@ -38,8 +42,8 @@ data class PlayerDocument(
 )
 
 @Repository
-interface GroupRepository : MongoRepository<GroupDocument, String> {
-    fun findAllByPlayersIdContains(userId: String): List<GroupDocument>
+interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
+    fun findAllByPlayersIdContains(userId: String): Flux<GroupDocument>
 }
 
 private fun Group.toDocument() = GroupDocument(

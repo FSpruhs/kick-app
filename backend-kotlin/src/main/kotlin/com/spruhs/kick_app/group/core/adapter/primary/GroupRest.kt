@@ -20,7 +20,7 @@ class GroupRest(
 ) {
 
     @PutMapping("/{groupId}/players/{userId}")
-    fun updatePlayer(
+    suspend fun updatePlayer(
         @PathVariable groupId: String,
         @PathVariable userId: String,
         @RequestParam status: String?,
@@ -39,14 +39,14 @@ class GroupRest(
     }
 
     @GetMapping("/{groupId}")
-    fun getGroup(
+    suspend fun getGroup(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): GroupDetail =
         groupUseCases.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
 
     @GetMapping("/player/{userId}")
-    fun getGroups(
+    suspend fun getGroups(
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<GroupMessage> {
@@ -56,7 +56,7 @@ class GroupRest(
     }
 
     @PostMapping
-    fun createGroup(
+    suspend fun createGroup(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest
     ) {
@@ -64,7 +64,7 @@ class GroupRest(
     }
 
     @PostMapping("{groupId}/invited-users/{userId}")
-    fun inviteUser(
+    suspend fun inviteUser(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable groupId: String,
         @PathVariable userId: String
@@ -79,7 +79,7 @@ class GroupRest(
     }
 
     @PutMapping("/invited-users")
-    fun invitedUserResponse(
+    suspend fun invitedUserResponse(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: InviteUserResponse
     ) {

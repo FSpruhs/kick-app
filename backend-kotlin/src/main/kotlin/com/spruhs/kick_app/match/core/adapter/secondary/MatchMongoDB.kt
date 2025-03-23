@@ -2,22 +2,25 @@ package com.spruhs.kick_app.match.core.adapter.secondary
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.core.domain.*
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.mongodb.core.mapping.Document
-import org.springframework.data.mongodb.repository.MongoRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 @Service
 class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPersistencePort {
-    override fun save(match: Match) {
-        repository.save(match.toDocument())
+    override suspend fun save(match: Match) {
+        repository.save(match.toDocument()).awaitFirstOrNull()
     }
 
-    override fun findById(matchId: MatchId): Match? =
-        repository.findById(matchId.value).map { it.toDomain() }.orElse(null)
+    override suspend  fun findById(matchId: MatchId): Match? =
+        repository.findById(matchId.value).awaitFirstOrNull()?.toDomain()
 
-    override fun findAllByGroupId(groupId: GroupId): List<Match> {
-        return repository.findByGroupId(groupId.value).map { it.toDomain() }
+    override suspend fun findAllByGroupId(groupId: GroupId): List<Match> {
+        return repository.findByGroupId(groupId.value).collectList().awaitSingle().map { it.toDomain() }
     }
 
 }
@@ -48,8 +51,8 @@ data class ParticipatingPlayerDocument(
 )
 
 @Repository
-interface MatchRepository : MongoRepository<MatchDocument, String> {
-    fun findByGroupId(groupId: String): List<MatchDocument>
+interface MatchRepository : ReactiveMongoRepository<MatchDocument, String> {
+    fun findByGroupId(groupId: String): Flux<MatchDocument>
 }
 
 private fun Match.toDocument() = MatchDocument(

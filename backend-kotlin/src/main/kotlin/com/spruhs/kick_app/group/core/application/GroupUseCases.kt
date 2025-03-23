@@ -16,7 +16,7 @@ class GroupUseCases(
     private val userApi: UserApi,
     private val eventPublisher: EventPublisher,
 ) {
-    fun create(command: CreateGroupCommand) {
+    suspend fun create(command: CreateGroupCommand) {
         createGroup(
             user = command.userId,
             name = command.name,
@@ -25,15 +25,15 @@ class GroupUseCases(
         }
     }
 
-    fun getActivePlayers(groupId: GroupId): List<UserId> =
+    suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
         fetchGroup(groupId).players.filter { it.status.type() == PlayerStatusType.ACTIVE }.map { it.id }
 
-    fun isActiveMember(
+    suspend fun isActiveMember(
         groupId: GroupId,
         userId: UserId
     ): Boolean = groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
 
-    fun areActiveMembers(
+    suspend fun areActiveMembers(
         groupId: GroupId,
         userIds: Set<UserId>
     ): Boolean {
@@ -41,26 +41,26 @@ class GroupUseCases(
         return userIds.all { group.isActivePlayer(it) }
     }
 
-    fun isActiveAdmin(
+    suspend fun isActiveAdmin(
         groupId: GroupId,
         userId: UserId
     ): Boolean = groupPersistencePort.findById(groupId)?.isActiveAdmin(userId) ?: false
 
-    fun inviteUser(command: InviteUserCommand) {
+    suspend fun inviteUser(command: InviteUserCommand) {
         fetchGroup(command.groupId).inviteUser(command.inviterId, command.inviteeId).apply {
             groupPersistencePort.save(this)
             eventPublisher.publishAll(this.domainEvents)
         }
     }
 
-    fun inviteUserResponse(command: InviteUserResponseCommand) {
+    suspend fun inviteUserResponse(command: InviteUserResponseCommand) {
         fetchGroup(command.groupId).inviteUserResponse(command.userId, command.response).apply {
             groupPersistencePort.save(this)
             eventPublisher.publishAll(this.domainEvents)
         }
     }
 
-    fun updatePlayer(command: UpdatePlayerCommand) {
+    suspend fun updatePlayer(command: UpdatePlayerCommand) {
         fetchGroup(command.groupId)
             .run {
                 command.newStatus?.let {
@@ -85,9 +85,9 @@ class GroupUseCases(
             }
     }
 
-    fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
+    suspend fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
 
-    fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
+    suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
             require(this.players.any { it.id == userId }) { throw UserNotAuthorizedException(userId) }
         }
@@ -100,7 +100,7 @@ class GroupUseCases(
     }
 
 
-    private fun fetchGroup(groupId: GroupId): Group =
+    private suspend fun fetchGroup(groupId: GroupId): Group =
         groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
 
 }

@@ -21,12 +21,12 @@ class MatchRestController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun planMatch(@RequestBody request: PlanMatchRequest) {
+    suspend fun planMatch(@RequestBody request: PlanMatchRequest) {
         matchUseCases.plan(request.toCommand())
     }
 
     @GetMapping("/{matchId}")
-    fun getMatch(
+    suspend fun getMatch(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): MatchMessage {
@@ -34,7 +34,7 @@ class MatchRestController(
     }
 
     @GetMapping("/group/{groupId}")
-    fun getMatchPreviews(
+    suspend fun getMatchPreviews(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchPreviewMessage> {
@@ -42,7 +42,7 @@ class MatchRestController(
     }
 
     @PutMapping("/{matchId}/players/{userId}")
-    fun updatePlayerRegistration(
+    suspend fun updatePlayerRegistration(
         @PathVariable matchId: String,
         @PathVariable userId: String,
         @RequestParam status: String,
@@ -59,7 +59,7 @@ class MatchRestController(
     }
 
     @DeleteMapping("/{matchId}")
-    fun cancelMatch(
+    suspend fun cancelMatch(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
     ) {
@@ -72,7 +72,7 @@ class MatchRestController(
     }
 
     @PostMapping("/{matchId}/result")
-    fun addResult(
+    suspend fun addResult(
         @PathVariable matchId: String,
         @RequestBody request: AddResultRequest,
         @AuthenticationPrincipal jwt: Jwt

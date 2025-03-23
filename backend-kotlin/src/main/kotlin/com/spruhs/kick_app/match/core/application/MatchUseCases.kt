@@ -13,7 +13,7 @@ class MatchUseCases(
     private val groupApi: GroupApi,
     private val eventPublisher: EventPublisher
 ) {
-    fun plan(command: PlanMatchCommand) {
+    suspend fun plan(command: PlanMatchCommand) {
         planMatch(
             groupId = command.groupId,
             start = command.start,
@@ -25,12 +25,12 @@ class MatchUseCases(
         }
     }
 
-    fun getMatchesByGroupId(groupId: GroupId, requestingUserId: UserId): List<Match> {
+    suspend fun getMatchesByGroupId(groupId: GroupId, requestingUserId: UserId): List<Match> {
         require(groupApi.isActiveMember(groupId, requestingUserId)) { throw UserNotAuthorizedException(requestingUserId) }
         return matchPersistenceAdapter.findAllByGroupId(groupId).sortedByDescending { it.start }
     }
 
-    fun cancel(command: CancelMatchCommand) {
+    suspend fun cancel(command: CancelMatchCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
             throw UserNotAuthorizedException(command.userId)
@@ -41,17 +41,16 @@ class MatchUseCases(
         }
     }
 
-    fun updatePlayerRegistration(command: UpdatePlayerRegistrationCommand) {
+    suspend fun updatePlayerRegistration(command: UpdatePlayerRegistrationCommand) {
         val match = fetchMatch(command.matchId).apply {
             handleUpdatePlayerRegistration(this, command)
         }.apply {
             matchPersistenceAdapter.save(this)
         }
-
         matchPersistenceAdapter.save(match)
     }
 
-    private fun handleUpdatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+    private suspend fun handleUpdatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
         return if (command.updatingUser == command.updatedUser) {
             addPlayerRegistration(match, command)
         } else {
@@ -59,17 +58,17 @@ class MatchUseCases(
         }
     }
 
-    private fun addPlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+    private suspend fun addPlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
         require(groupApi.isActiveMember(match.groupId, command.updatingUser))
         return match.addRegistration(command.updatedUser, command.status)
     }
 
-    private fun updatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
+    private suspend fun updatePlayerRegistration(match: Match, command: UpdatePlayerRegistrationCommand): Match {
         require(groupApi.isActiveAdmin(match.groupId, command.updatingUser))
         return match.updateRegistration(command.updatedUser, command.status)
     }
 
-    fun addResult(command: AddResultCommand) {
+    suspend fun addResult(command: AddResultCommand) {
         val match = fetchMatch(command.matchId)
         require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
             throw UserNotAuthorizedException(command.userId)
@@ -85,7 +84,7 @@ class MatchUseCases(
         }
     }
 
-    fun getMatch(matchId: MatchId, requestingUserId: UserId): Match {
+    suspend fun getMatch(matchId: MatchId, requestingUserId: UserId): Match {
         val match = fetchMatch(matchId)
         require(groupApi.isActiveMember(match.groupId, requestingUserId)) {
             throw UserNotAuthorizedException(
@@ -95,7 +94,7 @@ class MatchUseCases(
         return match
     }
 
-    private fun fetchMatch(matchId: MatchId): Match =
+    private suspend fun fetchMatch(matchId: MatchId): Match =
         matchPersistenceAdapter.findById(matchId) ?: throw MatchNotFoundException(matchId)
 }
 

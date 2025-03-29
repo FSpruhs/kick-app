@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.common
 
-import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory.disable
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder

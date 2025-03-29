@@ -4,8 +4,6 @@ import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.core.adapter.secondary.UserDocument
 import com.spruhs.kick_app.user.core.adapter.secondary.UserRepository
 import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component

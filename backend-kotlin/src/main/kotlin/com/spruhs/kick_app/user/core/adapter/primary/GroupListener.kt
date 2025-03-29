@@ -1,9 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.getLogger
-import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
 import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
 import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent

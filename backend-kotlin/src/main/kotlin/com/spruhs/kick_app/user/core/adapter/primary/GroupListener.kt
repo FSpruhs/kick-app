@@ -7,9 +7,7 @@ import com.spruhs.kick_app.group.api.UserEnteredGroupEvent
 import com.spruhs.kick_app.group.api.UserInvitedToGroupEvent
 import com.spruhs.kick_app.group.api.UserLeavedGroupEvent
 import com.spruhs.kick_app.group.api.UserRemovedFromGroupEvent
-import com.spruhs.kick_app.user.core.application.MessageParams
-import com.spruhs.kick_app.user.core.application.MessageUseCases
-import com.spruhs.kick_app.user.core.application.UserUseCases
+import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.MessageType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Component
 @Component
 class GroupListener(
     private val messageUseCases: MessageUseCases,
-    private val userUseCases: UserUseCases,
     private val applicationScope: CoroutineScope
 ) {
 
@@ -37,7 +34,6 @@ class GroupListener(
     fun onEvent(event: UserLeavedGroupEvent) {
         log.info("UserLeavedGroupEvent received: $event")
         applicationScope.launch {
-            userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
             messageUseCases.send(MessageType.USER_LEAVED_GROUP, event.toMessageParams())
         }
     }
@@ -46,16 +42,7 @@ class GroupListener(
     fun onEvent(event: UserRemovedFromGroupEvent) {
         log.info("UserRemovedFromGroupEvent received: $event")
         applicationScope.launch {
-            userUseCases.userLeavesGroup(UserId(event.userId), GroupId(event.groupId))
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
-        }
-    }
-
-    @EventListener(UserEnteredGroupEvent::class)
-    fun onEvent(event: UserEnteredGroupEvent) {
-        log.info("UserEnteredGroupEvent received: $event")
-        applicationScope.launch {
-            userUseCases.userEntersGroup(UserId(event.userId), GroupId(event.groupId))
         }
     }
 }

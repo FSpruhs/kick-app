@@ -7,7 +7,8 @@ interface DomainEventList {
     val domainEvents: List<DomainEvent>
 }
 
-fun interface EventPublisher {
+interface EventPublisher {
+    fun publish(events: List<Event>)
     fun publishAll(events: List<DomainEvent>)
 }
 
@@ -19,6 +20,13 @@ fun interface DomainEvent {
 class EventPublisherAdapter(val applicationEventPublisher: ApplicationEventPublisher) : EventPublisher {
 
     private val log = getLogger(this::class.java)
+
+    override fun publish(events: List<Event>) {
+        events.forEach {
+            log.info("Publish event: ${it.javaClass.simpleName}")
+            applicationEventPublisher.publishEvent(it)
+        }
+    }
 
     override fun publishAll(events: List<DomainEvent>) {
         events.forEach {

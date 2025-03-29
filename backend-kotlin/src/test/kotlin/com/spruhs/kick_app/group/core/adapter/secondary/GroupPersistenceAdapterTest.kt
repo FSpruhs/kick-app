@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.core.domain.*
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +16,7 @@ class GroupPersistenceAdapterTest : AbstractMongoTest() {
     private lateinit var groupPersistencePort: GroupPersistencePort
 
     @Test
-    fun `save should save group to repository`() {
+    fun `save should save group to repository`(): Unit = runBlocking {
         val group = TestGroupBuilder().build()
 
         groupPersistencePort.save(group)
@@ -26,7 +27,7 @@ class GroupPersistenceAdapterTest : AbstractMongoTest() {
     }
 
     @Test
-    fun `find by id should return null when group not exists`() {
+    fun `find by id should return null when group not exists`() = runBlocking {
         val group = TestGroupBuilder().build()
 
         groupPersistencePort.save(group)
@@ -37,7 +38,7 @@ class GroupPersistenceAdapterTest : AbstractMongoTest() {
     }
 
     @Test
-    fun `find by player should return groups when player exists`() {
+    fun `find by player should return groups when player exists`(): Unit = runBlocking {
         val playerToFind = Player(UserId("test player"), Active(), PlayerRole.ADMIN)
 
         val group1 = TestGroupBuilder()

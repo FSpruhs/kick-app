@@ -28,5 +28,8 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/realms/kick-app
 
+keycloak:
+  realm: kick-app
+
 server:
   port: 8085

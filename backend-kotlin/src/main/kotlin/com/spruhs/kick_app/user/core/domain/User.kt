@@ -1,48 +1,121 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
+import com.spruhs.kick_app.user.core.application.RegisterUserCommand
+import org.springframework.stereotype.Component
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
-data class User(
+class UserAggregate(
+    override val aggregateId: String
+) : AggregateRoot(aggregateId, TYPE) {
+
+    var nickName: NickName = NickName("Default")
+    var email: Email = Email("default@defaults.com")
+
+    override fun whenEvent(event: Any) {
+        when (event) {
+            is UserCreatedEvent -> {
+                nickName = NickName(event.nickName)
+                email = Email(event.email)
+            }
+
+            is UserNickNameChangedEvent -> {
+                nickName = NickName(event.nickName)
+            }
+
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+    fun createUser(command: RegisterUserCommand) {
+        apply(UserCreatedEvent(aggregateId, command.email.value, command.nickName.value))
+    }
+
+    fun changeNickName(command: ChangeUserNickNameCommand) {
+        apply(UserNickNameChangedEvent(aggregateId, command.nickName.value))
+    }
+
+    companion object {
+        const val TYPE = "User"
+    }
+}
+
+
+interface UserIdentityProviderPort {
+    fun save(email: Email, nickName: NickName): UserId
+    fun changeNickName(userId: UserId, nickName: NickName)
+}
+
+interface UserProjectionPort {
+    suspend fun whenEvent(event: BaseEvent)
+    suspend fun existsByEmail(email: Email): Boolean
+    suspend fun getUser(userId: UserId): UserProjection?
+    suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection>
+}
+
+@Component
+class UserEventSerializer : Serializer {
+    override fun serialize(event: Any, aggregate: AggregateRoot): Event {
+        val data = EventSourcingUtils.writeValueAsBytes(event)
+
+        return when (event) {
+            is UserCreatedEvent -> Event(
+                aggregate,
+                UserEvents.USER_CREATED_V1.name,
+                data,
+                event.metadata
+            )
+
+            is UserNickNameChangedEvent -> Event(
+                aggregate,
+                UserEvents.USER_NICKNAME_CHANGED_V1.name,
+                data,
+                event.metadata
+            )
+
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+    override fun deserialize(event: Event): Any {
+        return when (event.type) {
+            UserEvents.USER_CREATED_V1.name -> EventSourcingUtils.readValue(
+                event.data, UserCreatedEvent::class.java
+            )
+
+            UserEvents.USER_NICKNAME_CHANGED_V1.name -> EventSourcingUtils.readValue(
+                event.data, UserNickNameChangedEvent::class.java
+            )
+
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+}
+
+data class UserProjection (
     val id: UserId,
-    val fullName: FullName,
     val nickName: NickName,
     val email: Email,
     val groups: List<GroupId>,
-    override val domainEvents: List<DomainEvent> = listOf()
-) : DomainEventList
+)
 
-fun createUser(
-    fullName: FullName,
-    nickName: NickName,
-    email: Email,
-): User {
-    return User(
-        id = UserId(generateId()),
-        fullName = fullName,
-        nickName = nickName,
-        email = email,
-        groups = listOf()
-    )
-}
+data class UserCreatedEvent(
+    override val aggregateId: String,
+    val email: String,
+    val nickName: String,
+) : BaseEvent(aggregateId)
 
-fun User.leaveGroup(groupId: GroupId): User = this.copy(groups = groups - groupId)
+data class UserNickNameChangedEvent(
+    override val aggregateId: String,
+    val nickName: String
+) : BaseEvent(aggregateId)
 
-fun User.enterGroup(groupId: GroupId): User = this.copy(groups = groups + groupId)
-
-@JvmInline
-value class FirstName(val value: String) {
-    init {
-        require(value.length in 2..20) { "First name must be between 2 and 20 characters" }
-    }
-}
-
-@JvmInline
-value class LastName(val value: String) {
-    init {
-        require(value.length in 2..20) { "Last name must be between 2 and 20 characters" }
-    }
+enum class UserEvents {
+    USER_CREATED_V1,
+    USER_NICKNAME_CHANGED_V1,
 }
 
 @JvmInline
@@ -72,20 +145,7 @@ value class Email(val value: String) {
     }
 }
 
-data class FullName(val firstName: FirstName, val lastName: LastName)
-
-interface UserPersistencePort {
-    suspend fun save(user: User)
-    suspend fun existsByEmail(email: Email): Boolean
-    suspend fun findById(userId: UserId): User?
-    suspend fun findByIds(userIds: List<UserId>): List<User>
-    suspend fun findAll(exceptGroupId: GroupId? = null): List<User>
-}
-
-fun interface UserIdentityProviderPort {
-    fun save(user: User)
-}
-
 data class UserNotFoundException(val userId: UserId) : RuntimeException("User not found: $userId")
 data class UserWithEmailAlreadyExistsException(val email: Email) :
     RuntimeException("User with email already exists: $email")
+class CreateUserIdentityProviderException(message: String) : Exception(message)

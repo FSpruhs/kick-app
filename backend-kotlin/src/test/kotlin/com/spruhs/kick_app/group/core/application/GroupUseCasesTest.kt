@@ -11,6 +11,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -32,29 +33,29 @@ class GroupUseCasesTest {
     lateinit var useCases: GroupUseCases
 
     @Test
-    fun `create should save group to persistence`() {
+    fun `create should save group to persistence`() = runBlocking {
         val command = TestGroupBuilder().buildCreateGroupCommand()
 
-        every { groupPersistencePort.save(any()) } just Runs
+        coEvery { groupPersistencePort.save(any()) } just Runs
 
         useCases.create(command)
 
-        verify { groupPersistencePort.save(any()) }
+        coVerify { groupPersistencePort.save(any()) }
     }
 
     @Test
-    fun `inviteUser should save group to persistence and publish events`() {
+    fun `inviteUser should save group to persistence and publish events`() = runBlocking {
         val command = TestGroupBuilder().buildInviteUserCommand()
         val group = TestGroupBuilder().withInvitedUsers(listOf()).build()
 
-        every { groupPersistencePort.findById(command.groupId) } returns group
-        every { groupPersistencePort.save(any()) } just Runs
-        every { eventPublisher.publishAll(any()) } just Runs
+        coEvery { groupPersistencePort.findById(command.groupId) } returns group
+        coEvery { groupPersistencePort.save(any()) } just Runs
+        coEvery { eventPublisher.publishAll(any()) } just Runs
 
         useCases.inviteUser(command)
 
-        verify { groupPersistencePort.save(any()) }
-        verify { eventPublisher.publishAll(any()) }
+        coVerify { groupPersistencePort.save(any()) }
+        coVerify { eventPublisher.publishAll(any()) }
     }
 
     @Test

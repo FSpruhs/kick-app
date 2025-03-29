@@ -43,6 +43,14 @@ services:
       - 8080:8080
     command: "start-dev --import-realm --verbose"
 
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   mongo:
   pgdata:

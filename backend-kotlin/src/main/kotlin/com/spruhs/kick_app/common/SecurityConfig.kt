@@ -19,13 +19,16 @@ class JWTSecurityConfig {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http.cors {}.authorizeHttpRequests { auth ->
+        http.cors { it.disable() }.authorizeHttpRequests { auth ->
             auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
-                .anyRequest().authenticated()
-        }.csrf { disable() }
+            auth.anyRequest().permitAll()
+        }.csrf { it.disable() }
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())
             }
+        http.securityMatcher { request ->
+            !request.requestURI.startsWith("/api/v1/user")
+        }
         return http.build()
     }
 
@@ -50,7 +53,7 @@ class JWTSecurityConfig {
             .username("admin")
             .password("password")
             .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
-            .clientSecret("2d80DkhYFVqr4vvGvr4Vyxnggrson6vM")
+            .clientSecret("**********")
             .build()
     }
 }

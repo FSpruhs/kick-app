@@ -24,3 +24,7 @@ export async function postRegister(payload: RegisterPayload) {
 export async function getUserAll(groupId: string) {
   return await apiClient.get<UserInfo[]>('api/v1/user?exceptGroupId=' + groupId);
 }
+
+export async function updateNickname(id: string, nickname: string) {
+  return await apiClient.put(`api/v1/user/${id}/nickName?nickName=${nickname}`);
+}

@@ -11,7 +11,9 @@ import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
@@ -23,7 +25,7 @@ class UserImporter(private val aggregateStore: AggregateStore) {
 
     private val log = getLogger(this::class.java)
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent::class)
     suspend fun loadData() {
         if (!loadDefaultData) {
             return

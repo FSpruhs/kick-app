@@ -18,16 +18,16 @@ class JWTSecurityConfig {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http.cors { it.disable() }.authorizeHttpRequests { auth ->
-            auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
-            auth.anyRequest().permitAll()
-        }.csrf { it.disable() }
+        http
+            .cors { it.configurationSource(corsConfigurationSource()) }
+            .authorizeHttpRequests { auth ->
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
+                auth.anyRequest().authenticated()
+            }
+            .csrf { it.disable() }
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())
             }
-        http.securityMatcher { request ->
-            !request.requestURI.startsWith("/api/v1/user")
-        }
         return http.build()
     }
 

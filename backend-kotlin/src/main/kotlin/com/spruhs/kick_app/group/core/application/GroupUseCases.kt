@@ -152,8 +152,28 @@ data class CreateGroupCommand(
     val name: Name,
 )
 
+data class ChangeGroupNameCommand(
+    val userId: UserId,
+    val groupId: GroupId,
+    val newName: Name,
+)
+
 data class InviteUserResponseCommand(
     val userId: UserId,
     val groupId: GroupId,
     val response: Boolean,
+)
+
+data class UpdatePlayerRoleCommand(
+    val userId: UserId,
+    val updatingUserId: UserId,
+    val groupId: GroupId,
+    val newRole: PlayerRole,
+)
+
+data class UpdatePlayerStatusCommand(
+    val userId: UserId,
+    val updatingUserId: UserId,
+    val groupId: GroupId,
+    val newStatus: PlayerStatusType
 )

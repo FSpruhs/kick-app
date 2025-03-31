@@ -1,9 +1,10 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.user.api.UserCreatedEvent
+import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
-import org.springframework.stereotype.Component
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
@@ -16,17 +17,20 @@ class UserAggregate(
 
     override fun whenEvent(event: Any) {
         when (event) {
-            is UserCreatedEvent -> {
-                nickName = NickName(event.nickName)
-                email = Email(event.email)
-            }
-
-            is UserNickNameChangedEvent -> {
-                nickName = NickName(event.nickName)
-            }
+            is UserCreatedEvent -> handleUserCreatedEvent(event)
+            is UserNickNameChangedEvent -> handleUserNickNameChangedEvent(event)
 
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    private fun handleUserCreatedEvent(event: UserCreatedEvent) {
+        nickName = NickName(event.nickName)
+        email = Email(event.email)
+    }
+
+    private fun handleUserNickNameChangedEvent(event: UserNickNameChangedEvent) {
+        nickName = NickName(event.nickName)
     }
 
     fun createUser(command: RegisterUserCommand) {
@@ -55,68 +59,12 @@ interface UserProjectionPort {
     suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection>
 }
 
-@Component
-class UserEventSerializer : Serializer {
-    override fun serialize(event: Any, aggregate: AggregateRoot): Event {
-        val data = EventSourcingUtils.writeValueAsBytes(event)
-
-        return when (event) {
-            is UserCreatedEvent -> Event(
-                aggregate,
-                UserEvents.USER_CREATED_V1.name,
-                data,
-                event.metadata
-            )
-
-            is UserNickNameChangedEvent -> Event(
-                aggregate,
-                UserEvents.USER_NICKNAME_CHANGED_V1.name,
-                data,
-                event.metadata
-            )
-
-            else -> throw UnknownEventTypeException(event)
-        }
-    }
-
-    override fun deserialize(event: Event): Any {
-        return when (event.type) {
-            UserEvents.USER_CREATED_V1.name -> EventSourcingUtils.readValue(
-                event.data, UserCreatedEvent::class.java
-            )
-
-            UserEvents.USER_NICKNAME_CHANGED_V1.name -> EventSourcingUtils.readValue(
-                event.data, UserNickNameChangedEvent::class.java
-            )
-
-            else -> throw UnknownEventTypeException(event)
-        }
-    }
-
-}
-
 data class UserProjection (
     val id: UserId,
     val nickName: NickName,
     val email: Email,
     val groups: List<GroupId>,
 )
-
-data class UserCreatedEvent(
-    override val aggregateId: String,
-    val email: String,
-    val nickName: String,
-) : BaseEvent(aggregateId)
-
-data class UserNickNameChangedEvent(
-    override val aggregateId: String,
-    val nickName: String
-) : BaseEvent(aggregateId)
-
-enum class UserEvents {
-    USER_CREATED_V1,
-    USER_NICKNAME_CHANGED_V1,
-}
 
 @JvmInline
 value class NickName(val value: String) {

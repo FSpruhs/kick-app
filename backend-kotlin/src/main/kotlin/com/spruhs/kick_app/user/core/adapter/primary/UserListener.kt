@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.getLogger
-import com.spruhs.kick_app.user.core.domain.UserCreatedEvent
-import com.spruhs.kick_app.user.core.domain.UserNickNameChangedEvent
+import com.spruhs.kick_app.user.api.UserCreatedEvent
+import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.domain.UserProjectionPort
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

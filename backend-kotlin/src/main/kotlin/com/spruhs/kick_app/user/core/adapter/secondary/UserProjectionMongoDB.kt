@@ -4,6 +4,8 @@ import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.user.api.UserCreatedEvent
+import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.domain.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle

@@ -83,7 +83,7 @@ class GroupTest {
         val group = TestGroupBuilder().build()
 
         assertThatThrownBy { group.inviteUserResponse(invitedUserId, true) }
-            .isInstanceOf(UserNotInvitedInGroupException::class.java)
+            .isInstanceOf(PlayerNotInvitedInGroupException::class.java)
     }
 
     @Test
@@ -201,7 +201,7 @@ class GroupTest {
             .build()
 
         assertThatThrownBy { group.inviteUser(inviterUserId, invitedUserId) }
-            .isInstanceOf(UserAlreadyInGroupException::class.java)
+            .isInstanceOf(PlayerAlreadyInGroupException::class.java)
     }
 
 }

@@ -26,25 +26,6 @@ class GroupPersistenceAdapter(val repository: GroupRepository) : GroupPersistenc
     }
 }
 
-@Document(collection = "groups")
-data class GroupDocument(
-    val id: String,
-    val name: String,
-    val players: List<PlayerDocument>,
-    val invitedUsers: List<String>
-)
-
-data class PlayerDocument(
-    val id: String,
-    val status: String,
-    val role: String
-)
-
-@Repository
-interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
-    fun findAllByPlayersIdContains(userId: String): Flux<GroupDocument>
-}
-
 private fun Group.toDocument() = GroupDocument(
     id = id.value,
     name = name.value,

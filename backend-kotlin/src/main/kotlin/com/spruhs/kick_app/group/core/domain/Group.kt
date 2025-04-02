@@ -142,115 +142,11 @@ enum class PlayerRole {
     ADMIN, PLAYER
 }
 
-fun createGroup(
-    name: Name,
-    user: UserId
-): Group = Group(
-    id = GroupId(generateId()),
-    name = name,
-    players = listOf(Player(user, Active(), PlayerRole.ADMIN)),
-    invitedUsers = listOf(),
-)
-
 fun Group.isActivePlayer(userId: UserId): Boolean =
     players.any { it.id == userId && it.status.type() == PlayerStatusType.ACTIVE }
 
-fun Group.inviteUserResponse(
-    userId: UserId,
-    response: Boolean
-): Group {
-    if (userId !in this.invitedUsers) {
-        throw UserNotInvitedInGroupException(userId)
-    }
-    return if (response) acceptUser(userId) else rejectUser(userId)
-}
-
-private fun Group.acceptUser(userId: UserId): Group = copy(
-    players = players + Player(userId, Active(), PlayerRole.PLAYER),
-    invitedUsers = invitedUsers - userId,
-    domainEvents = domainEvents + UserEnteredGroupEvent(userId.value, id.value)
-)
-
-private fun Group.rejectUser(userId: UserId): Group = copy(
-    invitedUsers = invitedUsers - userId
-)
-
-fun Group.updatePlayerStatus(
-    userId: UserId,
-    requestingUserId: UserId,
-    newStatus: PlayerStatusType
-): Group {
-    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
-    val requestingPlayer = if (userId == requestingUserId) {
-        player
-    } else {
-        players.find { it.id == requestingUserId } ?: throw PlayerNotFoundException(requestingUserId)
-    }
-
-    val updatedStatus = when (newStatus) {
-        PlayerStatusType.ACTIVE -> player.status.activate(player, requestingPlayer)
-        PlayerStatusType.INACTIVE -> player.status.inactivate(player, requestingPlayer)
-        PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
-        PlayerStatusType.REMOVED -> player.status.remove(player, requestingPlayer)
-    }
-
-    return if (updatedStatus == player.status) {
-        this
-    } else {
-        val updatedPlayer = player.copy(status = updatedStatus)
-
-        this.copy(
-            players = players - player + updatedPlayer,
-            domainEvents = domainEvents + PlayerStatusUpdated(
-                userId = player.id.value,
-                groupId = this.id.value,
-                groupName = this.name.value,
-                newStatus = updatedPlayer.status.type().toString()
-            )
-        )
-    }
-}
-
 fun Group.isActiveAdmin(userId: UserId): Boolean =
     players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status.type() == PlayerStatusType.ACTIVE }
-
-fun Group.updatePlayerRole(
-    requesterId: UserId,
-    userId: UserId,
-    newRole: PlayerRole,
-): Group {
-    players.find { it.id == requesterId }
-        ?.takeIf { it.role == PlayerRole.ADMIN }
-        ?: throw UserNotAuthorizedException(requesterId)
-
-    val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
-
-    val updatedPlayer = player.copy(
-        role = newRole,
-    )
-
-    return copy(players = players - player + updatedPlayer)
-}
-
-fun Group.inviteUser(
-    inviterId: UserId,
-    inviteeId: UserId
-): Group {
-    if (inviterId !in this.players.map { it.id }) {
-        throw UserNotAuthorizedException(inviterId)
-    }
-    if (inviteeId in this.players.map { it.id } || inviteeId in this.invitedUsers) {
-        throw UserAlreadyInGroupException(inviteeId)
-    }
-    return this.copy(
-        invitedUsers = this.invitedUsers + inviteeId,
-        domainEvents = this.domainEvents + UserInvitedToGroupEvent(
-            inviteeId = inviteeId.value,
-            groupName = this.name.value,
-            groupId = this.id.value
-        )
-    )
-}
 
 @JvmInline
 value class Name(val value: String) {
@@ -259,16 +155,29 @@ value class Name(val value: String) {
     }
 }
 
-interface GroupPersistencePort {
-    suspend fun save(group: Group)
-    suspend fun findById(groupId: GroupId): Group?
-    suspend fun findByPlayer(userId: UserId): List<Group>
+interface GroupProjectionPort {
+    suspend fun whenEvent(event: BaseEvent)
+    suspend fun findById(groupId: GroupId): GroupProjection?
+    suspend fun findByPlayer(userId: UserId): List<GroupProjection>
 }
+
+data class GroupProjection(
+    val id: GroupId,
+    val name: Name,
+    val players: List<PlayerProjection>,
+    val invitedUsers: List<UserId>
+)
+
+data class PlayerProjection(
+    val id: UserId,
+    val status: PlayerStatusType,
+    val role: PlayerRole
+)
 
 data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")
 data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")
-data class UserAlreadyInGroupException(val userId: UserId) : RuntimeException("User already in group: ${userId.value}")
-data class UserNotInvitedInGroupException(val userId: UserId) :
+data class PlayerAlreadyInGroupException(val userId: UserId) : RuntimeException("User already in group: ${userId.value}")
+data class PlayerNotInvitedInGroupException(val userId: UserId) :
     RuntimeException("User not invited in group: ${userId.value}")
 
 class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregateId, TYPE) {
@@ -297,6 +206,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 
     private fun handleGroupCreatedEvent(event: GroupCreatedEvent) {
         name = Name(event.name)
+        players.add(Player(UserId(event.userId), Active(), PlayerRole.ADMIN))
     }
 
     private fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
@@ -329,10 +239,14 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     fun createGroup(command: CreateGroupCommand) {
-        apply(GroupCreatedEvent(aggregateId, command.name.value))
+        apply(GroupCreatedEvent(aggregateId, command.userId.value, command.name.value))
     }
 
     fun changeGroupName(command: ChangeGroupNameCommand) {
+        require(this.players.find { it.id == command.userId }?.role == PlayerRole.ADMIN) {
+            throw UserNotAuthorizedException(command.userId)
+        }
+
         apply(GroupNameChangedEvent(aggregateId, command.newName.value))
     }
 
@@ -341,7 +255,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             throw UserNotAuthorizedException(command.inviterId)
         }
         if (command.inviteeId in this.players.map { it.id } || command.inviteeId in this.invitedUsers) {
-            throw UserAlreadyInGroupException(command.inviteeId)
+            throw PlayerAlreadyInGroupException(command.inviteeId)
         }
 
         apply(PlayerInvitedEvent(aggregateId, command.inviteeId.value))
@@ -349,7 +263,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 
     fun inviteUserResponse(command: InviteUserResponseCommand) {
         if (command.userId !in this.invitedUsers) {
-            throw UserNotInvitedInGroupException(command.userId)
+            throw PlayerNotInvitedInGroupException(command.userId)
         }
 
         if (command.response) {

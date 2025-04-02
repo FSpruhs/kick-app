@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/v1/group")
 class GroupRest(
-    private val groupUseCases: GroupUseCases,
+    private val groupCommandPort: GroupCommandPort,
+    private val groupQueryPort: GroupQueryPort,
     private val jwtParser: JWTParser
 ) {
 
@@ -27,15 +28,22 @@ class GroupRest(
         @RequestParam role: String?,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        groupUseCases.updatePlayer(
-            UpdatePlayerCommand(
+        if (status != null) {
+            groupCommandPort.updatePlayerStatus(UpdatePlayerStatusCommand(
                 userId = UserId(userId),
                 updatingUserId = UserId(jwtParser.getUserId(jwt)),
                 groupId = GroupId(groupId),
-                newStatus = status.takeIf { !it.isNullOrBlank() }?.let { PlayerStatusType.valueOf(it) },
-                newRole = role.takeIf { !it.isNullOrBlank() }?.let { PlayerRole.valueOf(it) }
-            )
-        )
+                newStatus = PlayerStatusType.valueOf(status)
+            ))
+        }
+        if (role != null) {
+            groupCommandPort.updatePlayerRole(UpdatePlayerRoleCommand(
+                userId = UserId(userId),
+                updatingUserId = UserId(jwtParser.getUserId(jwt)),
+                groupId = GroupId(groupId),
+                newRole = PlayerRole.valueOf(role)
+            ))
+        }
     }
 
     @GetMapping("/{groupId}")
@@ -43,7 +51,7 @@ class GroupRest(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): GroupDetail =
-        groupUseCases.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+        groupQueryPort.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
 
     @GetMapping("/player/{userId}")
     suspend fun getGroups(
@@ -52,15 +60,30 @@ class GroupRest(
     ): List<GroupMessage> {
         require(userId == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(userId)) }
 
-        return groupUseCases.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
+        return groupQueryPort.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
     }
 
     @PostMapping
     suspend fun createGroup(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest
+    ): GroupMessage {
+        return groupCommandPort.createGroup(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name))).toMessage()
+    }
+
+    @PutMapping("/{groupId}/name")
+    suspend fun updateGroupName(
+        @AuthenticationPrincipal jwt: Jwt,
+        @PathVariable groupId: String,
+        @RequestParam name: String,
     ) {
-        groupUseCases.create(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name)))
+        groupCommandPort.changeGroupName(
+            ChangeGroupNameCommand(
+                groupId = GroupId(groupId),
+                userId = UserId(jwtParser.getUserId(jwt)),
+                newName = Name(name)
+            )
+        )
     }
 
     @PostMapping("{groupId}/invited-users/{userId}")
@@ -69,7 +92,7 @@ class GroupRest(
         @PathVariable groupId: String,
         @PathVariable userId: String
     ) {
-        groupUseCases.inviteUser(
+        groupCommandPort.inviteUser(
             InviteUserCommand(
                 inviterId = UserId(jwtParser.getUserId(jwt)),
                 inviteeId = UserId(userId),
@@ -85,7 +108,7 @@ class GroupRest(
     ) {
         val inviterId = jwtParser.getUserId(jwt)
         require(request.userId == inviterId) { UserNotAuthorizedException(UserId(request.userId)) }
-        groupUseCases.inviteUserResponse(request.toCommand())
+        groupCommandPort.inviteUserResponse(request.toCommand())
     }
 }
 
@@ -94,12 +117,19 @@ class GroupExceptionHandler {
 
     @ExceptionHandler
     fun handleGroupNotFoundException(e: GroupNotFoundException) =
+        ResponseEntity(e.message, HttpStatus.NOT_FOUND)
+
+    @ExceptionHandler
+    fun handlePlayerAlreadyInGroupException(e: PlayerAlreadyInGroupException) =
         ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler
-    fun handleUserAlreadyInGroupException(e: UserAlreadyInGroupException) =
-        ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
+    fun handlePlayerNotFoundException(e: PlayerNotFoundException) =
+        ResponseEntity(e.message, HttpStatus.NOT_FOUND)
 
+    @ExceptionHandler
+    fun handlePlayerNotInvitedInGroupException(e: PlayerNotInvitedInGroupException) =
+        ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 }
 
 data class CreateGroupRequest(
@@ -117,13 +147,18 @@ data class GroupMessage(
     val name: String,
 )
 
-private fun Group.toMessage() = GroupMessage(
-    id = id.value,
-    name = name.value
-)
-
 private fun InviteUserResponse.toCommand() = InviteUserResponseCommand(
     userId = UserId(this.userId),
     groupId = GroupId(this.groupId),
     response = this.response
+)
+
+private fun GroupAggregate.toMessage() = GroupMessage(
+    id = this.aggregateId,
+    name = this.name.value
+)
+
+private fun Group.toMessage() = GroupMessage(
+    id = this.id.value,
+    name = this.name.value
 )

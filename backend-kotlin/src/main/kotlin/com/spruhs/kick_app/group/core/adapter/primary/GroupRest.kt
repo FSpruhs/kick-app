@@ -29,20 +29,24 @@ class GroupRest(
         @AuthenticationPrincipal jwt: Jwt
     ) {
         if (status != null) {
-            groupCommandPort.updatePlayerStatus(UpdatePlayerStatusCommand(
-                userId = UserId(userId),
-                updatingUserId = UserId(jwtParser.getUserId(jwt)),
-                groupId = GroupId(groupId),
-                newStatus = PlayerStatusType.valueOf(status)
-            ))
+            groupCommandPort.updatePlayerStatus(
+                UpdatePlayerStatusCommand(
+                    userId = UserId(userId),
+                    updatingUserId = UserId(jwtParser.getUserId(jwt)),
+                    groupId = GroupId(groupId),
+                    newStatus = PlayerStatusType.valueOf(status)
+                )
+            )
         }
         if (role != null) {
-            groupCommandPort.updatePlayerRole(UpdatePlayerRoleCommand(
-                userId = UserId(userId),
-                updatingUserId = UserId(jwtParser.getUserId(jwt)),
-                groupId = GroupId(groupId),
-                newRole = PlayerRole.valueOf(role)
-            ))
+            groupCommandPort.updatePlayerRole(
+                UpdatePlayerRoleCommand(
+                    userId = UserId(userId),
+                    updatingUserId = UserId(jwtParser.getUserId(jwt)),
+                    groupId = GroupId(groupId),
+                    newRole = PlayerRole.valueOf(role)
+                )
+            )
         }
     }
 
@@ -68,7 +72,8 @@ class GroupRest(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest
     ): GroupMessage {
-        return groupCommandPort.createGroup(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name))).toMessage()
+        return groupCommandPort.createGroup(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name)))
+            .toMessage()
     }
 
     @PutMapping("/{groupId}/name")
@@ -106,8 +111,7 @@ class GroupRest(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: InviteUserResponse
     ) {
-        val inviterId = jwtParser.getUserId(jwt)
-        require(request.userId == inviterId) { UserNotAuthorizedException(UserId(request.userId)) }
+        require(request.userId == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(request.userId)) }
         groupCommandPort.inviteUserResponse(request.toCommand())
     }
 }
@@ -158,7 +162,7 @@ private fun GroupAggregate.toMessage() = GroupMessage(
     name = this.name.value
 )
 
-private fun Group.toMessage() = GroupMessage(
+private fun GroupProjection.toMessage() = GroupMessage(
     id = this.id.value,
     name = this.name.value
 )

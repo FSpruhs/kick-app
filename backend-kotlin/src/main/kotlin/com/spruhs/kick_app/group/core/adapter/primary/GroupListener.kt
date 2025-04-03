@@ -26,22 +26,50 @@ class GroupListener (
         }
     }
 
-    @EventListener(PlayerInvitedEvent::class)
-    fun onEvent(event: PlayerInvitedEvent) {
+    @EventListener(PlayerEnteredGroupEvent::class)
+    fun onEvent(event: PlayerEnteredGroupEvent) {
         applicationScope.launch {
             groupProjectionPort.whenEvent(event)
         }
     }
 
-    @EventListener(UserLeavedGroupEvent::class)
-    fun onEvent(event: UserLeavedGroupEvent) {
+    @EventListener(PlayerPromotedEvent::class)
+    fun onEvent(event: PlayerPromotedEvent) {
         applicationScope.launch {
             groupProjectionPort.whenEvent(event)
         }
     }
 
-    @EventListener(UserRemovedFromGroupEvent::class)
-    fun onEvent(event: UserRemovedFromGroupEvent) {
+    @EventListener(PlayerDowngradedEvent::class)
+    fun onEvent(event: PlayerDowngradedEvent) {
+        applicationScope.launch {
+            groupProjectionPort.whenEvent(event)
+        }
+    }
+
+    @EventListener(PlayerActivatedEvent::class)
+    fun onEvent(event: PlayerActivatedEvent) {
+        applicationScope.launch {
+            groupProjectionPort.whenEvent(event)
+        }
+    }
+
+    @EventListener(PlayerDeactivatedEvent::class)
+    fun onEvent(event: PlayerDeactivatedEvent) {
+        applicationScope.launch {
+            groupProjectionPort.whenEvent(event)
+        }
+    }
+
+    @EventListener(PlayerRemovedEvent::class)
+    fun onEvent(event: PlayerRemovedEvent) {
+        applicationScope.launch {
+            groupProjectionPort.whenEvent(event)
+        }
+    }
+
+    @EventListener(PlayerLeavedEvent::class)
+    fun onEvent(event: PlayerLeavedEvent) {
         applicationScope.launch {
             groupProjectionPort.whenEvent(event)
         }

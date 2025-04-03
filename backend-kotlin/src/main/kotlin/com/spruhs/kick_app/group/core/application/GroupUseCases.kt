@@ -2,31 +2,9 @@ package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.*
+import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.api.UserData
-import kotlinx.coroutines.*
 import org.springframework.stereotype.Service
-
-private fun Group.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = GroupDetail(
-    id = id.value,
-    name = name.value,
-    players = players.map { player ->
-        PlayerDetail(
-            id = player.id.value,
-            nickName = users.getValue(player.id).nickName,
-            role = player.role,
-            status = player.status.type(),
-        )
-    },
-    invitedUsers = invitedUsers.map { it.value },
-)
-
-data class UpdatePlayerCommand(
-    val userId: UserId,
-    val updatingUserId: UserId,
-    val groupId: GroupId,
-    val newStatus: PlayerStatusType? = null,
-    val newRole: PlayerRole? = null,
-)
 
 data class GroupDetail(
     val id: String,
@@ -128,45 +106,57 @@ class GroupCommandPort(
 
 @Service
 class GroupQueryPort(
-    private val aggregateStore: AggregateStore,
+    private val groupProjectionPort: GroupProjectionPort,
+    private val userApi: UserApi
 ) {
     suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
-        fetchGroup(groupId).players.filter { it.status.type() == PlayerStatusType.ACTIVE }.map { it.id }
+        fetchGroup(groupId).players.filter { it.status == PlayerStatusType.ACTIVE }.map { it.id }
 
     suspend fun isActiveMember(
         groupId: GroupId,
         userId: UserId
-    ): Boolean = groupPersistencePort.findById(groupId)?.isActivePlayer(userId) ?: false
+    ): Boolean = groupProjectionPort.findById(groupId)?.isActivePlayer(userId) ?: false
 
     suspend fun areActiveMembers(
         groupId: GroupId,
         userIds: Set<UserId>
     ): Boolean {
-        val group = groupPersistencePort.findById(groupId) ?: return false
+        val group = groupProjectionPort.findById(groupId) ?: return false
         return userIds.all { group.isActivePlayer(it) }
     }
 
     suspend fun isActiveAdmin(
         groupId: GroupId,
         userId: UserId
-    ): Boolean = groupPersistencePort.findById(groupId)?.isActiveAdmin(userId) ?: false
+    ): Boolean = groupProjectionPort.findById(groupId)?.isActiveAdmin(userId) ?: false
 
-    suspend fun getGroupsByPlayer(userId: UserId): List<Group> = groupPersistencePort.findByPlayer(userId)
+    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> = groupProjectionPort.findByPlayer(userId)
 
     suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
             require(this.players.any { it.id == userId }) { throw UserNotAuthorizedException(userId) }
         }
 
-        val users = runBlocking {
-            userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
-        }
+        val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
 
         return group.toGroupDetails(users)
     }
 
-
-    private suspend fun fetchGroup(groupId: GroupId): Group =
-        groupPersistencePort.findById(groupId) ?: throw GroupNotFoundException(groupId)
+    private suspend fun fetchGroup(groupId: GroupId): GroupProjection =
+        groupProjectionPort.findById(groupId) ?: throw GroupNotFoundException(groupId)
 
 }
+
+private fun GroupProjection.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = GroupDetail(
+    id = id.value,
+    name = name.value,
+    players = players.map { player ->
+        PlayerDetail(
+            id = player.id.value,
+            nickName = users.getValue(player.id).nickName,
+            role = player.role,
+            status = player.status,
+        )
+    },
+    invitedUsers = invitedUsers.map { it.value },
+)

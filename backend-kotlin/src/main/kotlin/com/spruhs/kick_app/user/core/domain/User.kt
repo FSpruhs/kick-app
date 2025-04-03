@@ -63,7 +63,12 @@ data class UserProjection (
     val id: UserId,
     val nickName: NickName,
     val email: Email,
-    val groups: List<GroupId>,
+    val groups: List<GroupProjection>,
+)
+
+data class GroupProjection(
+    val id: GroupId,
+    val name: String,
 )
 
 @JvmInline

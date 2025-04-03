@@ -16,12 +16,14 @@ data class GroupNameChangedEvent(
 
 data class PlayerInvitedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: String,
+    val name: String,
 ): BaseEvent(aggregateId)
 
 data class PlayerEnteredGroupEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: String,
+    val name: String
 ): BaseEvent(aggregateId)
 
 data class PlayerRejectedGroupEvent(
@@ -51,7 +53,8 @@ data class PlayerDeactivatedEvent(
 
 data class PlayerRemovedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: String,
+    val name: String
 ): BaseEvent(aggregateId)
 
 data class PlayerLeavedEvent(

@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.domain.*
@@ -11,7 +12,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import org.springframework.data.mongodb.repository.Query
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
@@ -24,7 +24,13 @@ data class UserDocument(
     val id: String,
     var nickName: String,
     val email: String,
-    var groups: List<String>
+    var groups: List<GroupDocument>
+)
+
+@Document
+data class GroupDocument(
+    val id: String,
+    var name: String,
 )
 
 @Service
@@ -36,6 +42,11 @@ class UserProjectionMongoAdapter(
         when (event) {
             is UserCreatedEvent -> handleUserCreated(event)
             is UserNickNameChangedEvent -> handleUserNickNameChanged(event)
+            is GroupNameChangedEvent -> handleGroupNameChanged(event)
+            is GroupCreatedEvent -> addGroupToUser(event.userId, event.aggregateId, event.name)
+            is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.aggregateId, event.name)
+            is PlayerRemovedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
+            is PlayerLeavedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
             else -> {
                 throw UnknownEventTypeException(event)
             }
@@ -49,7 +60,7 @@ class UserProjectionMongoAdapter(
 
     override suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection> {
         return if (exceptGroupId != null) {
-            repository.findByGroupNotContaining(exceptGroupId.value)
+            repository.findByGroupsIdNot(exceptGroupId.value)
                 .collectList()
                 .awaitSingle()
                 .map { it.toProjection() }
@@ -65,15 +76,41 @@ class UserProjectionMongoAdapter(
         return repository.existsByEmail(email.value).awaitSingle()
     }
 
+    private suspend fun handleGroupNameChanged(event: GroupNameChangedEvent) {
+        val users = repository.findByGroupsName(event.aggregateId).collectList().awaitSingle()
+        users.forEach { group ->
+            group.groups.find { it.id == event.aggregateId }?.name = event.name
+        }
+        repository.saveAll(users).awaitFirstOrNull()
+    }
+
+    private suspend fun addGroupToUser(userId: String, groupId: String, groupName: String) {
+        findUserById(userId).let {
+            it.groups += GroupDocument(groupId, groupName)
+            repository.save(it)
+        }
+    }
+
+    private suspend fun removeGroupFromUser(userId: String, groupId: String) {
+        findUserById(userId).let {
+            it.groups = it.groups.filter { group -> group.id != groupId }
+            repository.save(it)
+        }
+    }
+
     private suspend fun handleUserNickNameChanged(event: UserNickNameChangedEvent) {
-        repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
+        findUserById(event.aggregateId).let {
             it.nickName = event.nickName
             repository.save(it)
-        } ?: throw UserNotFoundException(UserId(event.aggregateId))
+        }
     }
 
     private suspend fun handleUserCreated(event: UserCreatedEvent) {
         repository.save(event.toDocument()).awaitFirstOrNull()
+    }
+
+    private suspend fun findUserById(userId: String): UserDocument {
+        return repository.findById(userId).awaitFirstOrNull()?: throw UserNotFoundException(UserId(userId))
     }
 }
 
@@ -81,8 +118,9 @@ class UserProjectionMongoAdapter(
 interface UserRepository : ReactiveMongoRepository<UserDocument, String> {
     fun existsByEmail(email: String): Mono<Boolean>
 
-    @Query("{ 'groups': { \$nin: [?0] } }")
-    fun findByGroupNotContaining(group: String): Flux<UserDocument>
+    fun findByGroupsIdNot(groupId: String): Flux<UserDocument>
+
+    fun findByGroupsName(groupName: String): Flux<UserDocument>
 }
 
 private fun UserCreatedEvent.toDocument() = UserDocument(
@@ -96,5 +134,5 @@ private fun UserDocument.toProjection() = UserProjection(
     id = UserId(this.id),
     nickName = NickName(this.nickName),
     email = Email(this.email),
-    groups = this.groups.map { GroupId(it) }
+    groups = this.groups.map { GroupProjection(GroupId(it.id), it.name) }
 )

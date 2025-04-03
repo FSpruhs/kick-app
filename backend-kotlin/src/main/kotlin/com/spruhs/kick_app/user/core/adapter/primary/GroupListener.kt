@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-@Component
+@Component("GroupGroupListener")
 class GroupListener(
     private val messageUseCases: MessageUseCases,
     private val userProjectionPort: UserProjectionPort,
@@ -74,7 +74,6 @@ private fun PlayerInvitedEvent.toMessageParams() = MessageParams(
     groupId = this.aggregateId,
     groupName = this.name
 )
-
 
 private fun PlayerRemovedEvent.toMessageParams() = MessageParams(
     userId = this.userId,

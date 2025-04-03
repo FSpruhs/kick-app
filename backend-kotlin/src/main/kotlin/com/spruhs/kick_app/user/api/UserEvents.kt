@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.api
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.springframework.stereotype.Component
 
 data class UserCreatedEvent(
@@ -55,5 +56,9 @@ class UserEventSerializer : Serializer {
 
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    override fun aggregateTypeName(): String {
+        return UserAggregate::class.simpleName ?: "UserAggregate"
     }
 }

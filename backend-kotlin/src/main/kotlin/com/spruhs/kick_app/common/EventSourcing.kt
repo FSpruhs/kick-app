@@ -14,6 +14,7 @@ import org.springframework.dao.EmptyResultDataAccessException
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.await
 import org.springframework.r2dbc.core.awaitOne
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
@@ -126,6 +127,8 @@ interface Serializer {
     fun serialize(event: Any, aggregate: AggregateRoot): Event
 
     fun deserialize(event: Event): Any
+
+    fun aggregateTypeName(): String
 }
 
 @Repository
@@ -133,7 +136,7 @@ class AggregateStoreImpl(
     private val dbClient: DatabaseClient,
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
-    private val serializer: Serializer,
+    private val serializerFactory: SerializerFactory
 ) : AggregateStore {
 
     override suspend fun saveEvents(events: List<Event>) {
@@ -152,6 +155,7 @@ class AggregateStoreImpl(
     }
 
     override suspend fun <T : AggregateRoot> save(aggregate: T) {
+        val serializer = serializerFactory.getSerializer(aggregate::class.java.simpleName)
         val events = aggregate.changes.map { serializer.serialize(it, aggregate) }
 
         operator.executeAndAwait {
@@ -166,6 +170,7 @@ class AggregateStoreImpl(
     }
 
     override suspend fun <T : AggregateRoot> load(aggregateId: String, aggregateType: Class<T>): T {
+        val serializer = serializerFactory.getSerializer(aggregateType.simpleName)
         val snapshot = loadSnapshot(aggregateId)
 
         val aggregate = getAggregateFromSnapshotClass(snapshot, aggregateId, aggregateType)
@@ -319,6 +324,15 @@ object EventSourcingUtils {
             throw SerializationException(valueType.name, snapshot.data)
         }
 
+    }
+}
+
+@Component
+class SerializerFactory(
+    private val serializer: List<Serializer>,
+) {
+    fun getSerializer(aggregateType: String): Serializer {
+        return serializer.firstOrNull { it.aggregateTypeName() == aggregateType } ?: throw IllegalArgumentException("Unknown aggregate type: $aggregateType")
     }
 }
 

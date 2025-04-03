@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.api
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import org.springframework.stereotype.Component
 
 data class GroupCreatedEvent(
@@ -211,5 +212,9 @@ class GroupEventSerializer : Serializer {
 
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    override fun aggregateTypeName(): String {
+        return GroupAggregate::class.simpleName ?: "GroupAggregate"
     }
 }

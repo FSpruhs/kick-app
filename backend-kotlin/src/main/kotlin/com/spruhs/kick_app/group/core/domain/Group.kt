@@ -82,7 +82,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             throw PlayerAlreadyInGroupException(command.inviteeId)
         }
 
-        apply(PlayerInvitedEvent(aggregateId, command.inviteeId.value))
+        apply(PlayerInvitedEvent(aggregateId, command.inviteeId.value, name.value))
     }
 
     fun inviteUserResponse(command: InviteUserResponseCommand) {
@@ -91,7 +91,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
 
         if (command.response) {
-            apply(PlayerEnteredGroupEvent(aggregateId, command.userId.value))
+            apply(PlayerEnteredGroupEvent(aggregateId, command.userId.value, name.value))
         } else {
             apply(PlayerRejectedGroupEvent(aggregateId, command.userId.value))
         }
@@ -131,7 +131,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             is Active -> apply(PlayerActivatedEvent(aggregateId, command.userId.value))
             is Inactive -> apply(PlayerDeactivatedEvent(aggregateId, command.userId.value))
             is Leaved -> apply(PlayerLeavedEvent(aggregateId, command.userId.value))
-            is Removed -> apply(PlayerRemovedEvent(aggregateId, command.userId.value))
+            is Removed -> apply(PlayerRemovedEvent(aggregateId, command.userId.value, name.value))
         }
     }
 

@@ -15,8 +15,6 @@ export const useMessageStore = defineStore('message', {
       return this.messages;
     },
     getUnreadMessageCount() {
-      console.log(this.messages)
-      console.log("HERE!!!")
       return this.messages?.filter((message) => !message.read).length;
     }
   }

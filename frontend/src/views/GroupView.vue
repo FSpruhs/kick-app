@@ -2,10 +2,10 @@
 import type { VForm } from 'vuetify/components';
 import { ref } from 'vue';
 import { postGroup } from '@/services/groupRestService';
-import { useUserStore } from '@/store/UserStore';
 import { useRouter } from 'vue-router';
+import {useAuthStore} from "@/store/AuthStore";
 
-const userStore = useUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
 const groupForm = ref<VForm | null>(null);
 const groupName = ref('');
@@ -15,15 +15,12 @@ const groupNameRule = ref([
 ]);
 
 const submit = async () => {
-  console.log(groupForm);
   if (!groupForm.value) return;
-  console.log('here');
   const { valid } = await groupForm.value.validate();
   if (!valid) return;
-  console.log('submit');
   const payload = {
     name: groupName.value,
-    userId: userStore.getUser().id
+    userId: authStore.getUserId()
   };
   await postGroup(payload)
     .then((response) => {

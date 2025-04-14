@@ -114,6 +114,7 @@ object EventSourcingConstants {
     const val VERSION = "version"
     const val TIMESTAMP = "timestamp"
     const val EVENT_TYPE = "event_type"
+    const val EVENT_ID = "event_id"
 }
 
 interface AggregateStore {
@@ -165,7 +166,7 @@ class AggregateStoreImpl(
 
             if (aggregate.version % SNAPSHOT_FREQUENCY == 0) saveSnapshot(aggregate)
 
-            eventPublisher.publish(events)
+            eventPublisher.publish(aggregate.changes)
         }
     }
 
@@ -186,6 +187,7 @@ class AggregateStoreImpl(
 
     private suspend fun saveEvent(event: Event) {
         return dbClient.sql(SAVE_EVENT_QUERY)
+            .bind(EventSourcingConstants.EVENT_ID, event.id ?: "")
             .bind(EventSourcingConstants.AGGREGATE_ID, event.aggregateId)
             .bind(EventSourcingConstants.AGGREGATE_TYPE, event.aggregateType)
             .bind(EventSourcingConstants.EVENT_TYPE, event.type)
@@ -250,11 +252,11 @@ class AggregateStoreImpl(
         private const val SAVE_SNAPSHOT_QUERY =
             """INSERT INTO kick_app.snapshots (aggregate_id, aggregate_type, data, metadata, version, timestamp) VALUES (:aggregate_id, :aggregate_type, :data, :metadata, :version, :timestamp) ON CONFLICT (aggregate_id) DO UPDATE SET data = :data, version = :version, timestamp = :timestamp"""
         private const val HANDLE_CONCURRENCY_QUERY =
-            "SELECT aggregate_id FROM kick_app.events WHERE aggregate_id = : aggregate_id ORDER BY version LIMIT 1 FOR UPDATE"
+            "SELECT aggregate_id FROM kick_app.events WHERE aggregate_id = :aggregate_id ORDER BY version LIMIT 1 FOR UPDATE"
         private const val LOAD_SNAPSHOT_QUERY =
             """SELECT aggregate_id, aggregate_type, data, metadata, version, timestamp FROM kick_app.snapshots s WHERE s.aggregate_id = :aggregate_id"""
         private const val SAVE_EVENT_QUERY =
-            """INSERT INTO kick_app.events (aggregate_id, aggregate_type, event_type, data, metadata, version, timestamp) values (:aggregate_id, :aggregate_type, :event_type, :data, :metadata, :version, :timestamp)"""
+            """INSERT INTO kick_app.events (event_id, aggregate_id, aggregate_type, event_type, data, metadata, version, timestamp) values (:event_id, :aggregate_id, :aggregate_type, :event_type, :data, :metadata, :version, :timestamp)"""
         private const val LOAD_EVENTS_QUERY =
             """SELECT event_id ,aggregate_id, aggregate_type, event_type, data, metadata, version, timestamp FROM kick_app.events e WHERE e.aggregate_id = :aggregate_id AND e.version > :version ORDER BY e.version ASC"""
 
@@ -272,7 +274,7 @@ class AggregateStoreImpl(
             type = row.get(EventSourcingConstants.EVENT_TYPE, String::class.java) ?: "",
             aggregateId = row.get(EventSourcingConstants.AGGREGATE_ID, String::class.java) ?: "",
             aggregateType = row.get(EventSourcingConstants.AGGREGATE_TYPE, String::class.java) ?: "",
-            id = "",
+            id = row.get(EventSourcingConstants.EVENT_ID, String::class.java) ?: "",
             version = row.get(EventSourcingConstants.VERSION, Int::class.java) ?: 0,
             data = row.get(EventSourcingConstants.DATA, ByteArray::class.java) ?: byteArrayOf(),
             metadata = row.get(EventSourcingConstants.METADATA, ByteArray::class.java) ?: byteArrayOf(),

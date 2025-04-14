@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS kick_app.events
 (
-    event_id       UUID                     ,
+    event_id       VARCHAR(250) NOT NULL CHECK ( event_id <> '' ),
     aggregate_id   VARCHAR(250) NOT NULL CHECK ( aggregate_id <> '' ),
     aggregate_type VARCHAR(250) NOT NULL CHECK ( aggregate_type <> '' ),
     event_type     VARCHAR(250) NOT NULL CHECK ( event_type <> '' ),

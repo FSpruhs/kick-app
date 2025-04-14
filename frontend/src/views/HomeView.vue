@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { onMounted, ref } from 'vue';
-import { getGroups, type GroupResponse, userLeaveGroup } from '@/services/groupRestService';
+import {getGroups, type GroupResponse, updatePlayerStatus} from '@/services/groupRestService';
 import { getUserMessages } from '@/services/messageRestService';
 import { useMessageStore } from '@/store/MessageStore';
 import { useAuthStore } from '@/store/AuthStore';
@@ -22,11 +22,11 @@ const fetchMessages = async () => {
 };
 
 const leaveGroup = (groupId: string) => {
-  console.log('Leave Group: ' + groupId);
-  userLeaveGroup({
-    userId: authStore.getUserId(),
-    groupId: groupId
-  })
+  updatePlayerStatus(
+    groupId,
+    authStore.getUserId(),
+    "LEAVED"
+  )
     .then(() => {
       getGroups(authStore.getUserId())
         .then((response) => {

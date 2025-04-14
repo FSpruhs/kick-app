@@ -2,7 +2,7 @@
 import { useRouter } from 'vue-router';
 import { useGroupStore } from '@/store/GroupStore';
 import { ref } from 'vue';
-import { updatePlayer } from '@/services/groupRestService';
+import { updatePlayerRole } from '@/services/groupRestService';
 
 const router = useRouter();
 const groupStore = useGroupStore();
@@ -16,7 +16,7 @@ const submit = () => {
     return
   }
   if (player.role !== selectedRole.value || player.status !== selectedStatus.value) {
-    updatePlayer(
+    updatePlayerRole(
       groupStore.getGroup().id,
       player.id,
       selectedRole.value === player.role ? '' : selectedRole.value,

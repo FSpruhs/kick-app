@@ -66,12 +66,12 @@ export async function responseToGroupInvitation(payload: ResponseToGroupInvitati
   return await apiClient.put(`api/v1/group/user`, payload);
 }
 
-export async function updatePlayer(groupId: string, userId: string, newRole: string, newStatus: string | undefined) {
+export async function updatePlayerRole(groupId: string, userId: string, newRole: string, newStatus: string | undefined) {
   return await apiClient.put(`api/v1/group/${groupId}/players/${userId}?status=${newStatus}&role=${newRole}`);
 }
 
-export async function userLeaveGroup(payload: UserLeaveGroupPayload) {
-  return await apiClient.delete(`api/v1/group/${payload.groupId}/user/${payload.userId}`);
+export async function updatePlayerStatus(groupId: string, userId: string, newStatus: string) {
+  return await apiClient.put(`api/v1/group/${groupId}/players/${userId}?status=${newStatus}`);
 }
 
 export async function removePlayer(groupId: string, userId: string) {

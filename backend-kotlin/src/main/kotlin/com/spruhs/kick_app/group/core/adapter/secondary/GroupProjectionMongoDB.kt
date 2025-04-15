@@ -37,14 +37,46 @@ class GroupProjectionMongoAdapter(
             is GroupCreatedEvent -> handleGroupCreatedEvent(event)
             is GroupNameChangedEvent -> handleGroupNameChangedEvent(event)
             is PlayerEnteredGroupEvent -> handlePlayerEnteredGroupEvent(event)
-            is PlayerPromotedEvent -> handlePlayerRoleEvent(UserId(event.userId), PlayerRole.ADMIN)
-            is PlayerDowngradedEvent -> handlePlayerRoleEvent(UserId(event.userId), PlayerRole.PLAYER)
-            is PlayerActivatedEvent -> handlePlayerStatusEvent(UserId(event.userId), PlayerStatusType.ACTIVE)
-            is PlayerDeactivatedEvent -> handlePlayerStatusEvent(UserId(event.userId), PlayerStatusType.INACTIVE)
-            is PlayerRemovedEvent -> handlePlayerStatusEvent(UserId(event.userId), PlayerStatusType.REMOVED)
-            is PlayerLeavedEvent -> handlePlayerStatusEvent(UserId(event.userId), PlayerStatusType.LEAVED)
 
-            else -> { throw UnknownEventTypeException(event) }
+            is PlayerPromotedEvent -> handlePlayerRoleEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerRole.ADMIN
+            )
+
+            is PlayerDowngradedEvent -> handlePlayerRoleEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerRole.PLAYER
+            )
+
+            is PlayerActivatedEvent -> handlePlayerStatusEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerStatusType.ACTIVE
+            )
+
+            is PlayerDeactivatedEvent -> handlePlayerStatusEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerStatusType.INACTIVE
+            )
+
+            is PlayerRemovedEvent -> handlePlayerStatusEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerStatusType.REMOVED
+            )
+
+            is PlayerLeavedEvent -> handlePlayerStatusEvent(
+                GroupId(event.aggregateId),
+                UserId(event.userId),
+                PlayerStatusType.LEAVED
+            )
+
+            else -> {
+                throw UnknownEventTypeException(event)
+            }
         }
     }
 
@@ -74,15 +106,15 @@ class GroupProjectionMongoAdapter(
         } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
     }
 
-    private suspend fun handlePlayerRoleEvent(userId: UserId, role: PlayerRole) {
-        repository.findById(userId.value).awaitFirstOrNull()?.let {
+    private suspend fun handlePlayerRoleEvent(groupId: GroupId, userId: UserId, role: PlayerRole) {
+        repository.findById(groupId.value).awaitFirstOrNull()?.let {
             it.players.find { player -> player.id == userId.value }?.role = role.name
             repository.save(it)
         } ?: throw GroupNotFoundException(GroupId(userId.value))
     }
 
-    private suspend fun handlePlayerStatusEvent(userId: UserId, status: PlayerStatusType) {
-        repository.findById(userId.value).awaitFirstOrNull()?.let {
+    private suspend fun handlePlayerStatusEvent(groupId: GroupId, userId: UserId, status: PlayerStatusType) {
+        repository.findById(groupId.value).awaitFirstOrNull()?.let {
             it.players.find { player -> player.id == userId.value }?.status = status.name
             repository.save(it)
         } ?: throw GroupNotFoundException(GroupId(userId.value))
@@ -97,7 +129,6 @@ class GroupProjectionMongoAdapter(
     }
 }
 
-
 @Repository
 interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
     fun findAllByPlayersIdContains(userId: String): Flux<GroupDocument>
@@ -106,6 +137,12 @@ interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
 private fun GroupDocument.toProjection() = GroupProjection(
     id = GroupId(id),
     name = Name(name),
-    players = players.map { PlayerProjection(UserId(it.id), PlayerStatusType.valueOf(it.status), PlayerRole.valueOf(it.role)) },
+    players = players.map {
+        PlayerProjection(
+            UserId(it.id),
+            PlayerStatusType.valueOf(it.status),
+            PlayerRole.valueOf(it.role)
+        )
+    },
     invitedUsers = invitedUsers.map { UserId(it) }
 )

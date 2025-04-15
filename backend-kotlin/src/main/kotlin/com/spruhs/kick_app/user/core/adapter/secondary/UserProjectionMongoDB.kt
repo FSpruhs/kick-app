@@ -9,6 +9,7 @@ import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.domain.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -87,21 +88,21 @@ class UserProjectionMongoAdapter(
     private suspend fun addGroupToUser(userId: String, groupId: String, groupName: String) {
         findUserById(userId).let {
             it.groups += GroupDocument(groupId, groupName)
-            repository.save(it)
+            repository.save(it).awaitSingle()
         }
     }
 
     private suspend fun removeGroupFromUser(userId: String, groupId: String) {
         findUserById(userId).let {
             it.groups = it.groups.filter { group -> group.id != groupId }
-            repository.save(it)
+            repository.save(it).awaitSingle()
         }
     }
 
     private suspend fun handleUserNickNameChanged(event: UserNickNameChangedEvent) {
         findUserById(event.aggregateId).let {
             it.nickName = event.nickName
-            repository.save(it)
+            repository.save(it).awaitSingle()
         }
     }
 

@@ -8,6 +8,7 @@ import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.domain.*
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
@@ -94,7 +95,7 @@ class GroupProjectionMongoAdapter(
     private suspend fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
         repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
             it.name = event.name
-            repository.save(it)
+            repository.save(it).awaitSingle()
         } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
     }
 
@@ -102,22 +103,22 @@ class GroupProjectionMongoAdapter(
         repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
             it.players += PlayerDocument(event.userId, PlayerStatusType.ACTIVE.name, PlayerRole.PLAYER.name)
             it.invitedUsers -= event.userId
-            repository.save(it)
+            repository.save(it).awaitSingle()
         } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
     }
 
     private suspend fun handlePlayerRoleEvent(groupId: GroupId, userId: UserId, role: PlayerRole) {
         repository.findById(groupId.value).awaitFirstOrNull()?.let {
             it.players.find { player -> player.id == userId.value }?.role = role.name
-            repository.save(it)
-        } ?: throw GroupNotFoundException(GroupId(userId.value))
+            repository.save(it).awaitSingle()
+        } ?: throw GroupNotFoundException(groupId)
     }
 
     private suspend fun handlePlayerStatusEvent(groupId: GroupId, userId: UserId, status: PlayerStatusType) {
         repository.findById(groupId.value).awaitFirstOrNull()?.let {
             it.players.find { player -> player.id == userId.value }?.status = status.name
-            repository.save(it)
-        } ?: throw GroupNotFoundException(GroupId(userId.value))
+            repository.save(it).awaitSingle()
+        } ?: throw GroupNotFoundException(groupId)
     }
 
     override suspend fun findById(groupId: GroupId): GroupProjection? {

@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.*
 import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.api.UserData
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Service
 
 data class GroupDetail(

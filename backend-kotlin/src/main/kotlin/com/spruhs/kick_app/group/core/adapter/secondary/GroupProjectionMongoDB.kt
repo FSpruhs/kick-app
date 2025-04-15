@@ -20,7 +20,7 @@ data class GroupDocument(
     val id: String,
     var name: String,
     var players: List<PlayerDocument>,
-    var invitedUsers: List<String>
+    var invitedUsers: Set<String>
 )
 
 data class PlayerDocument(
@@ -86,7 +86,7 @@ class GroupProjectionMongoAdapter(
             id = event.aggregateId,
             name = event.name,
             players = listOf(PlayerDocument(event.userId, PlayerStatusType.ACTIVE.name, PlayerRole.ADMIN.name)),
-            invitedUsers = emptyList()
+            invitedUsers = emptySet()
         ).also {
             repository.save(it).awaitFirstOrNull()
         }

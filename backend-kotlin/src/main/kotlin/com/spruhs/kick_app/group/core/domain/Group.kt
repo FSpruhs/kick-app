@@ -7,8 +7,8 @@ import com.spruhs.kick_app.group.core.application.*
 class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregateId, TYPE) {
 
     var name: Name = Name("Default")
-    val players: MutableList<Player> = mutableListOf()
-    private val invitedUsers: MutableList<UserId> = mutableListOf()
+    var players: MutableList<Player> = mutableListOf()
+    var invitedUsers: MutableSet<UserId> = mutableSetOf()
 
     override fun whenEvent(event: Any) {
         when (event) {
@@ -38,21 +38,22 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     private fun handlePlayerInvitedEvent(event: PlayerInvitedEvent) {
-        invitedUsers + UserId(event.userId)
+        invitedUsers.add(UserId(event.userId))
     }
 
     private fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
-        players + Player(UserId(event.userId), Active(), PlayerRole.PLAYER)
-        invitedUsers - UserId(event.userId)
+        players.add(Player(UserId(event.userId), Active(), PlayerRole.PLAYER))
+        invitedUsers -= UserId(event.userId)
     }
 
     private fun handlePlayerRejectedGroupEvent(event: PlayerRejectedGroupEvent) {
-        invitedUsers - UserId(event.userId)
+        invitedUsers -= UserId(event.userId)
     }
 
     private fun handlePlayerRoleEvent(userId: UserId, playerRole: PlayerRole) {
         players.find { it.id == userId }?.let {
-            players - it + it.copy(role = playerRole)
+            players -= it
+            players += it.copy(role = playerRole)
         }
     }
 
@@ -75,10 +76,10 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     fun inviteUser(command: InviteUserCommand) {
-        if (command.inviterId !in this.players.map { it.id }) {
-            throw UserNotAuthorizedException(command.inviterId)
-        }
-        if (command.inviteeId in this.players.map { it.id } || command.inviteeId in this.invitedUsers) {
+        this.players.find { it.id == command.inviterId && it.status.type() == PlayerStatusType.ACTIVE }
+            ?: throw UserNotAuthorizedException(command.inviterId)
+
+        if (command.inviteeId in this.players.map { it.id }) {
             throw PlayerAlreadyInGroupException(command.inviteeId)
         }
 
@@ -98,15 +99,14 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     fun updatePlayerRole(command: UpdatePlayerRoleCommand) {
-        players.find { it.id == command.updatingUserId }
-            ?.takeIf { it.role == PlayerRole.ADMIN }
+        players.find { it.id == command.updatingUserId && it.role == PlayerRole.ADMIN }
             ?: throw UserNotAuthorizedException(command.updatingUserId)
 
-        players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
+        val player = players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
 
-        if (command.newRole == PlayerRole.ADMIN) {
+        if (command.newRole == PlayerRole.ADMIN && player.role != PlayerRole.ADMIN) {
             apply(PlayerPromotedEvent(aggregateId, command.userId.value))
-        } else if (command.newRole == PlayerRole.PLAYER) {
+        } else if (command.newRole == PlayerRole.PLAYER && player.role != PlayerRole.PLAYER) {
             apply(PlayerDowngradedEvent(aggregateId, command.userId.value))
         }
     }
@@ -148,15 +148,6 @@ data class Player(
 
 enum class PlayerStatusType {
     ACTIVE, INACTIVE, LEAVED, REMOVED;
-
-    fun toStatus(): PlayerStatus {
-        return when (this) {
-            ACTIVE -> Active()
-            INACTIVE -> Inactive()
-            LEAVED -> Leaved()
-            REMOVED -> Removed()
-        }
-    }
 }
 
 interface PlayerStatus {
@@ -308,7 +299,9 @@ data class PlayerProjection(
 
 data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")
 data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")
-data class PlayerAlreadyInGroupException(val userId: UserId) : RuntimeException("User already in group: ${userId.value}")
+data class PlayerAlreadyInGroupException(val userId: UserId) :
+    RuntimeException("User already in group: ${userId.value}")
+
 data class PlayerNotInvitedInGroupException(val userId: UserId) :
     RuntimeException("User not invited in group: ${userId.value}")
 

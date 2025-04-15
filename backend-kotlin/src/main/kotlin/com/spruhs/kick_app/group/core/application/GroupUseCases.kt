@@ -131,11 +131,11 @@ class GroupQueryPort(
         userId: UserId
     ): Boolean = groupProjectionPort.findById(groupId)?.isActiveAdmin(userId) ?: false
 
-    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> = groupProjectionPort.findByPlayer(userId)
+    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> = groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
 
     suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
-            require(this.players.any { it.id == userId }) { throw UserNotAuthorizedException(userId) }
+            require(this.isPlayer(userId)) { throw UserNotAuthorizedException(userId) }
         }
 
         val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }

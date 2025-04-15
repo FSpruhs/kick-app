@@ -295,6 +295,9 @@ data class GroupProjection(
     fun isActiveAdmin(userId: UserId): Boolean =
         players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatusType.ACTIVE }
 
+    fun isPlayer(userId: UserId): Boolean =
+        players.any { it.id == userId && (it.status == PlayerStatusType.ACTIVE || it.status == PlayerStatusType.INACTIVE) }
+
 }
 
 data class PlayerProjection(

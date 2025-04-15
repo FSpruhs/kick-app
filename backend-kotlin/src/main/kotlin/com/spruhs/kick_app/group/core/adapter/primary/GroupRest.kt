@@ -28,7 +28,7 @@ class GroupRest(
         @RequestParam role: String?,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        if (status != null) {
+        if (!status.isNullOrBlank()) {
             groupCommandPort.updatePlayerStatus(
                 UpdatePlayerStatusCommand(
                     userId = UserId(userId),
@@ -38,7 +38,7 @@ class GroupRest(
                 )
             )
         }
-        if (role != null) {
+        if (!role.isNullOrBlank()) {
             groupCommandPort.updatePlayerRole(
                 UpdatePlayerRoleCommand(
                     userId = UserId(userId),

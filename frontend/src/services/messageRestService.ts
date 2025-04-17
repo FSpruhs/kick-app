@@ -1,16 +1,17 @@
 import apiClient from '@/services/axiosService';
 
-export interface Message {
+export interface MessageResponse {
   id: string;
-  content: string;
+  text: string;
   userId: string;
   type: string;
   occurredAt: string;
-  read: boolean;
+  isRead: boolean;
+  variables: Map<string, string>
 }
 
 export async function getUserMessages(userId: string) {
-  return await apiClient.get<Message[]>(`api/v1/message/user/${userId}`);
+  return await apiClient.get<MessageResponse[]>(`api/v1/message/user/${userId}`);
 }
 
 export async function readMessage(messageId: string) {

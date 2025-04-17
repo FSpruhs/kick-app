@@ -63,7 +63,7 @@ export async function inviteUserToGroup(payload: GroupInvitePayload) {
 }
 
 export async function responseToGroupInvitation(payload: ResponseToGroupInvitation) {
-  return await apiClient.put(`api/v1/group/user`, payload);
+  return await apiClient.put(`api/v1/group/invited-users`, payload);
 }
 
 export async function updatePlayerRole(groupId: string, userId: string, newRole: string, newStatus: string | undefined) {

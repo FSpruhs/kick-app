@@ -1,8 +1,9 @@
 export interface Message {
   id: string;
-  content: string;
-  groupId?: string;
+  text: string;
   type: string;
   occurredAt: string;
-  read: boolean;
+  isRead: boolean;
+  userId: string;
+  variables: Map<string, string>
 }

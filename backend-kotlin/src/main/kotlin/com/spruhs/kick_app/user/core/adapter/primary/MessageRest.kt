@@ -7,6 +7,7 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.Message
+import com.spruhs.kick_app.user.core.domain.MessageType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +28,7 @@ class MessageRestController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable userId: String
     ): List<MessageResponse> {
-        require(jwtParser.getUserId(jwt) == userId) { UserNotAuthorizedException(UserId(userId)) }
+        require(jwtParser.getUserId(jwt) == userId) { throw UserNotAuthorizedException(UserId(userId)) }
         return messageUseCases.getByUser(UserId(userId)).map { it.toResponse() }
     }
 
@@ -50,6 +51,7 @@ data class MessageResponse(
     val userId: String,
     val text: String,
     val timeStamp: String,
+    val type: MessageType,
     val isRead: Boolean,
     val variables: Map<String, String>
 )
@@ -60,5 +62,6 @@ private fun Message.toResponse() = MessageResponse(
     text = text,
     timeStamp = timeStamp.toString(),
     isRead = isRead,
-    variables = variables
+    variables = variables,
+    type = type
 )

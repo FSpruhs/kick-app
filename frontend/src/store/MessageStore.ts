@@ -15,7 +15,7 @@ export const useMessageStore = defineStore('message', {
       return this.messages;
     },
     getUnreadMessageCount() {
-      return this.messages?.filter((message) => !message.read).length;
+      return this.messages?.filter((message) => !message.isRead).length;
     }
   }
 });

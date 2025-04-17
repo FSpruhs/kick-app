@@ -18,14 +18,13 @@ class MessageUseCases(
         }
     }
 
-    suspend fun getByUser(userId: UserId): List<Message> {
-        return messagePersistencePort.findByUser(userId)
-    }
+    suspend fun getByUser(userId: UserId): List<Message> = messagePersistencePort.findByUser(userId)
 
     suspend fun markAsRead(command: MarkAsReadCommand) {
         fetchMessage(command.messageId).let {
-            it.messageReadBy(command.userId)
-            messagePersistencePort.save(it)
+            it.messageReadBy(command.userId).also {
+                messagePersistencePort.save(it)
+            }
         }
     }
 

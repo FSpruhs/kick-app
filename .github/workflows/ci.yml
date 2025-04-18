@@ -21,8 +21,5 @@ jobs:
           distribution: 'temurin'
 
       - name: Run Tests with Maven
-        working-directory: ./backend
+        working-directory: ./backend-kotlin
         run: mvn test
-
-      - name: Package Application
-        run: mvn clean package -DskipTests

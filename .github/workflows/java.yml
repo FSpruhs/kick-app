@@ -20,6 +20,17 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Start PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql
+          sudo service postgresql start
+
+      - name: Start MongoDB
+        run: |
+          sudo apt-get install -y mongodb
+          sudo service mongodb start
+
       - name: Run Tests with Maven
         working-directory: ./backend-kotlin
         run: mvn test

@@ -2,33 +2,28 @@ spring:
   application:
     name: kick-app-test
 
-  # PostgreSQL R2DBC abschalten oder auf Dummy stellen
   r2dbc:
-    url: r2dbc:h2:mem:///testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    pool:
-      max-size: 5
+    url: disabled
 
   flyway:
-    enabled: false  # Keine Migration im Test
+    enabled: false
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/test  # Dummy-URI, keine echte Verbindung nötig
+      uri: mongodb://localhost:27017/test
       database: test
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9999/dummy  # Kein echter Keycloak im Test
+          issuer-uri: http://localhost:9999/dummy
 
 keycloak:
   realm: kick-app-test
 
 server:
-  port: 0  # Zufälliger Port
+  port: 0
 
 logging:
   level:

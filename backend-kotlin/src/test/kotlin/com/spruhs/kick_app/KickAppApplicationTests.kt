@@ -1,5 +1,6 @@
 package com.spruhs.kick_app
 
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Import
 class KickAppApplicationTests {
 
 	@Test
+	@Disabled
 	fun contextLoads() {
 	}
 

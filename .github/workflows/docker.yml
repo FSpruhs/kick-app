@@ -27,7 +27,7 @@ jobs:
       - name: Build and Push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./backend-kotlin
           push: true
           tags: fspruhs/kick-app-kotlin-backend:latest
 

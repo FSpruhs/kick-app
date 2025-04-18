@@ -28,6 +28,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./backend-kotlin
+          file: ./backend-kotlin/Dockerfile
           push: true
           tags: fspruhs/kick-app-kotlin-backend:latest
 

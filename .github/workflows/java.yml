@@ -1,10 +1,14 @@
-name: Build and Push Docker Image
+name: Java
 
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - "backend-kotlin/**"
   pull_request:
     branches: [ "main" ]
+    paths:
+      - "backend-kotlin/**"
 
 jobs:
   build:

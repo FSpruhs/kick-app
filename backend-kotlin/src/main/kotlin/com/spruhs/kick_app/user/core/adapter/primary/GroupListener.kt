@@ -70,13 +70,13 @@ class GroupListener(
 }
 
 private fun PlayerInvitedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
+    userId = this.userId.value,
     groupId = this.aggregateId,
     groupName = this.name
 )
 
 private fun PlayerRemovedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
+    userId = this.userId.value,
     groupId = this.aggregateId,
     groupName = this.name
 )

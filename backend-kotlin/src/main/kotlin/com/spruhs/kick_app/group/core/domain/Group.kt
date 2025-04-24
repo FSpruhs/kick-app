@@ -17,12 +17,12 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             is PlayerInvitedEvent -> handlePlayerInvitedEvent(event)
             is PlayerEnteredGroupEvent -> handlePlayerEnteredGroupEvent(event)
             is PlayerRejectedGroupEvent -> handlePlayerRejectedGroupEvent(event)
-            is PlayerPromotedEvent -> handlePlayerRoleEvent(UserId(event.userId), PlayerRole.ADMIN)
-            is PlayerDowngradedEvent -> handlePlayerRoleEvent(UserId(event.userId), PlayerRole.PLAYER)
-            is PlayerActivatedEvent -> handlePlayerStatusEvent(UserId(event.userId), Active())
-            is PlayerDeactivatedEvent -> handlePlayerStatusEvent(UserId(event.userId), Inactive())
-            is PlayerRemovedEvent -> handlePlayerStatusEvent(UserId(event.userId), Removed())
-            is PlayerLeavedEvent -> handlePlayerStatusEvent(UserId(event.userId), Leaved())
+            is PlayerPromotedEvent -> handlePlayerRoleEvent(event.userId, PlayerRole.ADMIN)
+            is PlayerDowngradedEvent -> handlePlayerRoleEvent(event.userId, PlayerRole.PLAYER)
+            is PlayerActivatedEvent -> handlePlayerStatusEvent(event.userId, Active())
+            is PlayerDeactivatedEvent -> handlePlayerStatusEvent(event.userId, Inactive())
+            is PlayerRemovedEvent -> handlePlayerStatusEvent(event.userId, Removed())
+            is PlayerLeavedEvent -> handlePlayerStatusEvent(event.userId, Leaved())
 
             else -> throw UnknownEventTypeException(event)
         }
@@ -30,7 +30,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 
     private fun handleGroupCreatedEvent(event: GroupCreatedEvent) {
         name = Name(event.name)
-        players.add(Player(UserId(event.userId), Active(), PlayerRole.ADMIN))
+        players.add(Player(event.userId, Active(), PlayerRole.ADMIN))
     }
 
     private fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
@@ -38,16 +38,16 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     private fun handlePlayerInvitedEvent(event: PlayerInvitedEvent) {
-        invitedUsers.add(UserId(event.userId))
+        invitedUsers.add(event.userId)
     }
 
     private fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
-        players.add(Player(UserId(event.userId), Active(), PlayerRole.PLAYER))
-        invitedUsers -= UserId(event.userId)
+        players.add(Player(event.userId, Active(), PlayerRole.PLAYER))
+        invitedUsers -= event.userId
     }
 
     private fun handlePlayerRejectedGroupEvent(event: PlayerRejectedGroupEvent) {
-        invitedUsers -= UserId(event.userId)
+        invitedUsers -= event.userId
     }
 
     private fun handlePlayerRoleEvent(userId: UserId, playerRole: PlayerRole) {
@@ -64,7 +64,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     fun createGroup(command: CreateGroupCommand) {
-        apply(GroupCreatedEvent(aggregateId, command.userId.value, command.name.value))
+        apply(GroupCreatedEvent(aggregateId, command.userId, command.name.value))
     }
 
     fun changeGroupName(command: ChangeGroupNameCommand) {
@@ -83,7 +83,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             throw PlayerAlreadyInGroupException(command.inviteeId)
         }
 
-        apply(PlayerInvitedEvent(aggregateId, command.inviteeId.value, name.value))
+        apply(PlayerInvitedEvent(aggregateId, command.inviteeId, name.value))
     }
 
     fun inviteUserResponse(command: InviteUserResponseCommand) {
@@ -92,9 +92,9 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
 
         if (command.response) {
-            apply(PlayerEnteredGroupEvent(aggregateId, command.userId.value, name.value))
+            apply(PlayerEnteredGroupEvent(aggregateId, command.userId, name.value))
         } else {
-            apply(PlayerRejectedGroupEvent(aggregateId, command.userId.value))
+            apply(PlayerRejectedGroupEvent(aggregateId, command.userId))
         }
     }
 
@@ -105,9 +105,9 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         val player = players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
 
         if (command.newRole == PlayerRole.ADMIN && player.role != PlayerRole.ADMIN) {
-            apply(PlayerPromotedEvent(aggregateId, command.userId.value))
+            apply(PlayerPromotedEvent(aggregateId, command.userId))
         } else if (command.newRole == PlayerRole.PLAYER && player.role != PlayerRole.PLAYER) {
-            apply(PlayerDowngradedEvent(aggregateId, command.userId.value))
+            apply(PlayerDowngradedEvent(aggregateId, command.userId))
         }
     }
 
@@ -128,10 +128,10 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
 
         when (updatedStatus) {
-            is Active -> apply(PlayerActivatedEvent(aggregateId, command.userId.value))
-            is Inactive -> apply(PlayerDeactivatedEvent(aggregateId, command.userId.value))
-            is Leaved -> apply(PlayerLeavedEvent(aggregateId, command.userId.value))
-            is Removed -> apply(PlayerRemovedEvent(aggregateId, command.userId.value, name.value))
+            is Active -> apply(PlayerActivatedEvent(aggregateId, command.userId))
+            is Inactive -> apply(PlayerDeactivatedEvent(aggregateId, command.userId))
+            is Leaved -> apply(PlayerLeavedEvent(aggregateId, command.userId))
+            is Removed -> apply(PlayerRemovedEvent(aggregateId, command.userId, name.value))
         }
     }
 
@@ -304,4 +304,3 @@ data class PlayerAlreadyInGroupException(val userId: UserId) :
 
 data class PlayerNotInvitedInGroupException(val userId: UserId) :
     RuntimeException("User not invited in group: ${userId.value}")
-

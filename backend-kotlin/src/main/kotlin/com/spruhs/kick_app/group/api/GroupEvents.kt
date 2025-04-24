@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component
 
 data class GroupCreatedEvent(
     override val aggregateId: String,
-    val userId: String,
+    val userId: UserId,
     val name: String,
 ): BaseEvent(aggregateId)
 
@@ -17,50 +17,50 @@ data class GroupNameChangedEvent(
 
 data class PlayerInvitedEvent(
     override val aggregateId: String,
-    val userId: String,
+    val userId: UserId,
     val name: String,
 ): BaseEvent(aggregateId)
 
 data class PlayerEnteredGroupEvent(
     override val aggregateId: String,
-    val userId: String,
+    val userId: UserId,
     val name: String
 ): BaseEvent(aggregateId)
 
 data class PlayerRejectedGroupEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 data class PlayerPromotedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 data class PlayerDowngradedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 data class PlayerActivatedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 data class PlayerDeactivatedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 data class PlayerRemovedEvent(
     override val aggregateId: String,
-    val userId: String,
+    val userId: UserId,
     val name: String
 ): BaseEvent(aggregateId)
 
 data class PlayerLeavedEvent(
     override val aggregateId: String,
-    val userId: String
+    val userId: UserId
 ): BaseEvent(aggregateId)
 
 enum class GroupEvents {

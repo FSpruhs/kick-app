@@ -1,8 +1,18 @@
 package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.group.core.domain.GroupAggregate
+import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchCreatedEvent
+import com.spruhs.kick_app.match.api.MatchPlannedEvent
+import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchStartedEvent
+import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
+import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
+import com.spruhs.kick_app.match.api.PlayerPlacedOnSubstituteBenchEvent
+import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.api.ResultAddedEvent
+import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
 data class Match(
@@ -76,7 +86,8 @@ fun Match.updateRegistration(updatedUser: UserId, registrationStatus: Registrati
                 registrationStatus == RegistrationStatus.ADDED
     ) { "Can only cancel or add" }
     require(this.start.isBefore(LocalDateTime.now())) { "Cannot register to past match" }
-    val player = this.findRegisteredPlayer(updatedUser).takeIf { it?.status != RegistrationStatus.DEREGISTERED } ?: throw IllegalStateException("Player not found")
+    val player = this.findRegisteredPlayer(updatedUser).takeIf { it?.status != RegistrationStatus.DEREGISTERED }
+        ?: throw IllegalStateException("Player not found")
     return this.copy(
         registeredPlayers = this.registeredPlayers - player + player.copy(
             status = registrationStatus,
@@ -108,7 +119,7 @@ fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Mat
 
 fun Match.acceptedPlayers(): List<UserId> {
     val registeredPlayer = this.registeredPlayers
-        .filter { it.status == RegistrationStatus.REGISTERED  }
+        .filter { it.status == RegistrationStatus.REGISTERED }
         .sortedBy { it.registrationTime }
         .take(this.playerCount.maxPlayer.value)
 
@@ -119,7 +130,7 @@ fun Match.acceptedPlayers(): List<UserId> {
 
 fun Match.waitingBenchPlayers(): List<UserId> {
     val benchPlayers = this.registeredPlayers
-        .filter { it.status == RegistrationStatus.DEREGISTERED  }
+        .filter { it.status == RegistrationStatus.DEREGISTERED }
         .sortedBy { it.registrationTime }
         .drop(this.playerCount.maxPlayer.value)
 
@@ -202,3 +213,69 @@ interface MatchPersistencePort {
 }
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
+
+class MatchAggregate(
+    override val aggregateId: String,
+) : AggregateRoot(aggregateId, GroupAggregate.Companion.TYPE) {
+
+    var groupId: GroupId = GroupId("default")
+    var start: LocalDateTime = LocalDateTime.now()
+    var status: MatchStatus = MatchStatus.PLANNED
+    var playground: Playground? = null
+    var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
+    val registeredPlayers: List<RegisteredPlayer> = mutableListOf()
+    var result: Result? = null
+    val participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
+
+    override fun whenEvent(event: Any) {
+        when (event) {
+            is MatchPlannedEvent -> handleMatchPlannedEvent(event)
+            is PlayerAddedToCadreEvent -> handlePlayerAddedToCadreEvent(event)
+            is PlayerDeregisteredEvent -> handlePlayerDeregisteredEvent(event)
+            is PlayerPlacedOnSubstituteBenchEvent -> handlePlayerPlacedOnSubstituteBenchEvent(event)
+            is MatchCanceledEvent -> handleMatchCanceledEvent(event)
+            is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
+            is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
+            is MatchStartedEvent -> handleMatchStartedEvent(event)
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+    private fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
+        this.groupId = event.groupId
+        this.start = event.start
+        this.playground = Playground(event.playground)
+        this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
+    }
+
+    private fun handlePlayerAddedToCadreEvent(event: PlayerAddedToCadreEvent) {}
+
+    private fun handlePlayerDeregisteredEvent(event: PlayerDeregisteredEvent) {}
+
+    private fun handlePlayerPlacedOnSubstituteBenchEvent(event: PlayerPlacedOnSubstituteBenchEvent) {}
+
+    private fun handleMatchCanceledEvent(event: MatchCanceledEvent) {}
+
+    private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {}
+
+    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {}
+
+    private fun handleMatchStartedEvent(event: MatchStartedEvent) {}
+
+    fun planMatch(command: PlanMatchCommand) {
+        apply(
+            MatchPlannedEvent(
+                aggregateId,
+                command.groupId,
+                command.start,
+                command.playground.value,
+                command.playerCount.maxPlayer.value,
+                command.playerCount.minPlayer.value
+            )
+        )
+    }
+
+    companion object {
+        const val TYPE = "Match"
+    }
+}

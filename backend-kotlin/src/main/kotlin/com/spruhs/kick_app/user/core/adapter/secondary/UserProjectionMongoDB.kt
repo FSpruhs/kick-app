@@ -84,15 +84,15 @@ class UserProjectionMongoAdapter(
         repository.saveAll(users).awaitFirstOrNull()
     }
 
-    private suspend fun addGroupToUser(userId: String, groupId: String, groupName: String) {
-        findUserById(userId).let {
+    private suspend fun addGroupToUser(userId: UserId, groupId: String, groupName: String) {
+        findUserById(userId.value).let {
             it.groups += GroupDocument(groupId, groupName)
             repository.save(it).awaitSingle()
         }
     }
 
-    private suspend fun removeGroupFromUser(userId: String, groupId: String) {
-        findUserById(userId).let {
+    private suspend fun removeGroupFromUser(userId: UserId, groupId: String) {
+        findUserById(userId.value).let {
             it.groups = it.groups.filter { group -> group.id != groupId }
             repository.save(it).awaitSingle()
         }

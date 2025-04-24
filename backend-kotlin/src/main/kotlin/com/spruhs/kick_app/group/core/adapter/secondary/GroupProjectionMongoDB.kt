@@ -41,37 +41,37 @@ class GroupProjectionMongoAdapter(
 
             is PlayerPromotedEvent -> handlePlayerRoleEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerRole.ADMIN
             )
 
             is PlayerDowngradedEvent -> handlePlayerRoleEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerRole.PLAYER
             )
 
             is PlayerActivatedEvent -> handlePlayerStatusEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerStatusType.ACTIVE
             )
 
             is PlayerDeactivatedEvent -> handlePlayerStatusEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerStatusType.INACTIVE
             )
 
             is PlayerRemovedEvent -> handlePlayerStatusEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerStatusType.REMOVED
             )
 
             is PlayerLeavedEvent -> handlePlayerStatusEvent(
                 GroupId(event.aggregateId),
-                UserId(event.userId),
+                event.userId,
                 PlayerStatusType.LEAVED
             )
 
@@ -85,7 +85,7 @@ class GroupProjectionMongoAdapter(
         GroupDocument(
             id = event.aggregateId,
             name = event.name,
-            players = listOf(PlayerDocument(event.userId, PlayerStatusType.ACTIVE.name, PlayerRole.ADMIN.name)),
+            players = listOf(PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.ADMIN.name)),
             invitedUsers = emptySet()
         ).also {
             repository.save(it).awaitFirstOrNull()
@@ -101,8 +101,8 @@ class GroupProjectionMongoAdapter(
 
     private suspend fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
         repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
-            it.players += PlayerDocument(event.userId, PlayerStatusType.ACTIVE.name, PlayerRole.PLAYER.name)
-            it.invitedUsers -= event.userId
+            it.players += PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.PLAYER.name)
+            it.invitedUsers -= event.userId.value
             repository.save(it).awaitSingle()
         } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
     }

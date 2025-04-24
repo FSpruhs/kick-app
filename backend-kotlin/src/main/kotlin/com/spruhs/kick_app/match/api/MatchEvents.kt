@@ -13,12 +13,6 @@ data class MatchCreatedEvent(
     override fun eventVersion(): Int = 1
 }
 
-data class MatchCancelledEvent(
-    val matchId: String
-) : DomainEvent {
-    override fun eventVersion(): Int = 1
-}
-
 data class ResultAddedEvent(
     val matchId: String,
     val result: String,

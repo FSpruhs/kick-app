@@ -49,6 +49,7 @@ data class MatchCanceledEvent(
 
 data class PlaygroundChangedEvent(
     override val aggregateId: String,
+    val newPlayground: String,
 ) : BaseEvent(aggregateId)
 
 data class MatchResultEnteredEvent(

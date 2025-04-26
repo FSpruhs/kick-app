@@ -213,6 +213,8 @@ interface MatchPersistencePort {
 }
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
+class MatchStartTimeException(matchId: MatchId) :
+    RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
 
 class MatchAggregate(
     override val aggregateId: String,
@@ -233,10 +235,10 @@ class MatchAggregate(
             is PlayerAddedToCadreEvent -> handlePlayerAddedToCadreEvent(event)
             is PlayerDeregisteredEvent -> handlePlayerDeregisteredEvent(event)
             is PlayerPlacedOnSubstituteBenchEvent -> handlePlayerPlacedOnSubstituteBenchEvent(event)
-            is MatchCanceledEvent -> handleMatchCanceledEvent(event)
+            is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
-            is MatchStartedEvent -> handleMatchStartedEvent(event)
+            is MatchStartedEvent -> handleMatchStartedEvent()
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -254,13 +256,19 @@ class MatchAggregate(
 
     private fun handlePlayerPlacedOnSubstituteBenchEvent(event: PlayerPlacedOnSubstituteBenchEvent) {}
 
-    private fun handleMatchCanceledEvent(event: MatchCanceledEvent) {}
+    private fun handleMatchCanceledEvent() {
+        this.status = MatchStatus.CANCELLED
+    }
 
-    private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {}
+    private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
+        this.playground = Playground(event.newPlayground)
+    }
 
     private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {}
 
-    private fun handleMatchStartedEvent(event: MatchStartedEvent) {}
+    private fun handleMatchStartedEvent() {
+        this.status = MatchStatus.ENTER_RESULT
+    }
 
     fun planMatch(command: PlanMatchCommand) {
         apply(
@@ -273,6 +281,29 @@ class MatchAggregate(
                 command.playerCount.minPlayer.value
             )
         )
+    }
+
+    fun cancelMatch() {
+        require(LocalDateTime.now().isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        apply(MatchCanceledEvent(aggregateId))
+    }
+
+    fun startMatch() {
+        require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        apply(MatchStartedEvent(aggregateId))
+    }
+
+    fun changePlayground(newPlayground: Playground) {
+        apply(PlaygroundChangedEvent(aggregateId, newPlayground.value))
+    }
+
+    fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {
+        apply(MatchResultEnteredEvent(
+            aggregateId,
+            result,
+            participatingPlayer.filter { it.team == Team.A },
+            participatingPlayer.filter { it.team == Team.B }
+        ))
     }
 
     companion object {

@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -99,6 +100,78 @@ class MatchAggregateTest {
 
             // Then
         }.isInstanceOf(MatchStartTimeException::class.java)
+    }
+
+    @Test
+    fun `enterResult should enter result`() {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
+
+        val result = Result.WINNER_TEAM_A
+        val participatingPlayers = listOf(ParticipatingPlayer(UserId("player 1"), Team.A), ParticipatingPlayer(UserId("player 2"), Team.B))
+
+        // When
+        matchAggregate.enterResult(result, participatingPlayers)
+
+        // Then
+        assertThat(matchAggregate.result).isEqualTo(result)
+        assertThat(matchAggregate.participatingPlayers).isEqualTo(participatingPlayers)
+    }
+
+    @Test
+    fun `enterResult should throw exception if match is not started`() {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.start = LocalDateTime.now().plusDays(1)
+
+        val result = Result.WINNER_TEAM_A
+        val participatingPlayers = emptyList<ParticipatingPlayer>()
+
+        assertThatThrownBy {
+            // When
+            matchAggregate.enterResult(result, participatingPlayers)
+
+            // Then
+        }.isInstanceOf(MatchStartTimeException::class.java)
+    }
+
+    @Test
+    fun `enterResult should throw exception if match is canceled`() {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
+        matchAggregate.status = MatchStatus.CANCELLED
+
+        val result = Result.WINNER_TEAM_A
+        val participatingPlayers = emptyList<ParticipatingPlayer>()
+
+        assertThatThrownBy {
+            // When
+            matchAggregate.enterResult(result, participatingPlayers)
+
+            // Then
+        }.isInstanceOf(MatchCanceledException::class.java)
+    }
+
+    @Test
+    fun `enterResult should throw exception if player entered multiple times` () {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
+
+        val result = Result.WINNER_TEAM_A
+        val participatingPlayers = listOf(
+            ParticipatingPlayer(UserId("player 1"), Team.A),
+            ParticipatingPlayer(UserId("player 1"), Team.B)
+        )
+
+        assertThatThrownBy {
+            // When
+            matchAggregate.enterResult(result, participatingPlayers)
+
+            // Then
+        }.isInstanceOf(PlayerResultEnteredMultipleTimesException::class.java)
     }
 
 }

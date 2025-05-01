@@ -3,6 +3,7 @@ package com.spruhs.kick_app.match.api
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.DomainEvent
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.UserId
 import java.time.LocalDateTime
 
 data class MatchCreatedEvent(
@@ -54,6 +55,9 @@ data class PlaygroundChangedEvent(
 
 data class MatchResultEnteredEvent(
     override val aggregateId: String,
+    val result: String,
+    val teamA: List<UserId>,
+    val teamB: List<UserId>,
 ) : BaseEvent(aggregateId)
 
 data class MatchStartedEvent(

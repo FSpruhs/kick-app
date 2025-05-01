@@ -216,6 +216,13 @@ class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not fou
 class MatchStartTimeException(matchId: MatchId) :
     RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
 
+class MatchCanceledException(matchId: MatchId) :
+    RuntimeException("Match with id: ${matchId.value} is cancelled")
+
+class PlayerResultEnteredMultipleTimesException(
+    matchId: MatchId,
+) : RuntimeException("Player  entered result multiple times for match: ${matchId.value}")
+
 class MatchAggregate(
     override val aggregateId: String,
 ) : AggregateRoot(aggregateId, GroupAggregate.Companion.TYPE) {
@@ -227,7 +234,7 @@ class MatchAggregate(
     var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
     val registeredPlayers: List<RegisteredPlayer> = mutableListOf()
     var result: Result? = null
-    val participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
+    var participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
 
     override fun whenEvent(event: Any) {
         when (event) {
@@ -264,7 +271,11 @@ class MatchAggregate(
         this.playground = Playground(event.newPlayground)
     }
 
-    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {}
+    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
+        this.result = Result.valueOf(event.result)
+        this.participatingPlayers =
+            event.teamA.map { ParticipatingPlayer(it, Team.A) } + event.teamB.map { ParticipatingPlayer(it, Team.B) }
+    }
 
     private fun handleMatchStartedEvent() {
         this.status = MatchStatus.ENTER_RESULT
@@ -298,13 +309,20 @@ class MatchAggregate(
     }
 
     fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {
-        apply(MatchResultEnteredEvent(
-            aggregateId,
-            result,
-            participatingPlayer.filter { it.team == Team.A },
-            participatingPlayer.filter { it.team == Team.B }
+        require(this.status != MatchStatus.CANCELLED) { throw MatchCanceledException(MatchId(this.aggregateId)) }
+        require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(participatingPlayer.size == participatingPlayer.map { it.userId }
+            .toSet().size) { throw PlayerResultEnteredMultipleTimesException(MatchId(this.aggregateId)) }
+
+        apply(
+            MatchResultEnteredEvent(
+                aggregateId,
+            result.name,
+            participatingPlayer.filter { it.team == Team.A }.map { it.userId },
+            participatingPlayer.filter { it.team == Team.B }.map { it.userId }
         ))
     }
+
 
     companion object {
         const val TYPE = "Match"

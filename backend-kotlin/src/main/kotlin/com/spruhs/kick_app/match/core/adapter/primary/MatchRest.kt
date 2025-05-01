@@ -53,7 +53,7 @@ class MatchRestController(
                 updatedUser = UserId(userId),
                 updatingUser = UserId(jwtParser.getUserId(jwt)),
                 matchId = MatchId(matchId),
-                status = RegistrationStatus.valueOf(status),
+                status = RegistrationStatusType.valueOf(status),
             )
         )
     }
@@ -139,7 +139,7 @@ fun Match.toMessage() = MatchMessage(
     maxPlayer = this.playerCount.maxPlayer.value,
     minPlayer = this.playerCount.minPlayer.value,
     acceptedPlayers = this.acceptedPlayers().map { it.value },
-    deregisteredPlayers = this.registeredPlayers.filter { it.status == RegistrationStatus.DEREGISTERED }.map { it.userId.value },
+    deregisteredPlayers = emptyList(),
     waitingBenchPlayers = this.waitingBenchPlayers().map { it.value },
     teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
     teamB = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },

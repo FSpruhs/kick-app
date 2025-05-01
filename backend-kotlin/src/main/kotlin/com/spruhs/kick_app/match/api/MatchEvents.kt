@@ -34,14 +34,20 @@ data class MatchPlannedEvent(
 
 data class PlayerAddedToCadreEvent(
     override val aggregateId: String,
+    val userId: UserId,
+    val status: String,
 ) : BaseEvent(aggregateId)
 
 data class PlayerDeregisteredEvent(
     override val aggregateId: String,
+    val userId: UserId,
+    val status: String,
 ) : BaseEvent(aggregateId)
 
 data class PlayerPlacedOnSubstituteBenchEvent(
     override val aggregateId: String,
+    val userId: UserId,
+    val status: String,
 ) : BaseEvent(aggregateId)
 
 data class MatchCanceledEvent(

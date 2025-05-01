@@ -122,5 +122,5 @@ data class UpdatePlayerRegistrationCommand(
     val updatingUser: UserId,
     val updatedUser: UserId,
     val matchId: MatchId,
-    val status: RegistrationStatus
+    val status: RegistrationStatusType
 )

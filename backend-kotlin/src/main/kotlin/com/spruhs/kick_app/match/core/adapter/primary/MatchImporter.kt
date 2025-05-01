@@ -6,7 +6,7 @@ import com.spruhs.kick_app.match.core.adapter.secondary.MatchRepository
 import com.spruhs.kick_app.match.core.adapter.secondary.ParticipatingPlayerDocument
 import com.spruhs.kick_app.match.core.adapter.secondary.RegisteredPlayerDocument
 import com.spruhs.kick_app.match.core.domain.MatchStatus
-import com.spruhs.kick_app.match.core.domain.RegistrationStatus
+import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.match.core.domain.Result
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
@@ -164,82 +164,82 @@ private val defaultMatches = listOf(
             RegisteredPlayerDocument(
                 userId = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.DEREGISTERED.name
+                status = RegistrationStatusType.DEREGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-2",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.DEREGISTERED.name
+                status = RegistrationStatusType.DEREGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-3",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-4",
                 registrationTime = LocalDateTime.now().plusHours(1).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-5",
                 registrationTime = LocalDateTime.now().plusHours(2).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-6",
                 registrationTime = LocalDateTime.now().plusHours(3).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-17",
                 registrationTime = LocalDateTime.now().plusHours(4).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-8",
                 registrationTime = LocalDateTime.now().plusHours(5).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-9",
                 registrationTime = LocalDateTime.now().plusHours(6).toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-18",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-11",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-12",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-13",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-14",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.REGISTERED.name
+                status = RegistrationStatusType.REGISTERED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-15",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.ADDED.name
+                status = RegistrationStatusType.ADDED.name
             ),
             RegisteredPlayerDocument(
                 userId = "user-id-16",
                 registrationTime = LocalDateTime.now().toString(),
-                status = RegistrationStatus.CANCELLED.name
+                status = RegistrationStatusType.CANCELLED.name
             ),
         )
     )

@@ -57,42 +57,12 @@ fun Match.cancel(): Match {
     return this.copy(status = MatchStatus.CANCELLED)
 }
 
-fun Match.addRegistration(userId: UserId, registrationStatus: RegistrationStatus): Match {
-    require(
-        registrationStatus == RegistrationStatus.REGISTERED ||
-                registrationStatus == RegistrationStatus.DEREGISTERED
-    ) { "Can only register or deregister" }
-    require(this.start.isBefore(LocalDateTime.now())) { "Cannot register to past match" }
-
-    val player = this.findRegisteredPlayer(userId)
-        ?: return this.copy(
-            registeredPlayers = this.registeredPlayers + RegisteredPlayer(
-                userId = userId,
-                registrationTime = LocalDateTime.now(),
-                status = registrationStatus
-            )
-        )
-    return this.copy(
-        registeredPlayers = this.registeredPlayers - player + player.copy(
-            status = registrationStatus,
-            registrationTime = LocalDateTime.now()
-        )
-    )
+fun Match.addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType): Match {
+    return this
 }
 
-fun Match.updateRegistration(updatedUser: UserId, registrationStatus: RegistrationStatus): Match {
-    require(
-        registrationStatus == RegistrationStatus.CANCELLED ||
-                registrationStatus == RegistrationStatus.ADDED
-    ) { "Can only cancel or add" }
-    require(this.start.isBefore(LocalDateTime.now())) { "Cannot register to past match" }
-    val player = this.findRegisteredPlayer(updatedUser).takeIf { it?.status != RegistrationStatus.DEREGISTERED }
-        ?: throw IllegalStateException("Player not found")
-    return this.copy(
-        registeredPlayers = this.registeredPlayers - player + player.copy(
-            status = registrationStatus,
-        )
-    )
+fun Match.updateRegistration(updatedUser: UserId, registrationStatusType: RegistrationStatusType): Match {
+    return this
 }
 
 fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Match {
@@ -118,25 +88,11 @@ fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Mat
 }
 
 fun Match.acceptedPlayers(): List<UserId> {
-    val registeredPlayer = this.registeredPlayers
-        .filter { it.status == RegistrationStatus.REGISTERED }
-        .sortedBy { it.registrationTime }
-        .take(this.playerCount.maxPlayer.value)
-
-    val addedPlayers = this.registeredPlayers.filter { it.status == RegistrationStatus.ADDED }
-
-    return (registeredPlayer + addedPlayers).map { it.userId }
+    return emptyList()
 }
 
 fun Match.waitingBenchPlayers(): List<UserId> {
-    val benchPlayers = this.registeredPlayers
-        .filter { it.status == RegistrationStatus.DEREGISTERED }
-        .sortedBy { it.registrationTime }
-        .drop(this.playerCount.maxPlayer.value)
-
-    val canceledPlayers = this.registeredPlayers.filter { it.status == RegistrationStatus.CANCELLED }
-
-    return (benchPlayers + canceledPlayers).map { it.userId }
+    return emptyList()
 }
 
 enum class MatchStatus {
@@ -177,7 +133,7 @@ data class PlayerCount(
     }
 }
 
-enum class RegistrationStatus {
+enum class RegistrationStatusType {
     REGISTERED,
     DEREGISTERED,
     CANCELLED,
@@ -232,16 +188,28 @@ class MatchAggregate(
     var status: MatchStatus = MatchStatus.PLANNED
     var playground: Playground? = null
     var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
-    val registeredPlayers: List<RegisteredPlayer> = mutableListOf()
+    var registeredPlayers: List<RegisteredPlayer> = mutableListOf()
     var result: Result? = null
     var participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
 
     override fun whenEvent(event: Any) {
         when (event) {
             is MatchPlannedEvent -> handleMatchPlannedEvent(event)
-            is PlayerAddedToCadreEvent -> handlePlayerAddedToCadreEvent(event)
-            is PlayerDeregisteredEvent -> handlePlayerDeregisteredEvent(event)
-            is PlayerPlacedOnSubstituteBenchEvent -> handlePlayerPlacedOnSubstituteBenchEvent(event)
+            is PlayerAddedToCadreEvent -> handleRegistrationEvent(
+                event.userId,
+                RegistrationStatusType.valueOf(event.status)
+            )
+
+            is PlayerDeregisteredEvent -> handleRegistrationEvent(
+                event.userId,
+                RegistrationStatusType.valueOf(event.status)
+            )
+
+            is PlayerPlacedOnSubstituteBenchEvent -> handleRegistrationEvent(
+                event.userId,
+                RegistrationStatusType.valueOf(event.status)
+            )
+
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
@@ -257,11 +225,19 @@ class MatchAggregate(
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
     }
 
-    private fun handlePlayerAddedToCadreEvent(event: PlayerAddedToCadreEvent) {}
-
-    private fun handlePlayerDeregisteredEvent(event: PlayerDeregisteredEvent) {}
-
-    private fun handlePlayerPlacedOnSubstituteBenchEvent(event: PlayerPlacedOnSubstituteBenchEvent) {}
+    private fun handleRegistrationEvent(userId: UserId, registrationStatusType: RegistrationStatusType) {
+        val currentPlayer = registeredPlayers.find { it.userId == userId }
+        if (currentPlayer != null) {
+            this.registeredPlayers -= currentPlayer
+        }
+        val registrationStatus = when (registrationStatusType) {
+            RegistrationStatusType.REGISTERED -> RegistrationStatus.Registered
+            RegistrationStatusType.DEREGISTERED -> RegistrationStatus.Deregistered
+            RegistrationStatusType.CANCELLED -> RegistrationStatus.Cancelled
+            RegistrationStatusType.ADDED -> RegistrationStatus.Added
+        }
+        this.registeredPlayers += RegisteredPlayer(userId, LocalDateTime.now(), registrationStatus)
+    }
 
     private fun handleMatchCanceledEvent() {
         this.status = MatchStatus.CANCELLED
@@ -317,14 +293,130 @@ class MatchAggregate(
         apply(
             MatchResultEnteredEvent(
                 aggregateId,
-            result.name,
-            participatingPlayer.filter { it.team == Team.A }.map { it.userId },
-            participatingPlayer.filter { it.team == Team.B }.map { it.userId }
-        ))
+                result.name,
+                participatingPlayer.filter { it.team == Team.A }.map { it.userId },
+                participatingPlayer.filter { it.team == Team.B }.map { it.userId }
+            ))
     }
 
+    fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
+        require(this.start.isBefore(LocalDateTime.now())) {
+            throw MatchStartTimeException(MatchId(this.aggregateId))
+        }
+
+        val currentPlayer = registeredPlayers.find { it.userId == userId }
+        if (currentPlayer == null) {
+            when (registrationStatusType) {
+                RegistrationStatusType.DEREGISTERED -> handlePlayerDeregistration(
+                    userId,
+                    RegistrationStatusType.DEREGISTERED
+                )
+
+                RegistrationStatusType.REGISTERED -> handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+                RegistrationStatusType.CANCELLED -> return
+                RegistrationStatusType.ADDED -> return
+            }
+            return
+        }
+
+        val newStatus = currentPlayer.status.updateStatus(registrationStatusType)
+        if (newStatus == currentPlayer.status) {
+            return
+        }
+
+        when (newStatus) {
+            is RegistrationStatus.Registered -> handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+            is RegistrationStatus.Deregistered -> handlePlayerDeregistration(
+                userId,
+                RegistrationStatusType.DEREGISTERED
+            )
+
+            is RegistrationStatus.Cancelled -> handlePlayerCancelled(userId, RegistrationStatusType.CANCELLED)
+            is RegistrationStatus.Added -> handlePlayerAdded(userId, RegistrationStatusType.ADDED)
+        }
+    }
+
+    private fun isCadreFull(): Boolean =
+        registeredPlayers.filter { it.status.getType() == RegistrationStatusType.ADDED || it.status.getType() == RegistrationStatusType.REGISTERED }.size >= playerCount.maxPlayer.value
+
+    private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType) {
+        if (isCadreFull()) {
+            apply(PlayerPlacedOnSubstituteBenchEvent(aggregateId, userId, status.name))
+        } else {
+            apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name))
+        }
+    }
+
+    private fun handlePlayerDeregistration(userId: UserId, status: RegistrationStatusType) {
+        apply(PlayerDeregisteredEvent(aggregateId, userId, status.name))
+    }
+
+    private fun handlePlayerAdded(userId: UserId, status: RegistrationStatusType) {
+        apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name))
+    }
+
+    private fun handlePlayerCancelled(userId: UserId, status: RegistrationStatusType) {
+        apply(PlayerPlacedOnSubstituteBenchEvent(aggregateId, userId, status.name))
+    }
 
     companion object {
         const val TYPE = "Match"
+    }
+}
+
+sealed class RegistrationStatus {
+    abstract fun updateStatus(status: RegistrationStatusType): RegistrationStatus
+    abstract fun getType(): RegistrationStatusType
+
+    object Registered : RegistrationStatus() {
+        override fun updateStatus(status: RegistrationStatusType): RegistrationStatus = when (status) {
+            RegistrationStatusType.REGISTERED -> this
+            RegistrationStatusType.DEREGISTERED -> Deregistered
+            RegistrationStatusType.CANCELLED -> Cancelled
+            RegistrationStatusType.ADDED -> this
+        }
+
+        override fun getType(): RegistrationStatusType {
+            return RegistrationStatusType.REGISTERED
+        }
+    }
+
+    object Deregistered : RegistrationStatus() {
+        override fun updateStatus(status: RegistrationStatusType): RegistrationStatus = when (status) {
+            RegistrationStatusType.REGISTERED -> Registered
+            RegistrationStatusType.DEREGISTERED -> this
+            RegistrationStatusType.CANCELLED -> this
+            RegistrationStatusType.ADDED -> this
+        }
+
+        override fun getType(): RegistrationStatusType {
+            return RegistrationStatusType.DEREGISTERED;
+        }
+    }
+
+    object Cancelled : RegistrationStatus() {
+        override fun updateStatus(status: RegistrationStatusType): RegistrationStatus = when (status) {
+            RegistrationStatusType.REGISTERED -> this
+            RegistrationStatusType.DEREGISTERED -> this
+            RegistrationStatusType.CANCELLED -> this
+            RegistrationStatusType.ADDED -> Added
+        }
+
+        override fun getType(): RegistrationStatusType {
+            return RegistrationStatusType.CANCELLED
+        }
+    }
+
+    object Added : RegistrationStatus() {
+        override fun updateStatus(status: RegistrationStatusType): RegistrationStatus = when (status) {
+            RegistrationStatusType.REGISTERED -> this
+            RegistrationStatusType.DEREGISTERED -> Deregistered
+            RegistrationStatusType.CANCELLED -> Cancelled
+            RegistrationStatusType.ADDED -> this
+        }
+
+        override fun getType(): RegistrationStatusType {
+            return RegistrationStatusType.ADDED
+        }
     }
 }

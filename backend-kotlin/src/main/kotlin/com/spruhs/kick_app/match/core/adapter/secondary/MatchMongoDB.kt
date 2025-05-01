@@ -71,7 +71,7 @@ private fun Match.toDocument() = MatchDocument(
 private fun RegisteredPlayer.toDocument() = RegisteredPlayerDocument(
     userId = userId.value,
     registrationTime = registrationTime.toISOString(),
-    status = status.name
+    status = status.getType().name
 )
 
 private fun ParticipatingPlayer.toDocument() = ParticipatingPlayerDocument(
@@ -94,7 +94,7 @@ private fun MatchDocument.toDomain() = Match(
 private fun RegisteredPlayerDocument.toDomain() = RegisteredPlayer(
     userId = UserId(userId),
     registrationTime = registrationTime.toLocalDateTime(),
-    status = RegistrationStatus.valueOf(status)
+    status = RegistrationStatus.Registered
 )
 
 private fun ParticipatingPlayerDocument.toDomain() = ParticipatingPlayer(

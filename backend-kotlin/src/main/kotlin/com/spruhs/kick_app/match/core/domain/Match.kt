@@ -3,7 +3,6 @@ package com.spruhs.kick_app.match.core.domain
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
-import com.spruhs.kick_app.match.api.MatchCreatedEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchStartedEvent
@@ -11,7 +10,6 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnSubstituteBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.match.api.ResultAddedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
@@ -312,7 +310,7 @@ sealed class RegistrationStatus {
         }
 
         override fun getType(): RegistrationStatusType {
-            return RegistrationStatusType.DEREGISTERED;
+            return RegistrationStatusType.DEREGISTERED
         }
     }
 

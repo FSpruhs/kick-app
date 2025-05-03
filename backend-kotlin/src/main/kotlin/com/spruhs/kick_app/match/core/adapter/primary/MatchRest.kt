@@ -15,14 +15,79 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/api/v1/match")
 class MatchRestController(
-    private val matchUseCases: MatchUseCases,
+    private val matchCommandPort: MatchCommandPort,
     private val jwtParser: JWTParser
 ) {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun planMatch(@RequestBody request: PlanMatchRequest) {
-        matchUseCases.plan(request.toCommand())
+    suspend fun planMatch(
+        @RequestBody request: PlanMatchRequest,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchCommandPort.plan(request.toCommand(UserId(jwtParser.getUserId(jwt))))
+    }
+
+    @DeleteMapping("/{matchId}")
+    suspend fun cancelMatch(
+        @PathVariable matchId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchCommandPort.cancelMatch(
+            CancelMatchCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId)
+            )
+        )
+    }
+
+    @PutMapping("/{matchId}/playground")
+    suspend fun changePlayground(
+        @PathVariable matchId: String,
+        @RequestParam playground: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchCommandPort.changePlayground(
+            ChangePlaygroundCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId),
+                playground = Playground(playground)
+            )
+        )
+    }
+
+    @PutMapping("/{matchId}/players/{userId}")
+    suspend fun updatePlayerRegistration(
+        @PathVariable matchId: String,
+        @PathVariable userId: String,
+        @RequestParam status: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchCommandPort.addRegistration(
+            AddRegistrationCommand(
+                updatedUser = UserId(userId),
+                updatingUser = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId),
+                status = RegistrationStatusType.valueOf(status),
+            )
+        )
+    }
+
+    @PostMapping("/{matchId}/result")
+    suspend fun addResult(
+        @PathVariable matchId: String,
+        @RequestBody request: EnterResultRequest,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        matchCommandPort.enterResult(
+            EnterResultCommand(
+                userId = UserId(jwtParser.getUserId(jwt)),
+                matchId = MatchId(matchId),
+                result = request.result,
+                teamA = request.teamA.map { UserId(it) }.toSet(),
+                teamB = request.teamB.map { UserId(it) }.toSet()
+            )
+        )
     }
 
     @GetMapping("/{matchId}")
@@ -38,58 +103,12 @@ class MatchRestController(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchPreviewMessage> {
-       return matchUseCases.getMatchesByGroupId(GroupId(groupId), UserId(jwtParser.getUserId(jwt))).map { it.toPreviewMessage() }
-    }
-
-    @PutMapping("/{matchId}/players/{userId}")
-    suspend fun updatePlayerRegistration(
-        @PathVariable matchId: String,
-        @PathVariable userId: String,
-        @RequestParam status: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ) {
-        matchUseCases.updatePlayerRegistration(
-            UpdatePlayerRegistrationCommand(
-                updatedUser = UserId(userId),
-                updatingUser = UserId(jwtParser.getUserId(jwt)),
-                matchId = MatchId(matchId),
-                status = RegistrationStatusType.valueOf(status),
-            )
-        )
-    }
-
-    @DeleteMapping("/{matchId}")
-    suspend fun cancelMatch(
-        @PathVariable matchId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ) {
-        matchUseCases.cancel(
-            CancelMatchCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
-                matchId = MatchId(matchId)
-            )
-        )
-    }
-
-    @PostMapping("/{matchId}/result")
-    suspend fun addResult(
-        @PathVariable matchId: String,
-        @RequestBody request: AddResultRequest,
-        @AuthenticationPrincipal jwt: Jwt
-    ) {
-        matchUseCases.addResult(
-            AddResultCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
-                matchId = MatchId(matchId),
-                result = request.result,
-                teamA = request.teamA.map { UserId(it) }.toSet(),
-                teamB = request.teamB.map { UserId(it) }.toSet()
-            )
-        )
+        return matchUseCases.getMatchesByGroupId(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+            .map { it.toPreviewMessage() }
     }
 }
 
-data class AddResultRequest(
+data class EnterResultRequest(
     val teamA: List<String>,
     val teamB: List<String>,
     val result: Result
@@ -125,29 +144,8 @@ data class MatchMessage(
     val result: String?
 )
 
-fun Match.toPreviewMessage() = MatchPreviewMessage(
-    id = this.id.value,
-    status = this.status.name,
-    start = this.start,
-)
-
-fun Match.toMessage() = MatchMessage(
-    matchId = this.id.value,
-    groupId = this.groupId.value,
-    start = this.start,
-    playground = this.playground.value,
-    maxPlayer = this.playerCount.maxPlayer.value,
-    minPlayer = this.playerCount.minPlayer.value,
-    acceptedPlayers = this.acceptedPlayers().map { it.value },
-    deregisteredPlayers = emptyList(),
-    waitingBenchPlayers = this.waitingBenchPlayers().map { it.value },
-    teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
-    teamB = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
-    result = this.result?.name,
-    status = this.status.name
-)
-
-fun PlanMatchRequest.toCommand() = PlanMatchCommand(
+fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
+    requesterId = requestingUserId,
     groupId = GroupId(groupId),
     start = start,
     playground = Playground(playground),

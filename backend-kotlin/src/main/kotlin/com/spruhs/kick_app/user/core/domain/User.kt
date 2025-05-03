@@ -46,7 +46,6 @@ class UserAggregate(
     }
 }
 
-
 interface UserIdentityProviderPort {
     fun save(email: Email, nickName: NickName): UserId
     fun changeNickName(userId: UserId, nickName: NickName)

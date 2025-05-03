@@ -13,16 +13,15 @@ class UserCommandsPort(
     private val userQueryPort: UserQueryPort
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
-        require(
-            userQueryPort.existsByEmail(command.email).not()
-        ) { throw UserWithEmailAlreadyExistsException(command.email) }
+        require(userQueryPort.existsByEmail(command.email).not()) {
+            throw UserWithEmailAlreadyExistsException(command.email)
+        }
 
         val newId = userIdentityProviderPort.save(command.email, command.nickName)
 
-        return UserAggregate(newId.value).let {
+        return UserAggregate(newId.value).also {
             it.createUser(command)
             aggregateStore.save(it)
-            it
         }
     }
 

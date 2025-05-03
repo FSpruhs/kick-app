@@ -15,86 +15,6 @@ import com.spruhs.kick_app.match.api.ResultAddedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
-data class Match(
-    val id: MatchId,
-    val groupId: GroupId,
-    val start: LocalDateTime,
-    val status: MatchStatus,
-    val playground: Playground,
-    val playerCount: PlayerCount,
-    val registeredPlayers: List<RegisteredPlayer>,
-    val result: Result? = null,
-    val participatingPlayers: List<ParticipatingPlayer> = emptyList(),
-    override val domainEvents: List<DomainEvent> = listOf()
-) : DomainEventList
-
-fun planMatch(
-    groupId: GroupId,
-    start: LocalDateTime,
-    playground: Playground,
-    playerCount: PlayerCount
-): Match {
-    require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
-    val newId = generateId()
-    return Match(
-        id = MatchId(newId),
-        groupId = groupId,
-        start = start,
-        playground = playground,
-        status = MatchStatus.PLANNED,
-        playerCount = playerCount,
-        registeredPlayers = emptyList(),
-        domainEvents = listOf(MatchCreatedEvent(groupId.value, newId, start))
-    )
-}
-
-private fun Match.findRegisteredPlayer(userId: UserId): RegisteredPlayer? {
-    return this.registeredPlayers.find { it.userId == userId }
-}
-
-fun Match.cancel(): Match {
-    require(this.status == MatchStatus.PLANNED) { "Cannot cancel match with status: ${this.status}" }
-    return this.copy(status = MatchStatus.CANCELLED)
-}
-
-fun Match.addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType): Match {
-    return this
-}
-
-fun Match.updateRegistration(updatedUser: UserId, registrationStatusType: RegistrationStatusType): Match {
-    return this
-}
-
-fun Match.addResult(result: Result, teamA: Set<UserId>, teamB: Set<UserId>): Match {
-    require(this.status != MatchStatus.CANCELLED) { "Cannot add result to cancelled match" }
-    require(this.start.isBefore(LocalDateTime.now())) { "Cannot add result to future match" }
-    require(teamA.none { teamB.contains(it) }) { "Players cannot be in both teams" }
-
-    return this.copy(
-        status = MatchStatus.FINISHED,
-        result = result,
-        participatingPlayers = teamA.map { ParticipatingPlayer(it, Team.A) } + teamB.map {
-            ParticipatingPlayer(
-                it,
-                Team.B
-            )
-        },
-        domainEvents = this.domainEvents + ResultAddedEvent(
-            this.id.value,
-            result.toString(),
-            teamA.map { it.value },
-            teamB.map { it.value })
-    )
-}
-
-fun Match.acceptedPlayers(): List<UserId> {
-    return emptyList()
-}
-
-fun Match.waitingBenchPlayers(): List<UserId> {
-    return emptyList()
-}
-
 enum class MatchStatus {
     PLANNED,
     CANCELLED,
@@ -162,16 +82,18 @@ value class MinPlayer(val value: Int) {
     }
 }
 
-interface MatchPersistencePort {
-    suspend fun save(match: Match)
-    suspend fun findById(matchId: MatchId): Match?
-    suspend fun findAllByGroupId(groupId: GroupId): List<Match>
+interface MatchProjectionPort {
+    suspend fun findById(matchId: MatchId): MatchProjektion?
+    suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjektion>
 }
+
+data class MatchProjektion(
+    val id: MatchId
+)
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
 class MatchStartTimeException(matchId: MatchId) :
     RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
-
 class MatchCanceledException(matchId: MatchId) :
     RuntimeException("Match with id: ${matchId.value} is cancelled")
 

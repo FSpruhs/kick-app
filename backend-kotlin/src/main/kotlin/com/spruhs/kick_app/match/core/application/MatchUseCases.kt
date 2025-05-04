@@ -80,10 +80,6 @@ class MatchCommandPort(
 
         aggregateStore.save(match)
     }
-
-    suspend fun startMatches(time: LocalDateTime) {
-
-    }
 }
 
 @Service

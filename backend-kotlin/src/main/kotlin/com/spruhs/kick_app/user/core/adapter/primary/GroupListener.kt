@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-@Component("GroupGroupListener")
+@Component("UserGroupListener")
 class GroupListener(
     private val messageUseCases: MessageUseCases,
     private val userProjectionPort: UserProjectionPort,

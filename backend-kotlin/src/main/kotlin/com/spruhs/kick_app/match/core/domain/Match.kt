@@ -8,14 +8,14 @@ import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchStartedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
-import com.spruhs.kick_app.match.api.PlayerPlacedOnSubstituteBenchEvent
+import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
 enum class MatchStatus {
     PLANNED,
-    CANCELLED,
+    CANCELED,
     ENTER_RESULT,
     FINISHED
 }
@@ -81,12 +81,24 @@ value class MinPlayer(val value: Int) {
 }
 
 interface MatchProjectionPort {
-    suspend fun findById(matchId: MatchId): MatchProjektion?
-    suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjektion>
+    suspend fun whenEvent(event: BaseEvent)
+    suspend fun findById(matchId: MatchId): MatchProjection?
+    suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection>
 }
 
-data class MatchProjektion(
-    val id: MatchId
+data class MatchProjection(
+    val id: MatchId,
+    val groupId: GroupId,
+    val start: LocalDateTime,
+    val playground: Playground?,
+    val status: MatchStatus,
+    val playerCount: PlayerCount,
+    val cadrePlayers: Set<UserId>,
+    val waitingBenchPlayers: Set<UserId>,
+    val deregisteredPlayers: Set<UserId>,
+    val teamA: Set<UserId>,
+    val teamB: Set<UserId>,
+    val result: Result? = null,
 )
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
@@ -125,7 +137,7 @@ class MatchAggregate(
                 RegistrationStatusType.valueOf(event.status)
             )
 
-            is PlayerPlacedOnSubstituteBenchEvent -> handleRegistrationEvent(
+            is PlayerPlacedOnWaitingBenchEvent -> handleRegistrationEvent(
                 event.userId,
                 RegistrationStatusType.valueOf(event.status)
             )
@@ -141,7 +153,7 @@ class MatchAggregate(
     private fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
         this.groupId = event.groupId
         this.start = event.start
-        this.playground = Playground(event.playground)
+        this.playground = event.playground?.let { Playground(it) }
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
     }
 
@@ -160,7 +172,7 @@ class MatchAggregate(
     }
 
     private fun handleMatchCanceledEvent() {
-        this.status = MatchStatus.CANCELLED
+        this.status = MatchStatus.CANCELED
     }
 
     private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
@@ -205,7 +217,7 @@ class MatchAggregate(
     }
 
     fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {
-        require(this.status != MatchStatus.CANCELLED) { throw MatchCanceledException(MatchId(this.aggregateId)) }
+        require(this.status != MatchStatus.CANCELED) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         require(participatingPlayer.size == participatingPlayer.map { it.userId }
             .toSet().size) { throw PlayerResultEnteredMultipleTimesException(MatchId(this.aggregateId)) }
@@ -261,7 +273,7 @@ class MatchAggregate(
 
     private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType) {
         if (isCadreFull()) {
-            apply(PlayerPlacedOnSubstituteBenchEvent(aggregateId, userId, status.name))
+            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name))
         } else {
             apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name))
         }
@@ -276,7 +288,7 @@ class MatchAggregate(
     }
 
     private fun handlePlayerCancelled(userId: UserId, status: RegistrationStatusType) {
-        apply(PlayerPlacedOnSubstituteBenchEvent(aggregateId, userId, status.name))
+        apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name))
     }
 
     companion object {

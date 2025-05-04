@@ -5,7 +5,7 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
-import com.spruhs.kick_app.match.api.PlayerPlacedOnSubstituteBenchEvent
+import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -90,7 +90,7 @@ class MatchAggregateTest {
         matchAggregate.cancelMatch()
 
         // Then
-        assertThat(matchAggregate.status).isEqualTo(MatchStatus.CANCELLED)
+        assertThat(matchAggregate.status).isEqualTo(MatchStatus.CANCELED)
     }
 
     @Test
@@ -148,7 +148,7 @@ class MatchAggregateTest {
         // Given
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.start = LocalDateTime.now().minusDays(1)
-        matchAggregate.status = MatchStatus.CANCELLED
+        matchAggregate.status = MatchStatus.CANCELED
 
         val result = Result.WINNER_TEAM_A
         val participatingPlayers = emptyList<ParticipatingPlayer>()
@@ -361,14 +361,14 @@ class MatchAggregateTest {
                 oldRegistrationStatus = RegistrationStatus.Registered,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
-                expectedEventType = PlayerPlacedOnSubstituteBenchEvent::class.java
+                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.REGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Deregistered,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerPlacedOnSubstituteBenchEvent::class.java
+                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.REGISTERED,
@@ -419,7 +419,7 @@ class MatchAggregateTest {
                 oldRegistrationStatus = RegistrationStatus.Added,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
-                expectedEventType = PlayerPlacedOnSubstituteBenchEvent::class.java
+                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.REGISTERED,
@@ -455,7 +455,7 @@ class MatchAggregateTest {
                 cadre = fullCadre,
                 addedPlayers = 1,
                 exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerPlacedOnSubstituteBenchEvent::class.java
+                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
             UnregisteredPlayerTestData(
                 registrationStatusType = RegistrationStatusType.REGISTERED,

@@ -16,6 +16,7 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1/match")
 class MatchRestController(
     private val matchCommandPort: MatchCommandPort,
+    private val matchQueryPort: MatchQueryPort,
     private val jwtParser: JWTParser
 ) {
 
@@ -95,7 +96,7 @@ class MatchRestController(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): MatchMessage {
-        return matchUseCases.getMatch(MatchId(matchId), UserId(jwtParser.getUserId(jwt))).toMessage()
+        return matchQueryPort.getMatch(MatchId(matchId), UserId(jwtParser.getUserId(jwt))).toMessage()
     }
 
     @GetMapping("/group/{groupId}")
@@ -103,7 +104,7 @@ class MatchRestController(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchPreviewMessage> {
-        return matchUseCases.getMatchesByGroupId(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+        return matchQueryPort.getMatchesByGroup(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
             .map { it.toPreviewMessage() }
     }
 }
@@ -124,30 +125,52 @@ data class PlanMatchRequest(
 
 data class MatchPreviewMessage(
     val id: String,
-    val status: String,
+    val status: MatchStatus,
     val start: LocalDateTime,
 )
 
 data class MatchMessage(
-    val matchId: String,
+    val id: String,
     val groupId: String,
     val start: LocalDateTime,
-    val playground: String,
+    val playground: String?,
     val maxPlayer: Int,
     val minPlayer: Int,
-    val status: String,
-    val acceptedPlayers: List<String>,
-    val deregisteredPlayers: List<String>,
-    val waitingBenchPlayers: List<String>,
-    val teamA: List<String>,
-    val teamB: List<String>,
-    val result: String?
+    val status: MatchStatus,
+    val cadrePlayers: Set<String>,
+    val deregisteredPlayers: Set<String>,
+    val waitingBenchPlayers: Set<String>,
+    val teamA: Set<String>,
+    val teamB: Set<String>,
+    val result: Result?
 )
 
-fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
+private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
     requesterId = requestingUserId,
     groupId = GroupId(groupId),
     start = start,
     playground = Playground(playground),
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer))
+)
+
+private fun MatchProjection.toMessage() = MatchMessage(
+    id = this.id.value,
+    groupId = this.groupId.value,
+    start = this.start,
+    playground = this.playground?.value,
+    maxPlayer = this.playerCount.maxPlayer.value,
+    minPlayer = this.playerCount.minPlayer.value,
+    status = this.status,
+    cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
+    deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
+    waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
+    teamA = this.teamA.map { it.value}.toSet(),
+    teamB = this.teamB.map { it.value}.toSet(),
+    result = this.result
+)
+
+private fun MatchProjection.toPreviewMessage() = MatchPreviewMessage(
+    id = this.id.value,
+    status = this.status,
+    start = this.start
 )

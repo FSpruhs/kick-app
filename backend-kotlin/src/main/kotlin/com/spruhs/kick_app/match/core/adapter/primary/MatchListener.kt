@@ -4,7 +4,6 @@ import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
-import com.spruhs.kick_app.match.api.MatchStartedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
@@ -22,7 +21,7 @@ class MatchListener(
 ) {
     private val log = getLogger(this::class.java)
 
-    @EventListener(MatchStartedEvent::class,
+    @EventListener(
         MatchCanceledEvent::class,
         MatchResultEnteredEvent::class,
         PlayerAddedToCadreEvent::class,
@@ -30,7 +29,6 @@ class MatchListener(
         PlayerPlacedOnWaitingBenchEvent::class,
         PlaygroundChangedEvent::class,
         PlayerDeregisteredEvent::class,
-        MatchStartedEvent::class
         )
     fun onEvent(event: MatchPlannedEvent) {
         log.info("MatchMatchListener received: $event")

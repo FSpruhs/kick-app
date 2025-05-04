@@ -55,10 +55,6 @@ data class MatchResultEnteredEvent(
     val teamB: List<UserId>,
 ) : BaseEvent(aggregateId)
 
-data class MatchStartedEvent(
-    override val aggregateId: String,
-) : BaseEvent(aggregateId)
-
 enum class MatchEvents {
     MATCH_PLANNED_V1,
     PLAYER_ADDED_TO_CADRE_V1,
@@ -67,7 +63,6 @@ enum class MatchEvents {
     MATCH_CANCELED_V1,
     PLAYGROUND_CHANGED_V1,
     MATCH_RESULT_ENTERED_V1,
-    MATCH_STARTED_V1
 }
 
 @Component
@@ -118,13 +113,6 @@ class MatchEventSerializer : Serializer {
                 data,
                 event.metadata
             )
-            is MatchStartedEvent -> Event(
-                aggregate,
-                MatchEvents.MATCH_STARTED_V1.name,
-                data,
-                event.metadata
-            )
-
 
             else -> throw UnknownEventTypeException(event)
         }
@@ -152,9 +140,6 @@ class MatchEventSerializer : Serializer {
             )
             MatchEvents.MATCH_RESULT_ENTERED_V1.name -> EventSourcingUtils.readValue(
                 event.data, MatchResultEnteredEvent::class.java
-            )
-            MatchEvents.MATCH_STARTED_V1.name -> EventSourcingUtils.readValue(
-                event.data, MatchStartedEvent::class.java
             )
 
             else -> throw UnknownEventTypeException(event)

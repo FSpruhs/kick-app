@@ -26,7 +26,8 @@ class MatchAggregateTest {
             groupId = GroupId("groupId"),
             start = LocalDateTime.now(),
             playground = Playground("stadium"),
-            playerCount = PlayerCount(MinPlayer(8), MaxPlayer(16))
+            playerCount = PlayerCount(MinPlayer(8), MaxPlayer(16)),
+            requesterId = UserId("requesterId")
         )
 
         // When
@@ -53,34 +54,6 @@ class MatchAggregateTest {
     }
 
     @Test
-    fun `startMatch should start match`() {
-        // Given
-        val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now()
-
-        // When
-        matchAggregate.startMatch()
-
-        // Then
-        assertThat(matchAggregate.status).isEqualTo(MatchStatus.ENTER_RESULT)
-    }
-
-    @Test
-    fun `startMatch should throw exception if start is in the future`() {
-        // Given
-        val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now().plusDays(1)
-
-
-        assertThatThrownBy {
-            // When
-            matchAggregate.startMatch()
-
-            // Then
-        }.isInstanceOf(MatchStartTimeException::class.java)
-    }
-
-    @Test
     fun `cancelMatch should cancel match`() {
         // Given
         val matchAggregate = MatchAggregate("matchId")
@@ -90,7 +63,7 @@ class MatchAggregateTest {
         matchAggregate.cancelMatch()
 
         // Then
-        assertThat(matchAggregate.status).isEqualTo(MatchStatus.CANCELED)
+        assertThat(matchAggregate.isCanceled).isEqualTo(true)
     }
 
     @Test
@@ -148,7 +121,7 @@ class MatchAggregateTest {
         // Given
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.start = LocalDateTime.now().minusDays(1)
-        matchAggregate.status = MatchStatus.CANCELED
+        matchAggregate.isCanceled = true
 
         val result = Result.WINNER_TEAM_A
         val participatingPlayers = emptyList<ParticipatingPlayer>()

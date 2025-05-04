@@ -125,7 +125,7 @@ data class PlanMatchRequest(
 
 data class MatchPreviewMessage(
     val id: String,
-    val status: MatchStatus,
+    val isCanceled: Boolean,
     val start: LocalDateTime,
 )
 
@@ -136,7 +136,7 @@ data class MatchMessage(
     val playground: String?,
     val maxPlayer: Int,
     val minPlayer: Int,
-    val status: MatchStatus,
+    val isCanceled: Boolean,
     val cadrePlayers: Set<String>,
     val deregisteredPlayers: Set<String>,
     val waitingBenchPlayers: Set<String>,
@@ -160,7 +160,7 @@ private fun MatchProjection.toMessage() = MatchMessage(
     playground = this.playground?.value,
     maxPlayer = this.playerCount.maxPlayer.value,
     minPlayer = this.playerCount.minPlayer.value,
-    status = this.status,
+    isCanceled = this.isCanceled,
     cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
@@ -171,6 +171,6 @@ private fun MatchProjection.toMessage() = MatchMessage(
 
 private fun MatchProjection.toPreviewMessage() = MatchPreviewMessage(
     id = this.id.value,
-    status = this.status,
+    isCanceled = this.isCanceled,
     start = this.start
 )

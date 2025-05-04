@@ -1,24 +1,15 @@
 package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.*
-import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
-import com.spruhs.kick_app.match.api.MatchStartedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
-
-enum class MatchStatus {
-    PLANNED,
-    CANCELED,
-    ENTER_RESULT,
-    FINISHED
-}
 
 enum class Result {
     WINNER_TEAM_A,
@@ -91,7 +82,7 @@ data class MatchProjection(
     val groupId: GroupId,
     val start: LocalDateTime,
     val playground: Playground?,
-    val status: MatchStatus,
+    val isCanceled: Boolean,
     val playerCount: PlayerCount,
     val cadrePlayers: Set<UserId>,
     val waitingBenchPlayers: Set<UserId>,
@@ -113,11 +104,11 @@ class PlayerResultEnteredMultipleTimesException(
 
 class MatchAggregate(
     override val aggregateId: String,
-) : AggregateRoot(aggregateId, GroupAggregate.Companion.TYPE) {
+) : AggregateRoot(aggregateId, TYPE) {
 
     var groupId: GroupId = GroupId("default")
     var start: LocalDateTime = LocalDateTime.now()
-    var status: MatchStatus = MatchStatus.PLANNED
+    var isCanceled: Boolean = false
     var playground: Playground? = null
     var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
     var registeredPlayers: List<RegisteredPlayer> = mutableListOf()
@@ -145,7 +136,6 @@ class MatchAggregate(
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
-            is MatchStartedEvent -> handleMatchStartedEvent()
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -172,7 +162,7 @@ class MatchAggregate(
     }
 
     private fun handleMatchCanceledEvent() {
-        this.status = MatchStatus.CANCELED
+        this.isCanceled = true
     }
 
     private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
@@ -183,10 +173,6 @@ class MatchAggregate(
         this.result = Result.valueOf(event.result)
         this.participatingPlayers =
             event.teamA.map { ParticipatingPlayer(it, Team.A) } + event.teamB.map { ParticipatingPlayer(it, Team.B) }
-    }
-
-    private fun handleMatchStartedEvent() {
-        this.status = MatchStatus.ENTER_RESULT
     }
 
     fun planMatch(command: PlanMatchCommand) {
@@ -207,17 +193,12 @@ class MatchAggregate(
         apply(MatchCanceledEvent(aggregateId))
     }
 
-    fun startMatch() {
-        require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
-        apply(MatchStartedEvent(aggregateId))
-    }
-
     fun changePlayground(newPlayground: Playground) {
         apply(PlaygroundChangedEvent(aggregateId, newPlayground.value))
     }
 
     fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {
-        require(this.status != MatchStatus.CANCELED) { throw MatchCanceledException(MatchId(this.aggregateId)) }
+        require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         require(participatingPlayer.size == participatingPlayer.map { it.userId }
             .toSet().size) { throw PlayerResultEnteredMultipleTimesException(MatchId(this.aggregateId)) }

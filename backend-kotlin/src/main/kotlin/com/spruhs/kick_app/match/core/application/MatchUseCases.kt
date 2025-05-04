@@ -80,6 +80,10 @@ class MatchCommandPort(
 
         aggregateStore.save(match)
     }
+
+    suspend fun startMatches(time: LocalDateTime) {
+
+    }
 }
 
 @Service
@@ -93,12 +97,10 @@ class MatchQueryPort(
         return match
     }
 
-
     suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId): List<MatchProjection> {
         require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
         return projectionPort.findAllByGroupId(groupId)
     }
-
 }
 
 data class EnterResultCommand(

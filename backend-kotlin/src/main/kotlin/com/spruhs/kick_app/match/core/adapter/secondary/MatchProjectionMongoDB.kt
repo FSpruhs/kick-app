@@ -4,7 +4,6 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
-import com.spruhs.kick_app.match.api.MatchStartedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
@@ -31,7 +30,6 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
             is MatchCanceledEvent -> handleMatchCanceledEvent(event)
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
-            is MatchStartedEvent -> handleMatchStartedEvent(event)
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -51,7 +49,7 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
             playground = event.playground,
             maxPlayer = event.maxPlayer,
             minPlayer = event.minPlayer,
-            status = MatchStatus.PLANNED,
+            isCanceled = false,
             cadrePlayers = emptySet(),
             deregisteredPlayers = emptySet(),
             waitingBenchPlayers = emptySet(),
@@ -92,7 +90,7 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
 
     private suspend fun handleMatchCanceledEvent(event: MatchCanceledEvent) {
         val match = findMatch(event.aggregateId)
-        match.status = MatchStatus.CANCELED
+        match.isCanceled = true
         repository.save(match).subscribe()
     }
 
@@ -110,12 +108,6 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
         repository.save(match).subscribe()
     }
 
-    private suspend fun handleMatchStartedEvent(event: MatchStartedEvent) {
-        val match = findMatch(event.aggregateId)
-        match.status = MatchStatus.ENTER_RESULT
-        repository.save(match).subscribe()
-    }
-
 }
 
 @Document(collection = "matches")
@@ -127,7 +119,7 @@ data class MatchDocument(
     var playground: String?,
     val maxPlayer: Int,
     val minPlayer: Int,
-    var status: MatchStatus,
+    var isCanceled: Boolean,
     var cadrePlayers: Set<String>,
     var deregisteredPlayers: Set<String>,
     var waitingBenchPlayers: Set<String>,
@@ -146,7 +138,7 @@ private fun MatchDocument.toProjection() = MatchProjection(
     groupId = GroupId(groupId),
     start = start,
     playground = playground?.let { Playground(it) },
-    status = this.status,
+    isCanceled = this.isCanceled,
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer)),
     result = result?.let { Result.valueOf(it) },
     cadrePlayers = cadrePlayers.map { UserId(it) }.toSet(),

@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.user.api
 
-import com.spruhs.kick_app.group.api.GroupEventSerializer
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest

@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.match.core.adapter.primary
 
+import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
@@ -30,8 +31,8 @@ class MatchListener(
         PlaygroundChangedEvent::class,
         PlayerDeregisteredEvent::class,
         )
-    fun onEvent(event: MatchPlannedEvent) {
-        log.info("MatchMatchListener received: $event")
+    fun onEvent(event: BaseEvent) {
+        log.info("Match scoe received: $event")
         applicationScope.launch {
             matchProjectionPort.whenEvent(event)
         }

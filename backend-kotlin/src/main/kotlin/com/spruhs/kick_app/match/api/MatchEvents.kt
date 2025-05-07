@@ -41,11 +41,13 @@ data class PlayerPlacedOnWaitingBenchEvent(
 
 data class MatchCanceledEvent(
     override val aggregateId: String,
+    val groupId: GroupId,
 ) : BaseEvent(aggregateId)
 
 data class PlaygroundChangedEvent(
     override val aggregateId: String,
     val newPlayground: String,
+    val groupId: GroupId
 ) : BaseEvent(aggregateId)
 
 data class MatchResultEnteredEvent(

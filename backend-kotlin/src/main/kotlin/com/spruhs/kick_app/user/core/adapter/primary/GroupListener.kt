@@ -1,5 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.BaseEvent
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.core.application.*
@@ -19,17 +21,14 @@ class GroupListener(
 
     private val log = getLogger(this::class.java)
 
-    @EventListener(GroupNameChangedEvent::class)
-    fun onEvent(event: GroupNameChangedEvent) {
-        log.info("GroupNameChangedEvent received: $event")
-        applicationScope.launch {
-            userProjectionPort.whenEvent(event)
-        }
-    }
-
-    @EventListener(GroupCreatedEvent::class)
-    fun onEvent(event: GroupCreatedEvent) {
-        log.info("GroupCreatedEvent received: $event")
+    @EventListener(
+        GroupNameChangedEvent::class,
+        GroupCreatedEvent::class,
+        PlayerEnteredGroupEvent::class,
+        PlayerLeavedEvent::class
+    )
+    fun onEvent(event: BaseEvent) {
+        log.info("User scope received: $event")
         applicationScope.launch {
             userProjectionPort.whenEvent(event)
         }
@@ -43,14 +42,6 @@ class GroupListener(
         }
     }
 
-    @EventListener(PlayerEnteredGroupEvent::class)
-    fun onEvent(event: PlayerEnteredGroupEvent) {
-        log.info("PlayerEnteredGroupEvent received: $event")
-        applicationScope.launch {
-            userProjectionPort.whenEvent(event)
-        }
-    }
-
     @EventListener(PlayerRemovedEvent::class)
     fun onEvent(event: PlayerRemovedEvent) {
         log.info("PlayerRemovedEvent received: $event")
@@ -60,23 +51,41 @@ class GroupListener(
         }
     }
 
-    @EventListener(PlayerLeavedEvent::class)
-    fun onEvent(event: PlayerLeavedEvent) {
-        log.info("PlayerLeavedEvent received: $event")
+    @EventListener(PlayerPromotedEvent::class)
+    fun onEvent(event: PlayerPromotedEvent) {
+        log.info("PlayerPromotedEvent received: $event")
         applicationScope.launch {
-            userProjectionPort.whenEvent(event)
+            messageUseCases.send(MessageType.USER_PROMOTED, event.toMessageParams())
+        }
+    }
+
+    @EventListener(PlayerDowngradedEvent::class)
+    fun onEvent(event: PlayerDowngradedEvent) {
+        log.info("PlayerDowngradedEvent received: $event")
+        applicationScope.launch {
+            messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
         }
     }
 }
 
+private fun PlayerDowngradedEvent.toMessageParams() = MessageParams(
+    userId = this.userId,
+    groupId = GroupId(this.aggregateId),
+)
+
+private fun PlayerPromotedEvent.toMessageParams() = MessageParams(
+    userId = this.userId,
+    groupId = GroupId(this.aggregateId),
+)
+
 private fun PlayerInvitedEvent.toMessageParams() = MessageParams(
-    userId = this.userId.value,
-    groupId = this.aggregateId,
+    userId = this.userId,
+    groupId = GroupId(this.aggregateId),
     groupName = this.name
 )
 
 private fun PlayerRemovedEvent.toMessageParams() = MessageParams(
-    userId = this.userId.value,
-    groupId = this.aggregateId,
+    userId = this.userId,
+    groupId = GroupId(this.aggregateId),
     groupName = this.name
 )

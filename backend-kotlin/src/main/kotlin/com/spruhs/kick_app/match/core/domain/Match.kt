@@ -190,11 +190,11 @@ class MatchAggregate(
 
     fun cancelMatch() {
         require(LocalDateTime.now().isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
-        apply(MatchCanceledEvent(aggregateId))
+        apply(MatchCanceledEvent(aggregateId, this.groupId))
     }
 
     fun changePlayground(newPlayground: Playground) {
-        apply(PlaygroundChangedEvent(aggregateId, newPlayground.value))
+        apply(PlaygroundChangedEvent(aggregateId, newPlayground.value, this.groupId))
     }
 
     fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {

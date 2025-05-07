@@ -1,10 +1,16 @@
 package com.spruhs.kick_app.group.api
 
+import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
+import com.spruhs.kick_app.match.api.MatchCanceledEvent
+import com.spruhs.kick_app.match.api.MatchEventSerializer
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import kotlin.test.Test
 
 
 class GroupEventSerializerTest {
@@ -41,5 +47,36 @@ class GroupEventSerializerTest {
             PlayerRemovedEvent("groupId", UserId("userId"), "groupName"),
             PlayerLeavedEvent("groupId", UserId("userId")),
         )
+    }
+
+    @Test
+    fun `serialized should throw exception when event unknown`() {
+        // Given
+        val groupId = "groupId"
+        val aggregate = GroupAggregate(groupId)
+        val event = MatchCanceledEvent("matchId", GroupId("groupId"))
+
+        // When
+
+        assertThatThrownBy {
+            GroupEventSerializer().serialize(event, aggregate)
+
+        // Then
+        }.isInstanceOf(UnknownEventTypeException::class.java)
+    }
+
+    @Test
+    fun `deserialize should throw exception when event unknown`() {
+        // Given
+        val groupId = "groupId"
+        val aggregate = GroupAggregate(groupId)
+        val event = MatchCanceledEvent("matchId", GroupId("groupId"))
+        val serialized = MatchEventSerializer().serialize(event, aggregate)
+
+        assertThatThrownBy {
+            GroupEventSerializer().deserialize(serialized)
+
+        // Then
+        }.isInstanceOf(UnknownEventTypeException::class.java)
     }
 }

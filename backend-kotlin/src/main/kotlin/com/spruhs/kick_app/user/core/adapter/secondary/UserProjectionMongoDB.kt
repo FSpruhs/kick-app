@@ -44,7 +44,7 @@ class UserProjectionMongoAdapter(
             is UserNickNameChangedEvent -> handleUserNickNameChanged(event)
             is GroupNameChangedEvent -> handleGroupNameChanged(event)
             is GroupCreatedEvent -> addGroupToUser(event.userId, event.aggregateId, event.name)
-            is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.aggregateId, event.name)
+            is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.aggregateId, event.groupName)
             is PlayerRemovedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
             is PlayerLeavedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
             else -> {

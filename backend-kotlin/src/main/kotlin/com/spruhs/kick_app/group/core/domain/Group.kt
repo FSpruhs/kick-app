@@ -278,7 +278,6 @@ data class GroupProjection(
     val id: GroupId,
     val name: Name,
     val players: List<PlayerProjection>,
-    val invitedUsers: List<UserId>
 ) {
     fun isActivePlayer(userId: UserId): Boolean =
         players.any { it.id == userId && it.status == PlayerStatusType.ACTIVE }

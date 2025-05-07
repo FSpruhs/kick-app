@@ -12,10 +12,6 @@ class GroupApiAdapter(private val groupQueryPort: GroupQueryPort) : GroupApi {
         return groupQueryPort.isActiveMember(groupId, userId)
     }
 
-    override suspend fun areActiveMembers(groupId: GroupId, userIds: Set<UserId>): Boolean {
-        return groupQueryPort.areActiveMembers(groupId, userIds)
-    }
-
     override suspend fun isActiveAdmin(groupId: GroupId, userId: UserId): Boolean {
         return groupQueryPort.isActiveAdmin(groupId, userId)
     }

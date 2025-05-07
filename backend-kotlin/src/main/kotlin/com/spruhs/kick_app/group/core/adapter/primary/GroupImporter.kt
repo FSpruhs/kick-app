@@ -38,7 +38,6 @@ private val defaultGroups: List<GroupDocument> = listOf(
     GroupDocument(
         id = "donnerstags-kick",
         name = "Donnerstags-kick",
-        invitedUsers = setOf(),
         players = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
@@ -145,7 +144,6 @@ private val defaultGroups: List<GroupDocument> = listOf(
     GroupDocument(
         id = "sonntags-kick",
         name = "Sonntags-kick",
-        invitedUsers = setOf(),
         players = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",

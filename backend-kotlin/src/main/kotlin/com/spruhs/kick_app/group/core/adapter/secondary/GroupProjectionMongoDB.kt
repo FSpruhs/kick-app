@@ -20,7 +20,6 @@ data class GroupDocument(
     val id: String,
     var name: String,
     var players: List<PlayerDocument>,
-    var invitedUsers: Set<String>
 )
 
 data class PlayerDocument(
@@ -86,39 +85,42 @@ class GroupProjectionMongoAdapter(
             id = event.aggregateId,
             name = event.name,
             players = listOf(PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.ADMIN.name)),
-            invitedUsers = emptySet()
         ).also {
             repository.save(it).awaitFirstOrNull()
         }
     }
 
+    private suspend fun fetchGroup(groupId: String): GroupDocument {
+        return repository.findById(groupId).awaitFirstOrNull()
+            ?: throw GroupNotFoundException(GroupId(groupId))
+    }
+
     private suspend fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
-        repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
+        fetchGroup(event.aggregateId).let {
             it.name = event.name
             repository.save(it).awaitSingle()
-        } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
+        }
     }
 
     private suspend fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
-        repository.findById(event.aggregateId).awaitFirstOrNull()?.let {
+        fetchGroup(event.aggregateId).let {
             it.players += PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.PLAYER.name)
-            it.invitedUsers -= event.userId.value
             repository.save(it).awaitSingle()
-        } ?: throw GroupNotFoundException(GroupId(event.aggregateId))
+        }
     }
 
     private suspend fun handlePlayerRoleEvent(groupId: GroupId, userId: UserId, role: PlayerRole) {
-        repository.findById(groupId.value).awaitFirstOrNull()?.let {
+        fetchGroup(groupId.value).let {
             it.players.find { player -> player.id == userId.value }?.role = role.name
             repository.save(it).awaitSingle()
-        } ?: throw GroupNotFoundException(groupId)
+        }
     }
 
     private suspend fun handlePlayerStatusEvent(groupId: GroupId, userId: UserId, status: PlayerStatusType) {
-        repository.findById(groupId.value).awaitFirstOrNull()?.let {
+        fetchGroup(groupId.value).let {
             it.players.find { player -> player.id == userId.value }?.status = status.name
             repository.save(it).awaitSingle()
-        } ?: throw GroupNotFoundException(groupId)
+        }
     }
 
     override suspend fun findById(groupId: GroupId): GroupProjection? {
@@ -145,5 +147,4 @@ private fun GroupDocument.toProjection() = GroupProjection(
             PlayerRole.valueOf(it.role)
         )
     },
-    invitedUsers = invitedUsers.map { UserId(it) }
 )

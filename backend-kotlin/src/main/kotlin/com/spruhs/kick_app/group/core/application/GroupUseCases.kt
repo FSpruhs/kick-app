@@ -10,7 +10,6 @@ data class GroupDetail(
     val id: String,
     val name: String,
     val players: List<PlayerDetail>,
-    val invitedUsers: List<String>,
 )
 
 data class PlayerDetail(
@@ -117,14 +116,6 @@ class GroupQueryPort(
         userId: UserId
     ): Boolean = groupProjectionPort.findById(groupId)?.isActivePlayer(userId) ?: false
 
-    suspend fun areActiveMembers(
-        groupId: GroupId,
-        userIds: Set<UserId>
-    ): Boolean {
-        val group = groupProjectionPort.findById(groupId) ?: return false
-        return userIds.all { group.isActivePlayer(it) }
-    }
-
     suspend fun isActiveAdmin(
         groupId: GroupId,
         userId: UserId
@@ -157,6 +148,5 @@ private fun GroupProjection.toGroupDetails(users: Map<UserId, UserData>): GroupD
             role = player.role,
             status = player.status,
         )
-    },
-    invitedUsers = invitedUsers.map { it.value },
+    }
 )

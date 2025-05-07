@@ -24,7 +24,7 @@ data class PlayerInvitedEvent(
 data class PlayerEnteredGroupEvent(
     override val aggregateId: String,
     val userId: UserId,
-    val name: String
+    val groupName: String
 ): BaseEvent(aggregateId)
 
 data class PlayerRejectedGroupEvent(

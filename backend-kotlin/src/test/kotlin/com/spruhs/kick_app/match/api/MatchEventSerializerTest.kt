@@ -33,8 +33,8 @@ class MatchEventSerializerTest {
             PlayerAddedToCadreEvent("matchId", UserId("userId"), "status"),
             PlayerDeregisteredEvent("matchId", UserId("userId"), "status"),
             PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),
-            MatchCanceledEvent("matchId"),
-            PlaygroundChangedEvent("matchId", "newPlayground"),
+            MatchCanceledEvent("matchId", GroupId("groupId")),
+            PlaygroundChangedEvent("matchId", "newPlayground", GroupId("groupId")),
             MatchResultEnteredEvent("matchId", "result", listOf(UserId("userId1")), listOf(UserId("userId2"))),
         )
     }

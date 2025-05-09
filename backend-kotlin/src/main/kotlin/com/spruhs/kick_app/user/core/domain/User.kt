@@ -90,7 +90,7 @@ value class Email(val value: String) {
                 val emailAddr = InternetAddress(email)
                 emailAddr.validate()
                 true
-            } catch (ex: AddressException) {
+            } catch (_: AddressException) {
                 false
             }
         }

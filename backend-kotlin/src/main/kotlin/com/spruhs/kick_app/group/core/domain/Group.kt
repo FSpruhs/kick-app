@@ -59,7 +59,8 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 
     private fun handlePlayerStatusEvent(userId: UserId, status: PlayerStatus) {
         players.find { it.id == userId }?.let {
-            players - it + it.copy(status = status)
+            players.remove(it)
+            players.add(it.copy(status = status))
         }
     }
 

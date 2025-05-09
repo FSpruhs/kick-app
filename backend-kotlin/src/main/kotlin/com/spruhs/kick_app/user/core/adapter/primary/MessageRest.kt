@@ -28,7 +28,7 @@ class MessageRestController(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable userId: String
     ): List<MessageResponse> {
-        require(jwtParser.getUserId(jwt) == userId) { throw UserNotAuthorizedException(UserId(userId)) }
+        require(jwtParser.getUserId(jwt).value == userId) { throw UserNotAuthorizedException(UserId(userId)) }
         return messageUseCases.getByUser(UserId(userId)).map { it.toResponse() }
     }
 
@@ -40,7 +40,7 @@ class MessageRestController(
         messageUseCases.markAsRead(
             MarkAsReadCommand(
                 messageId = MessageId(messageId),
-                userId = UserId(jwtParser.getUserId(jwt))
+                userId = jwtParser.getUserId(jwt)
             )
         )
     }

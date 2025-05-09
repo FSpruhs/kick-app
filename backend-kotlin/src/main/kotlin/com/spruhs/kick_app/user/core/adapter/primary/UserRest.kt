@@ -35,7 +35,7 @@ class UserRestController(
         @PathVariable id: String,
         @AuthenticationPrincipal jwt: Jwt
     ): UserMessage {
-        require(id == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(id)) }
+        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
         return userQueryPort.getUser(UserId(id)).toMessage()
     }
 
@@ -56,7 +56,7 @@ class UserRestController(
         @RequestParam nickName: String,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        require(id == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(id)) }
+        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
         userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(id), NickName(nickName)))
     }
 }

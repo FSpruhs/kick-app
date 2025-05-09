@@ -26,7 +26,7 @@ class MatchRestController(
         @RequestBody request: PlanMatchRequest,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        matchCommandPort.plan(request.toCommand(UserId(jwtParser.getUserId(jwt))))
+        matchCommandPort.plan(request.toCommand(jwtParser.getUserId(jwt)))
     }
 
     @DeleteMapping("/{matchId}")
@@ -36,7 +36,7 @@ class MatchRestController(
     ) {
         matchCommandPort.cancelMatch(
             CancelMatchCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
+                userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId)
             )
         )
@@ -50,7 +50,7 @@ class MatchRestController(
     ) {
         matchCommandPort.changePlayground(
             ChangePlaygroundCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
+                userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 playground = Playground(playground)
             )
@@ -67,7 +67,7 @@ class MatchRestController(
         matchCommandPort.addRegistration(
             AddRegistrationCommand(
                 updatedUser = UserId(userId),
-                updatingUser = UserId(jwtParser.getUserId(jwt)),
+                updatingUser = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 status = RegistrationStatusType.valueOf(status),
             )
@@ -82,7 +82,7 @@ class MatchRestController(
     ) {
         matchCommandPort.enterResult(
             EnterResultCommand(
-                userId = UserId(jwtParser.getUserId(jwt)),
+                userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 result = request.result,
                 teamA = request.teamA.map { UserId(it) }.toSet(),
@@ -95,16 +95,16 @@ class MatchRestController(
     suspend fun getMatch(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
-    ): MatchMessage {
-        return matchQueryPort.getMatch(MatchId(matchId), UserId(jwtParser.getUserId(jwt))).toMessage()
-    }
+    ): MatchMessage = matchQueryPort
+        .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
+        .toMessage()
 
     @GetMapping("/group/{groupId}")
     suspend fun getMatchPreviews(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchPreviewMessage> {
-        return matchQueryPort.getMatchesByGroup(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+        return matchQueryPort.getMatchesByGroup(GroupId(groupId), jwtParser.getUserId(jwt))
             .map { it.toPreviewMessage() }
     }
 }

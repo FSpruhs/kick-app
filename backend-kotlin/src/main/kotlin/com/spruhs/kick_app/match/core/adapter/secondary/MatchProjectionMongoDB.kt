@@ -35,11 +35,14 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
     }
 
     override suspend  fun findById(matchId: MatchId): MatchProjection? =
-        repository.findById(matchId.value).awaitFirstOrNull()?.toProjection()
+        repository.findById(matchId.value)
+            .awaitFirstOrNull()
+            ?.toProjection()
 
-    override suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection> {
-        return repository.findByGroupId(groupId.value).collectList().awaitSingle().map { it.toProjection() }
-    }
+    override suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection> =
+        repository.findByGroupId(groupId.value).collectList()
+            .awaitSingle()
+            .map { it.toProjection() }
 
     private suspend fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
         val matchDocument = MatchDocument(
@@ -60,9 +63,10 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
         repository.save(matchDocument).subscribe()
     }
 
-    private suspend fun findMatch(matchId: String): MatchDocument {
-        return repository.findById(matchId).awaitFirstOrNull()?: throw MatchNotFoundException(MatchId(matchId))
-    }
+    private suspend fun findMatch(matchId: String): MatchDocument =
+        repository.findById(matchId)
+            .awaitFirstOrNull()
+            ?: throw MatchNotFoundException(MatchId(matchId))
 
     private suspend fun handlePlayerAddedToCadreEvent(event: PlayerAddedToCadreEvent) {
         val match = findMatch(event.aggregateId)
@@ -107,7 +111,6 @@ class MatchPersistenceAdapter(private val repository: MatchRepository) : MatchPr
         match.teamB = event.teamB.map { it.value }.toSet()
         repository.save(match).subscribe()
     }
-
 }
 
 @Document(collection = "matches")

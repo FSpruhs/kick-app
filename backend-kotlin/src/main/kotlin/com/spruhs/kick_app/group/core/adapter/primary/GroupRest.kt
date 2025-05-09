@@ -32,7 +32,7 @@ class GroupRest(
             groupCommandPort.updatePlayerStatus(
                 UpdatePlayerStatusCommand(
                     userId = UserId(userId),
-                    updatingUserId = UserId(jwtParser.getUserId(jwt)),
+                    updatingUserId = jwtParser.getUserId(jwt),
                     groupId = GroupId(groupId),
                     newStatus = PlayerStatusType.valueOf(status)
                 )
@@ -42,7 +42,7 @@ class GroupRest(
             groupCommandPort.updatePlayerRole(
                 UpdatePlayerRoleCommand(
                     userId = UserId(userId),
-                    updatingUserId = UserId(jwtParser.getUserId(jwt)),
+                    updatingUserId = jwtParser.getUserId(jwt),
                     groupId = GroupId(groupId),
                     newRole = PlayerRole.valueOf(role)
                 )
@@ -55,14 +55,16 @@ class GroupRest(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): GroupDetail =
-        groupQueryPort.getGroupDetails(GroupId(groupId), UserId(jwtParser.getUserId(jwt)))
+        groupQueryPort.getGroupDetails(GroupId(groupId), jwtParser.getUserId(jwt))
 
     @GetMapping("/player/{userId}")
     suspend fun getGroups(
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<GroupMessage> {
-        require(userId == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(userId)) }
+        require(userId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(userId))
+        }
 
         return groupQueryPort.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
     }
@@ -71,10 +73,10 @@ class GroupRest(
     suspend fun createGroup(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest
-    ): GroupMessage {
-        return groupCommandPort.createGroup(CreateGroupCommand(UserId(jwtParser.getUserId(jwt)), Name(request.name)))
-            .toMessage()
-    }
+    ): GroupMessage = groupCommandPort
+        .createGroup(CreateGroupCommand(jwtParser.getUserId(jwt), Name(request.name)))
+        .toMessage()
+
 
     @PutMapping("/{groupId}/name")
     suspend fun updateGroupName(
@@ -85,7 +87,7 @@ class GroupRest(
         groupCommandPort.changeGroupName(
             ChangeGroupNameCommand(
                 groupId = GroupId(groupId),
-                userId = UserId(jwtParser.getUserId(jwt)),
+                userId = jwtParser.getUserId(jwt),
                 newName = Name(name)
             )
         )
@@ -99,7 +101,7 @@ class GroupRest(
     ) {
         groupCommandPort.inviteUser(
             InviteUserCommand(
-                inviterId = UserId(jwtParser.getUserId(jwt)),
+                inviterId = jwtParser.getUserId(jwt),
                 inviteeId = UserId(userId),
                 groupId = GroupId(groupId)
             )
@@ -111,7 +113,9 @@ class GroupRest(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: InviteUserResponse
     ) {
-        require(request.userId == jwtParser.getUserId(jwt)) { throw UserNotAuthorizedException(UserId(request.userId)) }
+        require(request.userId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(request.userId))
+        }
         groupCommandPort.inviteUserResponse(request.toCommand())
     }
 }

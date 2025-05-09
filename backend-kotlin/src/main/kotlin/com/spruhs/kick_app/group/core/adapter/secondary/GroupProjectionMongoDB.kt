@@ -80,20 +80,28 @@ class GroupProjectionMongoAdapter(
         }
     }
 
+    private fun newPlayerDocument(userId: UserId) = PlayerDocument(
+        id = userId.value,
+        status = PlayerStatusType.ACTIVE.name,
+        role = PlayerRole.PLAYER.name
+    )
+
     private suspend fun handleGroupCreatedEvent(event: GroupCreatedEvent) {
         GroupDocument(
             id = event.aggregateId,
             name = event.name,
-            players = listOf(PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.ADMIN.name)),
+            players = listOf(newPlayerDocument(event.userId)),
         ).also {
             repository.save(it).awaitFirstOrNull()
         }
     }
 
-    private suspend fun fetchGroup(groupId: String): GroupDocument {
-        return repository.findById(groupId).awaitFirstOrNull()
+    private suspend fun fetchGroup(groupId: String): GroupDocument =
+        repository
+            .findById(groupId)
+            .awaitFirstOrNull()
             ?: throw GroupNotFoundException(GroupId(groupId))
-    }
+
 
     private suspend fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
         fetchGroup(event.aggregateId).let {
@@ -104,7 +112,7 @@ class GroupProjectionMongoAdapter(
 
     private suspend fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
         fetchGroup(event.aggregateId).let {
-            it.players += PlayerDocument(event.userId.value, PlayerStatusType.ACTIVE.name, PlayerRole.PLAYER.name)
+            it.players += newPlayerDocument(event.userId)
             repository.save(it).awaitSingle()
         }
     }
@@ -123,13 +131,17 @@ class GroupProjectionMongoAdapter(
         }
     }
 
-    override suspend fun findById(groupId: GroupId): GroupProjection? {
-        return repository.findById(groupId.value).map { it.toProjection() }.awaitFirstOrNull()
-    }
+    override suspend fun findById(groupId: GroupId): GroupProjection? =
+        repository.findById(groupId.value)
+            .map { it.toProjection() }
+            .awaitFirstOrNull()
 
-    override suspend fun findByPlayer(userId: UserId): List<GroupProjection> {
-        return repository.findAllByPlayersIdContains(userId.value).collectList().awaitFirst().map { it.toProjection() }
-    }
+
+    override suspend fun findByPlayer(userId: UserId): List<GroupProjection> =
+        repository.findAllByPlayersIdContains(userId.value)
+            .collectList()
+            .awaitFirst()
+            .map { it.toProjection() }
 }
 
 @Repository

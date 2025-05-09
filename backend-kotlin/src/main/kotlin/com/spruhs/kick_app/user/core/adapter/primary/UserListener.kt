@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
@@ -16,17 +17,12 @@ class UserListener(
 ) {
     private val log = getLogger(this::class.java)
 
-    @EventListener(UserCreatedEvent::class)
-    fun onEvent(event: UserCreatedEvent) {
-        log.info("UserCreatedEvent received: $event")
-        applicationScope.launch {
-            userProjectionPort.whenEvent(event)
-        }
-    }
-
-    @EventListener(UserNickNameChangedEvent::class)
-    fun onEvent(event: UserNickNameChangedEvent) {
-        log.info("UserNickNameChangedEvent received: $event")
+    @EventListener(
+        UserCreatedEvent::class,
+        UserNickNameChangedEvent::class,
+    )
+    fun onEvent(event: BaseEvent) {
+        log.info("User scope received: $event")
         applicationScope.launch {
             userProjectionPort.whenEvent(event)
         }

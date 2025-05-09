@@ -60,12 +60,11 @@ data class UpdatePlayerStatusCommand(
 class GroupCommandPort(
     private val aggregateStore: AggregateStore
 ) {
-    suspend fun createGroup(command: CreateGroupCommand): GroupAggregate {
-        return GroupAggregate(generateId()).also {
+    suspend fun createGroup(command: CreateGroupCommand): GroupAggregate =
+        GroupAggregate(generateId()).also {
             it.createGroup(command)
             aggregateStore.save(it)
         }
-    }
 
     suspend fun changeGroupName(command: ChangeGroupNameCommand) {
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
@@ -109,7 +108,9 @@ class GroupQueryPort(
     private val userApi: UserApi
 ) {
     suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
-        fetchGroup(groupId).players.filter { it.status == PlayerStatusType.ACTIVE }.map { it.id }
+        fetchGroup(groupId).players
+            .filter { it.status == PlayerStatusType.ACTIVE }
+            .map { it.id }
 
     suspend fun isActiveMember(
         groupId: GroupId,
@@ -121,7 +122,8 @@ class GroupQueryPort(
         userId: UserId
     ): Boolean = groupProjectionPort.findById(groupId)?.isActiveAdmin(userId) ?: false
 
-    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> = groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
+    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> =
+        groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
 
     suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {

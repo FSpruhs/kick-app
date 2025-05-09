@@ -5,5 +5,5 @@ import org.springframework.stereotype.Service
 
 @Service
 class JWTParser {
-    fun getUserId(jwt: Jwt): String = jwt.getClaimAsString("sub")
+    fun getUserId(jwt: Jwt): UserId = UserId(jwt.getClaimAsString("sub"))
 }

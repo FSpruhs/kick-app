@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
 import com.spruhs.kick_app.common.BaseEvent
+import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.domain.GroupProjectionPort
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +14,8 @@ class GroupListener (
     private val groupProjectionPort: GroupProjectionPort,
     private val applicationScope: CoroutineScope,
 ) {
+    private val log = getLogger(this::class.java)
+
     @EventListener(
         GroupCreatedEvent::class,
         GroupNameChangedEvent::class,
@@ -25,6 +28,7 @@ class GroupListener (
         PlayerLeavedEvent::class
     )
     fun onEvent(event: BaseEvent) {
+        log.info("Group scope received: $event")
         applicationScope.launch {
             groupProjectionPort.whenEvent(event)
         }

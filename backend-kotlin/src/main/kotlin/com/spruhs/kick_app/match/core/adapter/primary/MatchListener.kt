@@ -32,7 +32,7 @@ class MatchListener(
         PlayerDeregisteredEvent::class,
         )
     fun onEvent(event: BaseEvent) {
-        log.info("Match scoe received: $event")
+        log.info("Match scope received: $event")
         applicationScope.launch {
             matchProjectionPort.whenEvent(event)
         }

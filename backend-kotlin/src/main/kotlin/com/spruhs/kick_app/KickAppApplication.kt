@@ -13,3 +13,5 @@ class KickAppApplication
 fun main(args: Array<String>) {
 	runApplication<KickAppApplication>(*args)
 }
+
+

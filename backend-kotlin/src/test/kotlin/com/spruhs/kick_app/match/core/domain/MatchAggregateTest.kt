@@ -175,18 +175,26 @@ class MatchAggregateTest {
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.start = LocalDateTime.now().minusDays(1)
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
-        matchAggregate.registeredPlayers = testData.cadre
+        testData.cadre.forEach { matchAggregate.cadre.add(it) }
         val newPlayerId = UserId("new player")
 
         // When
         matchAggregate.addRegistration(newPlayerId, testData.registrationStatusType)
 
         // Then
-        assertThat(matchAggregate.registeredPlayers.size).isEqualTo(testData.cadre.size + testData.addedPlayers)
-        if (testData.addedPlayers == 1) {
+        assertThat(matchAggregate.cadre.size).isEqualTo(testData.cadre.size + testData.addedPlayers)
+        if (testData.addedPlayers == 1 || testData.waitingPlayers == 1) {
             assertThat(matchAggregate.changes.size).isEqualTo(1)
             assertThat(matchAggregate.changes.first()).isInstanceOf(testData.expectedEventType)
-            matchAggregate.registeredPlayers.find { it.userId == newPlayerId }.let { player ->
+        }
+        if (testData.addedPlayers == 1) {
+            matchAggregate.cadre.find { it.userId == newPlayerId }.let { player ->
+                assertThat(player).isNotNull()
+                assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+            }
+        }
+        if (testData.waitingPlayers == 1) {
+            matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
                 assertThat(player).isNotNull()
                 assertThat(player?.status).isEqualTo(testData.exceptedStatus)
             }
@@ -201,16 +209,48 @@ class MatchAggregateTest {
         val newPlayerId = UserId("new player")
         matchAggregate.start = LocalDateTime.now().minusDays(1)
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
-        matchAggregate.registeredPlayers = testData.cadre + RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus)
+        testData.cadre.forEach { matchAggregate.cadre.add(it) }
+        when (testData.oldRegistrationStatus) {
+            RegistrationStatus.Added -> matchAggregate.cadre.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Cancelled -> matchAggregate.waitingBench.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Deregistered -> matchAggregate.deregistered.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Registered -> matchAggregate.cadre.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
+        }
+
 
         // When
         matchAggregate.addRegistration(newPlayerId, testData.newRegistrationStatusType)
 
         // Then
-        assertThat(matchAggregate.registeredPlayers.size).isEqualTo(testData.cadre.size + 1)
-        matchAggregate.registeredPlayers.find { it.userId == newPlayerId }.let { player ->
-            assertThat(player).isNotNull()
-            assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+        assertThat(matchAggregate.cadre.size).isEqualTo(testData.cadre.size + 1 - testData.deregisteredPlayers - testData.placedOnWaitingBench - testData.canceledPlayer)
+        when {
+            testData.deregisteredPlayers == 1 -> {
+                matchAggregate.deregistered.find { it.userId == newPlayerId }.let { player ->
+                    assertThat(player).isNotNull()
+                    assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+                }
+            }
+
+            testData.placedOnWaitingBench == 1 -> {
+                matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
+                    assertThat(player).isNotNull()
+                    assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+                }
+            }
+
+            testData.canceledPlayer == 1 -> {
+                matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
+                    assertThat(player).isNotNull()
+                    assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+                }
+            }
+
+            else -> {
+                matchAggregate.cadre.find { it.userId == newPlayerId }.let { player ->
+                    assertThat(player).isNotNull()
+                    assertThat(player?.status).isEqualTo(testData.exceptedStatus)
+                }
+            }
         }
         if (testData.expectedEventType != null) {
             assertThat(matchAggregate.changes.size).isEqualTo(1)
@@ -225,7 +265,8 @@ class MatchAggregateTest {
         data class UnregisteredPlayerTestData(
             val registrationStatusType: RegistrationStatusType,
             val cadre: List<RegisteredPlayer>,
-            val addedPlayers: Int,
+            val addedPlayers: Int = 0,
+            val waitingPlayers: Int = 0,
             val exceptedStatus: RegistrationStatus? = null,
             val expectedEventType: Class<out BaseEvent>? = null
         )
@@ -234,6 +275,9 @@ class MatchAggregateTest {
             val newRegistrationStatusType: RegistrationStatusType,
             val oldRegistrationStatus: RegistrationStatus,
             val cadre: List<RegisteredPlayer>,
+            val deregisteredPlayers: Int = 0,
+            val placedOnWaitingBench: Int = 0,
+            val canceledPlayer: Int = 0,
             val exceptedStatus: RegistrationStatus,
             val expectedEventType: Class<out BaseEvent>? = null
         )
@@ -296,16 +340,6 @@ class MatchAggregateTest {
                 registrationTime = LocalDateTime.now(),
                 status = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
-                userId = UserId("player 6"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Cancelled
-            ),
-            RegisteredPlayer(
-                userId = UserId("player 7"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Deregistered
-            )
         )
 
         @JvmStatic
@@ -326,6 +360,7 @@ class MatchAggregateTest {
                 newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Registered,
                 cadre = fullCadre,
+                deregisteredPlayers = 1,
                 exceptedStatus = RegistrationStatus.Deregistered,
                 expectedEventType = PlayerDeregisteredEvent::class.java
             ),
@@ -333,6 +368,7 @@ class MatchAggregateTest {
                 newRegistrationStatusType = RegistrationStatusType.CANCELLED,
                 oldRegistrationStatus = RegistrationStatus.Registered,
                 cadre = fullCadre,
+                placedOnWaitingBench = 1,
                 exceptedStatus = RegistrationStatus.Cancelled,
                 expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
@@ -340,6 +376,7 @@ class MatchAggregateTest {
                 newRegistrationStatusType = RegistrationStatusType.REGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Deregistered,
                 cadre = fullCadre,
+                placedOnWaitingBench = 1,
                 exceptedStatus = RegistrationStatus.Registered,
                 expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
@@ -353,18 +390,21 @@ class MatchAggregateTest {
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Deregistered,
+                deregisteredPlayers = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Deregistered,
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.ADDED,
                 oldRegistrationStatus = RegistrationStatus.Deregistered,
+                deregisteredPlayers = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Deregistered,
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.CANCELLED,
                 oldRegistrationStatus = RegistrationStatus.Deregistered,
+                deregisteredPlayers = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Deregistered,
             ),
@@ -377,6 +417,7 @@ class MatchAggregateTest {
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Added,
+                deregisteredPlayers = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Deregistered,
                 expectedEventType = PlayerDeregisteredEvent::class.java
@@ -390,6 +431,7 @@ class MatchAggregateTest {
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.CANCELLED,
                 oldRegistrationStatus = RegistrationStatus.Added,
+                canceledPlayer = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
                 expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
@@ -397,12 +439,14 @@ class MatchAggregateTest {
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.REGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Cancelled,
+                canceledPlayer = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
             ),
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
                 oldRegistrationStatus = RegistrationStatus.Cancelled,
+                canceledPlayer = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
             ),
@@ -416,6 +460,7 @@ class MatchAggregateTest {
             RegisteredPlayerTestData(
                 newRegistrationStatusType = RegistrationStatusType.CANCELLED,
                 oldRegistrationStatus = RegistrationStatus.Cancelled,
+                canceledPlayer = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
             ),
@@ -426,7 +471,7 @@ class MatchAggregateTest {
             UnregisteredPlayerTestData(
                 registrationStatusType = RegistrationStatusType.REGISTERED,
                 cadre = fullCadre,
-                addedPlayers = 1,
+                waitingPlayers = 1,
                 exceptedStatus = RegistrationStatus.Registered,
                 expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
             ),
@@ -438,28 +483,24 @@ class MatchAggregateTest {
                 expectedEventType = PlayerAddedToCadreEvent::class.java
             ),
             UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.REGISTERED,
+                registrationStatusType = RegistrationStatusType.DEREGISTERED,
                 cadre = nonFullCadre,
-                addedPlayers = 1,
                 exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerAddedToCadreEvent::class.java
+                expectedEventType = PlayerDeregisteredEvent::class.java
             ),
             UnregisteredPlayerTestData(
                 registrationStatusType = RegistrationStatusType.DEREGISTERED,
                 cadre = fullCadre,
-                addedPlayers = 1,
                 exceptedStatus = RegistrationStatus.Deregistered,
                 expectedEventType = PlayerDeregisteredEvent::class.java
             ),
             UnregisteredPlayerTestData(
                 registrationStatusType = RegistrationStatusType.CANCELLED,
                 cadre = fullCadre,
-                addedPlayers = 0,
             ),
             UnregisteredPlayerTestData(
                 registrationStatusType = RegistrationStatusType.ADDED,
                 cadre = fullCadre,
-                addedPlayers = 0,
             ),
         ).stream()
     }

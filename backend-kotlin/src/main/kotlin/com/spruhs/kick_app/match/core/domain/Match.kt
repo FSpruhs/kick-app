@@ -46,7 +46,14 @@ enum class RegistrationStatusType {
     REGISTERED,
     DEREGISTERED,
     CANCELLED,
-    ADDED
+    ADDED;
+
+    fun toRegistrationStatus(): RegistrationStatus = when (this) {
+        REGISTERED -> RegistrationStatus.Registered
+        DEREGISTERED -> RegistrationStatus.Deregistered
+        CANCELLED -> RegistrationStatus.Cancelled
+        ADDED -> RegistrationStatus.Added
+    }
 }
 
 @JvmInline
@@ -95,6 +102,7 @@ data class MatchProjection(
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
 class MatchStartTimeException(matchId: MatchId) :
     RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
+
 class MatchCanceledException(matchId: MatchId) :
     RuntimeException("Match with id: ${matchId.value} is cancelled")
 
@@ -111,26 +119,31 @@ class MatchAggregate(
     var isCanceled: Boolean = false
     var playground: Playground? = null
     var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
-    var registeredPlayers: List<RegisteredPlayer> = mutableListOf()
+    val cadre = mutableListOf<RegisteredPlayer>()
+    val waitingBench = mutableListOf<RegisteredPlayer>()
+    val deregistered = mutableListOf<RegisteredPlayer>()
     var result: Result? = null
     var participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
 
     override fun whenEvent(event: Any) {
         when (event) {
             is MatchPlannedEvent -> handleMatchPlannedEvent(event)
-            is PlayerAddedToCadreEvent -> handleRegistrationEvent(
+            is PlayerAddedToCadreEvent -> handlePlayerStatusChange(
                 event.userId,
-                RegistrationStatusType.valueOf(event.status)
+                RegistrationStatusType.valueOf(event.status),
+                cadre
             )
 
-            is PlayerDeregisteredEvent -> handleRegistrationEvent(
+            is PlayerDeregisteredEvent -> handlePlayerStatusChange(
                 event.userId,
-                RegistrationStatusType.valueOf(event.status)
+                RegistrationStatusType.valueOf(event.status),
+                deregistered
             )
 
-            is PlayerPlacedOnWaitingBenchEvent -> handleRegistrationEvent(
+            is PlayerPlacedOnWaitingBenchEvent -> handlePlayerStatusChange(
                 event.userId,
-                RegistrationStatusType.valueOf(event.status)
+                RegistrationStatusType.valueOf(event.status),
+                waitingBench
             )
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
@@ -147,18 +160,24 @@ class MatchAggregate(
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
     }
 
-    private fun handleRegistrationEvent(userId: UserId, registrationStatusType: RegistrationStatusType) {
-        val currentPlayer = registeredPlayers.find { it.userId == userId }
-        if (currentPlayer != null) {
-            this.registeredPlayers -= currentPlayer
+    private fun findPlayerRegistration(userId: UserId): RegisteredPlayer? =
+        (cadre + waitingBench + deregistered).find { it.userId == userId }
+
+
+    private fun handlePlayerStatusChange(
+        userId: UserId,
+        status: RegistrationStatusType,
+        targetList: MutableList<RegisteredPlayer>
+    ) {
+        val playerRegistration = findPlayerRegistration(userId)
+        if (playerRegistration == null) {
+            targetList.add(RegisteredPlayer(userId, LocalDateTime.now(), status.toRegistrationStatus()))
+        } else {
+            cadre.remove(playerRegistration)
+            waitingBench.remove(playerRegistration)
+            deregistered.remove(playerRegistration)
+            targetList.add(playerRegistration.copy(status = status.toRegistrationStatus()))
         }
-        val registrationStatus = when (registrationStatusType) {
-            RegistrationStatusType.REGISTERED -> RegistrationStatus.Registered
-            RegistrationStatusType.DEREGISTERED -> RegistrationStatus.Deregistered
-            RegistrationStatusType.CANCELLED -> RegistrationStatus.Cancelled
-            RegistrationStatusType.ADDED -> RegistrationStatus.Added
-        }
-        this.registeredPlayers += RegisteredPlayer(userId, LocalDateTime.now(), registrationStatus)
     }
 
     private fun handleMatchCanceledEvent() {
@@ -217,7 +236,7 @@ class MatchAggregate(
             throw MatchStartTimeException(MatchId(this.aggregateId))
         }
 
-        val currentPlayer = registeredPlayers.find { it.userId == userId }
+        val currentPlayer = findPlayerRegistration(userId)
         if (currentPlayer == null) {
             when (registrationStatusType) {
                 RegistrationStatusType.DEREGISTERED -> handlePlayerDeregistration(
@@ -225,7 +244,9 @@ class MatchAggregate(
                     RegistrationStatusType.DEREGISTERED
                 )
 
-                RegistrationStatusType.REGISTERED -> handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+                RegistrationStatusType.REGISTERED ->
+                    handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+
                 RegistrationStatusType.CANCELLED -> return
                 RegistrationStatusType.ADDED -> return
             }
@@ -247,10 +268,28 @@ class MatchAggregate(
             is RegistrationStatus.Cancelled -> handlePlayerCancelled(userId, RegistrationStatusType.CANCELLED)
             is RegistrationStatus.Added -> handlePlayerAdded(userId, RegistrationStatusType.ADDED)
         }
+
+        if ((newStatus.getType() == RegistrationStatusType.DEREGISTERED || newStatus.getType() == RegistrationStatusType.CANCELLED) && !isCadreFull() && isPlayerWaiting()) {
+            waitingBench.sortBy { it.registrationTime }
+            val test = playerCount.maxPlayer.value - cadre.size
+            for (registration in waitingBench.take(test)) {
+                if (registration.status.getType() == RegistrationStatusType.REGISTERED) {
+                    apply(
+                        PlayerAddedToCadreEvent(
+                            aggregateId,
+                            registration.userId,
+                            registration.status.getType().name
+                        )
+                    )
+                }
+            }
+        }
     }
 
-    private fun isCadreFull(): Boolean =
-        registeredPlayers.filter { it.status.getType() == RegistrationStatusType.ADDED || it.status.getType() == RegistrationStatusType.REGISTERED }.size >= playerCount.maxPlayer.value
+    private fun isPlayerWaiting(): Boolean =
+        waitingBench.any { it.status.getType() == RegistrationStatusType.REGISTERED }
+
+    private fun isCadreFull(): Boolean = cadre.size >= playerCount.maxPlayer.value
 
     private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType) {
         if (isCadreFull()) {

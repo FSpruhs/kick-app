@@ -271,17 +271,16 @@ class MatchAggregate(
 
         if ((newStatus.getType() == RegistrationStatusType.DEREGISTERED || newStatus.getType() == RegistrationStatusType.CANCELLED) && !isCadreFull() && isPlayerWaiting()) {
             waitingBench.sortBy { it.registrationTime }
-            val test = playerCount.maxPlayer.value - cadre.size
-            for (registration in waitingBench.take(test)) {
-                if (registration.status.getType() == RegistrationStatusType.REGISTERED) {
-                    apply(
-                        PlayerAddedToCadreEvent(
-                            aggregateId,
-                            registration.userId,
-                            registration.status.getType().name
-                        )
+            val openCadre = playerCount.maxPlayer.value - cadre.size
+            for (registration in waitingBench.filter { it.status.getType() == RegistrationStatusType.REGISTERED }
+                .take(openCadre)) {
+                apply(
+                    PlayerAddedToCadreEvent(
+                        aggregateId,
+                        registration.userId,
+                        registration.status.getType().name
                     )
-                }
+                )
             }
         }
     }

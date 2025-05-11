@@ -260,7 +260,51 @@ class MatchAggregateTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("addedWaitingPlayers")
+    fun `addRegistration should add waiting player when deregistered or canceled`(testData: AddWaitingPlayerTestData) {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
+
+        testData.cadre.forEach { matchAggregate.cadre.add(it) }
+        testData.waitingPlayers.forEach { matchAggregate.waitingBench.add(it) }
+
+        // When
+        matchAggregate.addRegistration(testData.userId, testData.registrationStatusType)
+
+        // Then
+        assertThat(matchAggregate.waitingBench.size).isEqualTo(testData.expectedWaitingPlayers)
+        assertThat(matchAggregate.cadre.size).isEqualTo(testData.expectedCadrePlayers)
+
+        for (player in testData.expectedUserIds) {
+            matchAggregate.cadre.find { it.userId == player }.let { player ->
+                assertThat(player).isNotNull()
+            }
+        }
+
+        if (testData.expectedEventType.isNotEmpty()) {
+            assertThat(matchAggregate.changes.size).isEqualTo(testData.expectedEventType.size)
+            for ((index, event) in testData.expectedEventType.withIndex()) {
+                assertThat(matchAggregate.changes[index]).isInstanceOf(event)
+            }
+        } else {
+            assertThat(matchAggregate.changes.size).isEqualTo(0)
+        }
+    }
+
     companion object {
+        data class AddWaitingPlayerTestData(
+            val userId: UserId,
+            val registrationStatusType: RegistrationStatusType,
+            val cadre: List<RegisteredPlayer>,
+            val waitingPlayers: List<RegisteredPlayer>,
+            val expectedWaitingPlayers: Int = 0,
+            val expectedCadrePlayers: Int = 0,
+            val expectedEventType: List<Class<out BaseEvent>> = emptyList(),
+            val expectedUserIds: List<UserId> = emptyList()
+        )
 
         data class UnregisteredPlayerTestData(
             val registrationStatusType: RegistrationStatusType,
@@ -463,6 +507,54 @@ class MatchAggregateTest {
                 canceledPlayer = 1,
                 cadre = fullCadre,
                 exceptedStatus = RegistrationStatus.Cancelled,
+            ),
+        ).stream()
+
+        @JvmStatic
+        fun addedWaitingPlayers() = listOf(
+            AddWaitingPlayerTestData(
+                userId = UserId("player 1"),
+                registrationStatusType = RegistrationStatusType.DEREGISTERED,
+                cadre = fullCadre,
+                waitingPlayers = listOf(RegisteredPlayer(
+                    userId = UserId("cancelledPlayer"),
+                    registrationTime = LocalDateTime.now().minusHours(2),
+                    status = RegistrationStatus.Cancelled
+                ),RegisteredPlayer(
+                    userId = UserId("notSoLongWaitingPlayer"),
+                    registrationTime = LocalDateTime.now(),
+                    status = RegistrationStatus.Registered
+                ),RegisteredPlayer(
+                    userId = UserId("waitingPlayer"),
+                    registrationTime = LocalDateTime.now().minusHours(1),
+                    status = RegistrationStatus.Registered
+                )),
+                expectedWaitingPlayers = 2,
+                expectedCadrePlayers = fullCadre.size,
+                expectedEventType = listOf(PlayerDeregisteredEvent::class.java, PlayerAddedToCadreEvent::class.java),
+                expectedUserIds = listOf(UserId("waitingPlayer"))
+            ),
+            AddWaitingPlayerTestData(
+                userId = UserId("player 1"),
+                registrationStatusType = RegistrationStatusType.CANCELLED,
+                cadre = fullCadre,
+                waitingPlayers = listOf(RegisteredPlayer(
+                    userId = UserId("cancelledPlayer"),
+                    registrationTime = LocalDateTime.now().minusHours(2),
+                    status = RegistrationStatus.Cancelled
+                ),RegisteredPlayer(
+                    userId = UserId("notSoLongWaitingPlayer"),
+                    registrationTime = LocalDateTime.now(),
+                    status = RegistrationStatus.Registered
+                ),RegisteredPlayer(
+                    userId = UserId("waitingPlayer"),
+                    registrationTime = LocalDateTime.now().minusHours(1),
+                    status = RegistrationStatus.Registered
+                )),
+                expectedWaitingPlayers = 3,
+                expectedCadrePlayers = fullCadre.size,
+                expectedEventType = listOf(PlayerPlacedOnWaitingBenchEvent::class.java, PlayerAddedToCadreEvent::class.java),
+                expectedUserIds = listOf(UserId("waitingPlayer"))
             ),
         ).stream()
 

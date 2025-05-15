@@ -36,7 +36,7 @@ class MinIOImageStorage(
     private val minioClient: MinioClient,
     private val properties: MinIOProperties,
 ): UserImagePort {
-    override fun save(inputStream: InputStream, contentType: String): String {
+    override fun save(inputStream: InputStream, contentType: String): UserImageId {
         val newId = generateId()
 
         minioClient.putObject(
@@ -47,7 +47,7 @@ class MinIOImageStorage(
                 .contentType(contentType)
                 .build()
         )
-        return newId
+        return UserImageId(newId)
     }
 
 }

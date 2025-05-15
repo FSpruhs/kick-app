@@ -15,6 +15,11 @@ data class UserNickNameChangedEvent(
     val nickName: String
 ) : BaseEvent(aggregateId)
 
+data class UserImageUpdatedEvent(
+    override val aggregateId: String,
+    val imageId: UserImageId
+) : BaseEvent(aggregateId)
+
 enum class UserEvents {
     USER_CREATED_V1,
     USER_NICKNAME_CHANGED_V1,

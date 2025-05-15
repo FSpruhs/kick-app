@@ -31,5 +31,11 @@ spring:
 keycloak:
   realm: kick-app
 
+minio:
+  url: http://localhost:9000
+  access-key: admin
+  secret-key: password
+  bucket: user-images
+
 server:
   port: 8085

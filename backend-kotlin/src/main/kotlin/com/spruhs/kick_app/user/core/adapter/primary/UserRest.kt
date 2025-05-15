@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -58,6 +59,16 @@ class UserRestController(
     ) {
         require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
         userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(id), NickName(nickName)))
+    }
+
+    @PutMapping("/{id}/user-image")
+    suspend fun changeUserImage(
+        @RequestParam file: MultipartFile,
+        @PathVariable id: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): String {
+        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
+        return userCommandsPort.updateUserImage(jwtParser.getUserId(jwt), file).value
     }
 }
 

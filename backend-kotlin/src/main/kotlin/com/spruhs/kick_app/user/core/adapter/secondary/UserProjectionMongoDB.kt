@@ -4,8 +4,10 @@ import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.api.UserCreatedEvent
+import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.domain.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -24,6 +26,7 @@ data class UserDocument(
     val id: String,
     var nickName: String,
     val email: String,
+    var userImageId: String? = null,
     var groups: List<GroupDocument>
 )
 
@@ -47,6 +50,7 @@ class UserProjectionMongoAdapter(
             is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.aggregateId, event.groupName)
             is PlayerRemovedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
             is PlayerLeavedEvent -> removeGroupFromUser(event.userId, event.aggregateId)
+            is UserImageUpdatedEvent -> handleUserImageUpdated(event)
             else -> {
                 throw UnknownEventTypeException(event)
             }
@@ -112,6 +116,13 @@ class UserProjectionMongoAdapter(
     private suspend fun findUserById(userId: String): UserDocument {
         return repository.findById(userId).awaitFirstOrNull()?: throw UserNotFoundException(UserId(userId))
     }
+
+    private suspend fun handleUserImageUpdated(event: UserImageUpdatedEvent) {
+        findUserById(event.aggregateId).let {
+            it.userImageId = event.imageId.value
+            repository.save(it).awaitSingle()
+        }
+    }
 }
 
 @Repository
@@ -134,5 +145,6 @@ private fun UserDocument.toProjection() = UserProjection(
     id = UserId(this.id),
     nickName = NickName(this.nickName),
     email = Email(this.email),
+    userImageId = this.userImageId?.let { UserImageId(it) },
     groups = this.groups.map { GroupProjection(GroupId(it.id), it.name) }
 )

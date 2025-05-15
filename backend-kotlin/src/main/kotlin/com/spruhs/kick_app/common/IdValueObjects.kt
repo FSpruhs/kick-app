@@ -32,6 +32,13 @@ value class MatchId(val value: String) {
     }
 }
 
+@JvmInline
+value class UserImageId(val value: String) {
+    init {
+        require(value.isNotBlank()) { "User image id must not be blank" }
+    }
+}
+
 fun generateId(): String {
     return UUID.randomUUID().toString()
 }

@@ -3,14 +3,17 @@ package com.spruhs.kick_app.user.core.application
 import com.spruhs.kick_app.common.AggregateStore
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class UserCommandsPort(
     private val aggregateStore: AggregateStore,
     private val userIdentityProviderPort: UserIdentityProviderPort,
-    private val userQueryPort: UserQueryPort
+    private val userQueryPort: UserQueryPort,
+    private val userImagePort: UserImagePort,
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
         require(userQueryPort.existsByEmail(command.email).not()) {
@@ -32,6 +35,21 @@ class UserCommandsPort(
             aggregateStore.save(it)
         }
     }
+
+    suspend fun updateUserImage(userId: UserId, image: MultipartFile): UserImageId {
+        val allowedTypes = listOf("image/jpeg", "image/png", "image/webp", "image/gif")
+        if (image.contentType !in allowedTypes) {
+            throw IllegalArgumentException("Dateityp nicht erlaubt")
+        }
+        val imageId = userImagePort.save(image.inputStream, image.contentType ?: "image/jpeg")
+
+        aggregateStore.load(userId.value, UserAggregate::class.java).let {
+            it.updateUserImage(imageId)
+            aggregateStore.save(it)
+        }
+        return imageId
+    }
+
 }
 
 

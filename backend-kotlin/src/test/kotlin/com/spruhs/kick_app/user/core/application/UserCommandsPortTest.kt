@@ -6,6 +6,7 @@ import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
+import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +30,9 @@ class UserCommandsPortTest {
 
     @MockK
     lateinit var userQueryPort: UserQueryPort
+
+    @MockK
+    lateinit var userImagePort: UserImagePort
 
     @InjectMockKs
     lateinit var userCommandsPort: UserCommandsPort

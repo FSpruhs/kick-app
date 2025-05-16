@@ -23,6 +23,7 @@ data class UserImageUpdatedEvent(
 enum class UserEvents {
     USER_CREATED_V1,
     USER_NICKNAME_CHANGED_V1,
+    USER_IMAGE_UPDATED_V1,
 }
 
 @Component
@@ -45,6 +46,13 @@ class UserEventSerializer : Serializer {
                 event.metadata
             )
 
+            is UserImageUpdatedEvent -> Event(
+                aggregate,
+                UserEvents.USER_IMAGE_UPDATED_V1.name,
+                data,
+                event.metadata
+            )
+
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -57,6 +65,10 @@ class UserEventSerializer : Serializer {
 
             UserEvents.USER_NICKNAME_CHANGED_V1.name -> EventSourcingUtils.readValue(
                 event.data, UserNickNameChangedEvent::class.java
+            )
+
+            UserEvents.USER_IMAGE_UPDATED_V1.name -> EventSourcingUtils.readValue(
+                event.data, UserImageUpdatedEvent::class.java
             )
 
             else -> throw UnknownEventTypeException(event)

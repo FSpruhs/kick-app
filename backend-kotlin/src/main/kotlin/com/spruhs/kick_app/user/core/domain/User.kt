@@ -74,8 +74,8 @@ data class UserProjection (
     val id: UserId,
     val nickName: NickName,
     val email: Email,
-    val userImageId: UserImageId?,
-    val groups: List<GroupProjection>,
+    val userImageId: UserImageId? = null,
+    val groups: List<GroupProjection> = emptyList(),
 )
 
 data class GroupProjection(

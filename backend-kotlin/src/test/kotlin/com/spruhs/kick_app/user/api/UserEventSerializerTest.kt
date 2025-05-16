@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.api
 
+import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
@@ -28,6 +29,7 @@ class UserEventSerializerTest {
         fun data() = listOf(
             UserCreatedEvent("userId", "email", "nickName"),
             UserNickNameChangedEvent("userId", "newNickName"),
+            UserImageUpdatedEvent("userId", UserImageId("imageId"))
         )
     }
 }

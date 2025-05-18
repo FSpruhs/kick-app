@@ -50,7 +50,6 @@ class UserRestController(
         .registerUser(request.toCommand())
         .toMessage()
 
-
     @PutMapping("/{id}/nickName")
     suspend fun changeNickName(
         @PathVariable id: String,
@@ -101,6 +100,7 @@ data class UserMessage(
     val id: String,
     val nickName: String,
     val email: String,
+    val imageId: String? = null,
 )
 
 private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
@@ -112,10 +112,12 @@ private fun UserAggregate.toMessage() = UserMessage(
     id = this.aggregateId,
     nickName = this.nickName.value,
     email = this.email.value,
+    imageId = this.userImageId?.value
 )
 
 private fun UserProjection.toMessage() = UserMessage(
     id = this.id.value,
     nickName = this.nickName.value,
     email = this.email.value,
+    imageId = this.userImageId?.value
 )

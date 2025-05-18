@@ -4,36 +4,30 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import com.spruhs.kick_app.user.core.application.UserQueryPort
-import com.spruhs.kick_app.user.core.domain.Email
-import com.spruhs.kick_app.user.core.domain.NickName
-import com.spruhs.kick_app.user.core.domain.UserProjection
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.Base64
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.spruhs.kick_app.user.TestUserBuilder
+import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
+import com.spruhs.kick_app.user.core.domain.NickName
+import org.assertj.core.api.Assertions.assertThat
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import java.util.Date
 
 @TestConfiguration
@@ -53,7 +47,6 @@ class TestSecurityConfig {
             .build()
     }
 }
-
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -80,25 +73,90 @@ class UserRestControllerIT {
     lateinit var webTestClient: WebTestClient
 
     @Test
-    fun `should get user`() {
-        val userId = "12345"
-        val jwt = JWT.create()
+    fun `getUser should get user`() {
+        val userBuilder = TestUserBuilder()
+
+        coEvery { userQueryPort.getUser(UserId(userBuilder.id)) } returns userBuilder.buildProjection()
+
+        webTestClient.get()
+            .uri("/api/v1/user/${userBuilder.id}")
+            .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserMessage>()
+            .consumeWith { response ->
+                assertThat(response.responseBody).isNotNull()
+                assertThat(response.responseBody).isEqualTo(userBuilder.buildMessage())
+            }
+    }
+
+    @Test
+    fun `getUser should throw exception when different user requested`() {
+        val userBuilder = TestUserBuilder()
+
+        webTestClient.get()
+            .uri("/api/v1/user/${userBuilder.id}")
+            .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
+            .exchange()
+            .expectStatus().isUnauthorized
+    }
+
+    @Test
+    fun `registerUser should register user`() {
+        val userBuilder = TestUserBuilder()
+
+        coEvery { userCommandsPort.registerUser(any()) } returns userBuilder.buildAggregate()
+
+        webTestClient.post()
+            .uri("/api/v1/user")
+            .bodyValue(userBuilder.buildRegisterUserRequest())
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody<UserMessage>()
+            .consumeWith { response ->
+                assertThat(response.responseBody).isNotNull()
+                assertThat(response.responseBody).isEqualTo(userBuilder.buildMessage())
+            }
+    }
+
+    @Test
+    fun `changeNickName should change user nick name`() {
+        val userBuilder = TestUserBuilder()
+        val newNickname = NickName("newNickName")
+
+        coEvery {
+            userCommandsPort.changeNickName(
+                ChangeUserNickNameCommand(
+                    UserId(userBuilder.id),
+                    newNickname
+                )
+            )
+        } returns Unit
+
+        webTestClient.put()
+            .uri("/api/v1/user/${userBuilder.id}/nickName?nickName=${newNickname.value}")
+            .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    @Test
+    fun `changeNickName should throw exception when different user requested`() {
+        val userBuilder = TestUserBuilder()
+        val newNickname = NickName("newNickName")
+
+        webTestClient.put()
+            .uri("/api/v1/user/${userBuilder.id}/nickName?nickName=${newNickname.value}")
+            .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
+            .exchange()
+            .expectStatus().isUnauthorized
+    }
+
+    private fun jwtWithUserId(userId: String): String {
+        return JWT.create()
             .withSubject(userId)
-            .withClaim("sub", userId)
             .withIssuedAt(Date.from(Instant.now()))
             .withExpiresAt(Date.from(Instant.now().plusSeconds(3600)))
             .sign(Algorithm.none())
-
-        coEvery { userQueryPort.getUser(UserId(userId)) } returns UserProjection(
-            id = UserId(userId),
-            nickName = NickName("testUser"),
-            email = Email("test@testen.com"),
-        )
-
-        webTestClient.get()
-            .uri("/api/v1/user/12345")
-            .header("Authorization", "Bearer $jwt")
-            .exchange()
-            .expectStatus().isOk
     }
 }

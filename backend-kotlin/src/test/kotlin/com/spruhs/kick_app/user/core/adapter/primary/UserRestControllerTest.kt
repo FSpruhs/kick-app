@@ -1,7 +1,5 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
@@ -13,13 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import java.nio.charset.StandardCharsets
-import java.time.Instant
-import java.util.Base64
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
+import com.spruhs.kick_app.TestHelpers.jwtWithUserId
+import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.user.TestUserBuilder
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.domain.NickName
@@ -28,26 +21,6 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import java.util.Date
-
-@TestConfiguration
-class TestSecurityConfig {
-
-    @Bean
-    fun jwtDecoder(): JwtDecoder = JwtDecoder { token ->
-        val parts = token.split(".")
-        val payloadJson = String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8)
-        val claims: Map<String, Any> = jacksonObjectMapper().readValue(payloadJson)
-
-        Jwt.withTokenValue(token)
-            .header("alg", "none")
-            .claims { it.putAll(claims) }
-            .issuedAt(Instant.now())
-            .expiresAt(Instant.now().plusSeconds(3600))
-            .build()
-    }
-}
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
@@ -150,13 +123,5 @@ class UserRestControllerIT {
             .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
             .exchange()
             .expectStatus().isUnauthorized
-    }
-
-    private fun jwtWithUserId(userId: String): String {
-        return JWT.create()
-            .withSubject(userId)
-            .withIssuedAt(Date.from(Instant.now()))
-            .withExpiresAt(Date.from(Instant.now().plusSeconds(3600)))
-            .sign(Algorithm.none())
     }
 }

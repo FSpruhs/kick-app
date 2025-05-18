@@ -13,7 +13,6 @@ class UserApiAdapter(private val userQueryPort: UserQueryPort) : UserApi {
         userQueryPort.getUsersByIds(userIds).map { it.toData() }
 
     override suspend fun findUserById(userId: UserId): UserData = userQueryPort.getUser(userId).toData()
-
 }
 
 private fun UserProjection.toData() = UserData(this.id, this.nickName.value)

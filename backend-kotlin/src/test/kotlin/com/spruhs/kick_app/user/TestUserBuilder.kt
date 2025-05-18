@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user
 
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.user.api.UserData
 import com.spruhs.kick_app.user.core.adapter.primary.RegisterUserRequest
 import com.spruhs.kick_app.user.core.adapter.primary.UserMessage
 import com.spruhs.kick_app.user.core.domain.Email
@@ -21,6 +22,13 @@ class TestUserBuilder {
         user.nickName = NickName(nickName)
         user.userImageId = UserImageId(imageId)
         return user
+    }
+
+    fun buildData(): UserData {
+        return UserData(
+            id = UserId(id),
+            nickName = nickName,
+        )
     }
 
     fun buildMessage(): UserMessage {

@@ -1,13 +1,13 @@
 package com.spruhs.kick_app.group
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.core.adapter.secondary.GroupDocument
 import com.spruhs.kick_app.group.core.adapter.secondary.PlayerDocument
 import com.spruhs.kick_app.group.core.domain.GroupProjection
 import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.group.core.domain.PlayerProjection
-import com.spruhs.kick_app.group.core.domain.PlayerRole
 import com.spruhs.kick_app.group.core.domain.PlayerStatus
 
 class TestGroupBuilder() {

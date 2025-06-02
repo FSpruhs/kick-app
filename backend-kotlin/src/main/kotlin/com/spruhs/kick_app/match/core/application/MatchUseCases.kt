@@ -24,7 +24,7 @@ class MatchCommandPort(
 
     suspend fun cancelMatch(command: CancelMatchCommand) {
         val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
+        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
             throw UserNotAuthorizedException(command.userId)
         }
         match.cancelMatch()
@@ -33,7 +33,7 @@ class MatchCommandPort(
 
     suspend fun changePlayground(command: ChangePlaygroundCommand) {
         val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
+        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
             throw UserNotAuthorizedException(command.userId)
         }
         match.changePlayground(command.playground)
@@ -55,11 +55,11 @@ class MatchCommandPort(
             }
 
             RegistrationStatusType.CANCELLED -> {
-                require(groupApi.isActiveAdmin(match.groupId, command.updatingUser)) {}
+                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {}
             }
 
             RegistrationStatusType.ADDED -> {
-                require(groupApi.isActiveAdmin(match.groupId, command.updatingUser)) {}
+                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {}
             }
         }
 
@@ -69,7 +69,7 @@ class MatchCommandPort(
 
     suspend fun enterResult(command: EnterResultCommand) {
         val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveAdmin(match.groupId, command.userId)) {
+        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
             throw UserNotAuthorizedException(command.userId)
         }
 

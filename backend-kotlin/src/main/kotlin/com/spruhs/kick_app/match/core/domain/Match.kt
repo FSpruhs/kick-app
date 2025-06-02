@@ -224,10 +224,12 @@ class MatchAggregate(
 
         apply(
             MatchResultEnteredEvent(
-                aggregateId,
-                result.name,
-                participatingPlayer.filter { it.team == Team.A }.map { it.userId },
-                participatingPlayer.filter { it.team == Team.B }.map { it.userId }
+                aggregateId = aggregateId,
+                groupId = groupId,
+                result = result.name,
+                start = start,
+                teamA = participatingPlayer.filter { it.team == Team.A }.map { it.userId },
+                teamB = participatingPlayer.filter { it.team == Team.B }.map { it.userId }
             ))
     }
 

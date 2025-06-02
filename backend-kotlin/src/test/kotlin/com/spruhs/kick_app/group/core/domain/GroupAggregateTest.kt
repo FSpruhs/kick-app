@@ -1,6 +1,8 @@
 package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand
@@ -124,7 +126,7 @@ class GroupAggregateTest {
         assertThat(group.name).isEqualTo(Name("Test Group"))
         assertThat(group.players).hasSize(1)
         assertThat(group.players.first().id).isEqualTo(UserId("ownerId"))
-        assertThat(group.players.first().role).isEqualTo(PlayerRole.ADMIN)
+        assertThat(group.players.first().role).isEqualTo(PlayerRole.COACH)
         assertThat(group.players.first().status.type()).isEqualTo(PlayerStatusType.ACTIVE)
         assertThat(group.invitedUsers).isEmpty()
     }
@@ -136,7 +138,7 @@ class GroupAggregateTest {
         group.name = Name("Old Group Name")
         group.players.add(Player(
             id = UserId("userId"),
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
 
@@ -252,7 +254,7 @@ class GroupAggregateTest {
             userId = UserId("userId"),
             groupId = GroupId(group.aggregateId),
             updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.ADMIN,
+            newRole = PlayerRole.COACH,
         )
 
         assertThatThrownBy {
@@ -268,7 +270,7 @@ class GroupAggregateTest {
         val group = GroupAggregate("groupId")
         group.players.add(Player(
             id = UserId("updatingUserId"),
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
 
@@ -276,7 +278,7 @@ class GroupAggregateTest {
             userId = UserId("userId"),
             groupId = GroupId(group.aggregateId),
             updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.ADMIN,
+            newRole = PlayerRole.COACH,
         )
 
         assertThatThrownBy {
@@ -292,12 +294,12 @@ class GroupAggregateTest {
         val group = GroupAggregate("groupId")
         group.players.add(Player(
             id = UserId("updatingUserId"),
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
         group.players.add(Player(
             id = UserId("userId"),
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
 
@@ -324,7 +326,7 @@ class GroupAggregateTest {
         val group = GroupAggregate("groupId")
         group.players.add(Player(
             id = UserId("updatingUserId"),
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
         group.players.add(Player(
@@ -337,7 +339,7 @@ class GroupAggregateTest {
             userId = UserId("userId"),
             groupId = GroupId(group.aggregateId),
             updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.ADMIN,
+            newRole = PlayerRole.COACH,
         )
 
         // When
@@ -346,7 +348,7 @@ class GroupAggregateTest {
         // Then
         group.players.find { it.id == command.userId }.let {
             assertThat(it).isNotNull
-            assertThat(it?.role).isEqualTo(PlayerRole.ADMIN)
+            assertThat(it?.role).isEqualTo(PlayerRole.COACH)
         }
     }
 

@@ -2,13 +2,13 @@ package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.AggregateStore
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.group.core.domain.Player
-import com.spruhs.kick_app.group.core.domain.PlayerRole
-import com.spruhs.kick_app.group.core.domain.PlayerStatusType
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -55,7 +55,7 @@ class GroupCommandPortTest {
         group.name = Name("oldGroupName")
         group.players = mutableListOf(Player(
             id = command.userId,
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
 
@@ -85,7 +85,7 @@ class GroupCommandPortTest {
         val group = GroupAggregate(command.inviterId.value)
         group.players = mutableListOf(Player(
             id = command.inviterId,
-            role = PlayerRole.ADMIN,
+            role = PlayerRole.COACH,
             status = Active(),
         ))
 
@@ -111,7 +111,7 @@ class GroupCommandPortTest {
             userId = UserId("userId"),
             updatingUserId = UserId("updatingUserId"),
             groupId = GroupId("groupId"),
-            newRole = PlayerRole.ADMIN,
+            newRole = PlayerRole.COACH,
         )
         val group = GroupAggregate(command.userId.value)
         group.players = mutableListOf(Player(
@@ -121,7 +121,7 @@ class GroupCommandPortTest {
         ),
             Player(
                 id = command.updatingUserId,
-                role = PlayerRole.ADMIN,
+                role = PlayerRole.COACH,
                 status = Active(),
             )
         )
@@ -158,7 +158,7 @@ class GroupCommandPortTest {
         ),
             Player(
                 id = command.updatingUserId,
-                role = PlayerRole.ADMIN,
+                role = PlayerRole.COACH,
                 status = Active(),
             )
         )

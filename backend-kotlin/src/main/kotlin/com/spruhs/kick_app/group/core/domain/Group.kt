@@ -17,7 +17,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
             is PlayerInvitedEvent -> handlePlayerInvitedEvent(event)
             is PlayerEnteredGroupEvent -> handlePlayerEnteredGroupEvent(event)
             is PlayerRejectedGroupEvent -> handlePlayerRejectedGroupEvent(event)
-            is PlayerPromotedEvent -> handlePlayerRoleEvent(event.userId, PlayerRole.ADMIN)
+            is PlayerPromotedEvent -> handlePlayerRoleEvent(event.userId, PlayerRole.COACH)
             is PlayerDowngradedEvent -> handlePlayerRoleEvent(event.userId, PlayerRole.PLAYER)
             is PlayerActivatedEvent -> handlePlayerStatusEvent(event.userId, Active())
             is PlayerDeactivatedEvent -> handlePlayerStatusEvent(event.userId, Inactive())
@@ -30,7 +30,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 
     private fun handleGroupCreatedEvent(event: GroupCreatedEvent) {
         name = Name(event.name)
-        players.add(Player(event.userId, Active(), PlayerRole.ADMIN))
+        players.add(Player(event.userId, Active(), PlayerRole.COACH))
     }
 
     private fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
@@ -65,11 +65,19 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     fun createGroup(command: CreateGroupCommand) {
-        apply(GroupCreatedEvent(aggregateId, command.userId, command.name.value))
+        apply(
+            GroupCreatedEvent(
+                aggregateId = aggregateId,
+                userId = command.userId,
+                name = command.name.value,
+                userStatus = PlayerStatusType.ACTIVE,
+                userRole = PlayerRole.COACH,
+            )
+        )
     }
 
     fun changeGroupName(command: ChangeGroupNameCommand) {
-        require(this.players.find { it.id == command.userId }?.role == PlayerRole.ADMIN) {
+        require(this.players.find { it.id == command.userId }?.role == PlayerRole.COACH) {
             throw UserNotAuthorizedException(command.userId)
         }
 
@@ -93,19 +101,27 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
 
         if (command.response) {
-            apply(PlayerEnteredGroupEvent(aggregateId, command.userId, name.value))
+            apply(
+                PlayerEnteredGroupEvent(
+                    aggregateId = aggregateId,
+                    userId = command.userId,
+                    groupName = name.value,
+                    userStatus = PlayerStatusType.ACTIVE,
+                    userRole = PlayerRole.PLAYER
+                )
+            )
         } else {
             apply(PlayerRejectedGroupEvent(aggregateId, command.userId))
         }
     }
 
     fun updatePlayerRole(command: UpdatePlayerRoleCommand) {
-        players.find { it.id == command.updatingUserId && it.role == PlayerRole.ADMIN }
+        players.find { it.id == command.updatingUserId && it.role == PlayerRole.COACH }
             ?: throw UserNotAuthorizedException(command.updatingUserId)
 
         val player = players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
 
-        if (command.newRole == PlayerRole.ADMIN && player.role != PlayerRole.ADMIN) {
+        if (command.newRole == PlayerRole.COACH && player.role != PlayerRole.COACH) {
             apply(PlayerPromotedEvent(aggregateId, command.userId))
         } else if (command.newRole == PlayerRole.PLAYER && player.role != PlayerRole.PLAYER) {
             apply(PlayerDowngradedEvent(aggregateId, command.userId))
@@ -147,10 +163,6 @@ data class Player(
     val role: PlayerRole
 )
 
-enum class PlayerStatusType {
-    ACTIVE, INACTIVE, LEAVED, REMOVED;
-}
-
 interface PlayerStatus {
     fun activate(player: Player, requestingPlayer: Player): PlayerStatus
     fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus
@@ -175,7 +187,7 @@ class Active : PlayerStatus {
 
     override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player != requestingPlayer)
-        require(requestingPlayer.role == PlayerRole.ADMIN)
+        require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
@@ -200,7 +212,7 @@ class Inactive : PlayerStatus {
 
     override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player != requestingPlayer)
-        require(requestingPlayer.role == PlayerRole.ADMIN)
+        require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
@@ -225,7 +237,7 @@ class Leaved : PlayerStatus {
 
     override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player != requestingPlayer)
-        require(requestingPlayer.role == PlayerRole.ADMIN)
+        require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
@@ -237,7 +249,7 @@ class Leaved : PlayerStatus {
 class Removed : PlayerStatus {
     override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
         require(player != requestingPlayer)
-        require(requestingPlayer.role == PlayerRole.ADMIN)
+        require(requestingPlayer.role == PlayerRole.COACH)
         return Active()
     }
 
@@ -256,10 +268,6 @@ class Removed : PlayerStatus {
     override fun type(): PlayerStatusType {
         return PlayerStatusType.REMOVED
     }
-}
-
-enum class PlayerRole {
-    ADMIN, PLAYER
 }
 
 @JvmInline
@@ -283,8 +291,8 @@ data class GroupProjection(
     fun isActivePlayer(userId: UserId): Boolean =
         players.any { it.id == userId && it.status == PlayerStatusType.ACTIVE }
 
-    fun isActiveAdmin(userId: UserId): Boolean =
-        players.any { it.id == userId && it.role == PlayerRole.ADMIN && it.status == PlayerStatusType.ACTIVE }
+    fun isActiveCoach(userId: UserId): Boolean =
+        players.any { it.id == userId && it.role == PlayerRole.COACH && it.status == PlayerStatusType.ACTIVE }
 
     fun isPlayer(userId: UserId): Boolean =
         players.any { it.id == userId && (it.status == PlayerStatusType.ACTIVE || it.status == PlayerStatusType.INACTIVE) }

@@ -4,12 +4,14 @@ import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
+import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.user.core.domain.UserProjectionPort
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
@@ -18,10 +20,19 @@ import org.springframework.stereotype.Component
 @Component
 class MatchListener(
     private val messageUseCases: MessageUseCases,
+    private val userProjectionPort: UserProjectionPort,
     private val applicationScope: CoroutineScope
 ) {
 
     private val log = getLogger(this::class.java)
+
+    @EventListener(MatchResultEnteredEvent::class)
+    fun onEvent(event: MatchResultEnteredEvent) {
+        log.info("MatchResultEnteredEvent received: $event")
+        applicationScope.launch {
+            userProjectionPort.whenEvent(event)
+        }
+    }
 
     @EventListener(MatchPlannedEvent::class)
     fun onEvent(event: MatchPlannedEvent) {

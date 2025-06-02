@@ -1,12 +1,14 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import java.io.InputStream
+import java.time.LocalDateTime
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 
@@ -81,6 +83,9 @@ data class UserProjection (
 data class GroupProjection(
     val id: GroupId,
     val name: String,
+    val userStatus: PlayerStatusType,
+    val userRole: PlayerRole,
+    val lastMatch: LocalDateTime? = null,
 )
 
 @JvmInline

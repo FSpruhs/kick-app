@@ -2,6 +2,8 @@ package com.spruhs.kick_app.group.core.adapter.secondary
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.api.*
@@ -41,7 +43,7 @@ class GroupProjectionMongoAdapter(
             is PlayerPromotedEvent -> handlePlayerRoleEvent(
                 GroupId(event.aggregateId),
                 event.userId,
-                PlayerRole.ADMIN
+                PlayerRole.COACH
             )
 
             is PlayerDowngradedEvent -> handlePlayerRoleEvent(

@@ -117,10 +117,10 @@ class GroupQueryPort(
         userId: UserId
     ): Boolean = groupProjectionPort.findById(groupId)?.isActivePlayer(userId) ?: false
 
-    suspend fun isActiveAdmin(
+    suspend fun isActiveCoach(
         groupId: GroupId,
         userId: UserId
-    ): Boolean = groupProjectionPort.findById(groupId)?.isActiveAdmin(userId) ?: false
+    ): Boolean = groupProjectionPort.findById(groupId)?.isActiveCoach(userId) ?: false
 
     suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> =
         groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }

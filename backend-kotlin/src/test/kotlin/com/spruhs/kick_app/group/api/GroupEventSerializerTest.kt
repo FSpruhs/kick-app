@@ -1,6 +1,8 @@
 package com.spruhs.kick_app.group.api
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
@@ -35,10 +37,10 @@ class GroupEventSerializerTest {
     {
         @JvmStatic
         fun data() = listOf(
-            GroupCreatedEvent("groupId", UserId("userId"), "groupName"),
+            GroupCreatedEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.COACH),
             GroupNameChangedEvent("groupId", "newGroupName"),
             PlayerInvitedEvent("groupId", UserId("userId"), "groupName"),
-            PlayerEnteredGroupEvent("groupId", UserId("userId"), "groupName"),
+            PlayerEnteredGroupEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.PLAYER),
             PlayerRejectedGroupEvent("groupId", UserId("userId")),
             PlayerPromotedEvent("groupId", UserId("userId")),
             PlayerDowngradedEvent("groupId", UserId("userId")),

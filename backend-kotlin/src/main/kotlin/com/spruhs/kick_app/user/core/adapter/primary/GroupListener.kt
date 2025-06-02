@@ -25,7 +25,9 @@ class GroupListener(
         GroupNameChangedEvent::class,
         GroupCreatedEvent::class,
         PlayerEnteredGroupEvent::class,
-        PlayerLeavedEvent::class
+        PlayerLeavedEvent::class,
+        PlayerActivatedEvent::class,
+        PlayerDeactivatedEvent::class,
     )
     fun onEvent(event: BaseEvent) {
         log.info("User scope received: $event")
@@ -55,6 +57,7 @@ class GroupListener(
     fun onEvent(event: PlayerPromotedEvent) {
         log.info("PlayerPromotedEvent received: $event")
         applicationScope.launch {
+            userProjectionPort.whenEvent(event)
             messageUseCases.send(MessageType.USER_PROMOTED, event.toMessageParams())
         }
     }
@@ -63,6 +66,7 @@ class GroupListener(
     fun onEvent(event: PlayerDowngradedEvent) {
         log.info("PlayerDowngradedEvent received: $event")
         applicationScope.launch {
+            userProjectionPort.whenEvent(event)
             messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
         }
     }

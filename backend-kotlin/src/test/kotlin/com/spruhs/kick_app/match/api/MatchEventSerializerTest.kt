@@ -35,7 +35,7 @@ class MatchEventSerializerTest {
             PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),
             MatchCanceledEvent("matchId", GroupId("groupId")),
             PlaygroundChangedEvent("matchId", "newPlayground", GroupId("groupId")),
-            MatchResultEnteredEvent("matchId", "result", listOf(UserId("userId1")), listOf(UserId("userId2"))),
+            MatchResultEnteredEvent("matchId", GroupId("groupId"),"result", LocalDateTime.now(), listOf(UserId("userId1")), listOf(UserId("userId2"))),
         )
     }
 }

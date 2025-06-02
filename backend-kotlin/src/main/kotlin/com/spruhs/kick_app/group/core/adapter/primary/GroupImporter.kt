@@ -1,11 +1,11 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.core.adapter.secondary.GroupDocument
 import com.spruhs.kick_app.group.core.adapter.secondary.GroupRepository
 import com.spruhs.kick_app.group.core.adapter.secondary.PlayerDocument
-import com.spruhs.kick_app.group.core.domain.PlayerRole
-import com.spruhs.kick_app.group.core.domain.PlayerStatusType
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -41,12 +41,12 @@ private val defaultGroups: List<GroupDocument> = listOf(
         players = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
-                role = PlayerRole.ADMIN.toString(),
+                role = PlayerRole.COACH.toString(),
                 status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
                 id = "user-id-2",
-                role = PlayerRole.ADMIN.toString(),
+                role = PlayerRole.COACH.toString(),
                 status = PlayerStatusType.ACTIVE.toString(),
             ),
             PlayerDocument(
@@ -147,7 +147,7 @@ private val defaultGroups: List<GroupDocument> = listOf(
         players = listOf(
             PlayerDocument(
                 id = "da082e6e-b4c1-40a4-8144-9098a2d819d9",
-                role = PlayerRole.ADMIN.toString(),
+                role = PlayerRole.COACH.toString(),
                 status = PlayerStatusType.ACTIVE.toString(),
             )
         )

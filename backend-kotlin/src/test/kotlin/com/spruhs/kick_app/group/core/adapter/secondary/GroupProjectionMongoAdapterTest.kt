@@ -3,6 +3,8 @@ package com.spruhs.kick_app.group.core.adapter.secondary
 import com.spruhs.kick_app.AbstractMongoTest
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
@@ -18,7 +20,6 @@ import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.GroupProjection
 import com.spruhs.kick_app.group.core.domain.Inactive
 import com.spruhs.kick_app.group.core.domain.Leaved
-import com.spruhs.kick_app.group.core.domain.PlayerRole
 import com.spruhs.kick_app.group.core.domain.Removed
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,9 @@ class GroupProjectionMongoAdapterTest : AbstractMongoTest() {
         val event = GroupCreatedEvent(
             aggregateId = "groupId",
             name = "groupName",
-            userId = UserId("userId")
+            userId = UserId("userId"),
+            userStatus = PlayerStatusType.ACTIVE,
+            userRole = PlayerRole.COACH,
         )
 
         // When
@@ -97,7 +100,9 @@ class GroupProjectionMongoAdapterTest : AbstractMongoTest() {
                 PlayerEnteredGroupEvent(
                     aggregateId = "groupId",
                     groupName = "groupName",
-                    userId = UserId("newPlayer")
+                    userId = UserId("newPlayer"),
+                    userStatus = PlayerStatusType.ACTIVE,
+                    userRole = PlayerRole.PLAYER
                 ),
                 TestGroupBuilder()
                     .withPlayer("newPlayer", Active(), PlayerRole.PLAYER)
@@ -113,13 +118,13 @@ class GroupProjectionMongoAdapterTest : AbstractMongoTest() {
                     userId = UserId("newPlayer")
                 ),
                 TestGroupBuilder()
-                    .withPlayer("newPlayer", Active(), PlayerRole.ADMIN)
+                    .withPlayer("newPlayer", Active(), PlayerRole.COACH)
                     .buildProjection()
             ),
 
             Triple(
                 TestGroupBuilder()
-                    .withPlayer("newPlayer", Active(), PlayerRole.ADMIN)
+                    .withPlayer("newPlayer", Active(), PlayerRole.COACH)
                     .buildDocument(),
                 PlayerDowngradedEvent(
                     aggregateId = "groupId",

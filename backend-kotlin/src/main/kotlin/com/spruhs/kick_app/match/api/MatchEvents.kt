@@ -52,7 +52,9 @@ data class PlaygroundChangedEvent(
 
 data class MatchResultEnteredEvent(
     override val aggregateId: String,
+    val groupId: GroupId,
     val result: String,
+    val start: LocalDateTime,
     val teamA: List<UserId>,
     val teamB: List<UserId>,
 ) : BaseEvent(aggregateId)

@@ -8,6 +8,8 @@ data class GroupCreatedEvent(
     override val aggregateId: String,
     val userId: UserId,
     val name: String,
+    val userStatus: PlayerStatusType,
+    val userRole: PlayerRole,
 ): BaseEvent(aggregateId)
 
 data class GroupNameChangedEvent(
@@ -24,7 +26,9 @@ data class PlayerInvitedEvent(
 data class PlayerEnteredGroupEvent(
     override val aggregateId: String,
     val userId: UserId,
-    val groupName: String
+    val groupName: String,
+    val userStatus: PlayerStatusType,
+    val userRole: PlayerRole
 ): BaseEvent(aggregateId)
 
 data class PlayerRejectedGroupEvent(

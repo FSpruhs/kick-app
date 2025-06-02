@@ -41,10 +41,10 @@ class GroupApiAdapterTest {
         // Given
         val groupId = GroupId("groupId")
         val userId = UserId("userId")
-        coEvery { groupQueryPort.isActiveAdmin(groupId, userId) } returns true
+        coEvery { groupQueryPort.isActiveCoach(groupId, userId) } returns true
 
         // When
-        val result = groupApiAdapter.isActiveAdmin(groupId, userId)
+        val result = groupApiAdapter.isActiveCoach(groupId, userId)
 
 
         // Then

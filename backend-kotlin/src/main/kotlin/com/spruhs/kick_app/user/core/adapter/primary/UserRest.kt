@@ -2,8 +2,11 @@ package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.http.HttpStatus
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -88,7 +92,6 @@ class UserExceptionHandler {
     @ExceptionHandler
     fun handleCreateUserIdentityProviderException(e: CreateUserIdentityProviderException) =
         ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
-
 }
 
 data class RegisterUserRequest(
@@ -101,6 +104,15 @@ data class UserMessage(
     val nickName: String,
     val email: String,
     val imageId: String? = null,
+    val groups: List<GroupInfoMessage> = emptyList(),
+)
+
+data class GroupInfoMessage(
+    val id: String,
+    val name: String,
+    val userStatus: PlayerStatusType,
+    val userRole: PlayerRole,
+    val lastMatch: LocalDateTime? = null,
 )
 
 private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
@@ -119,5 +131,14 @@ private fun UserProjection.toMessage() = UserMessage(
     id = this.id.value,
     nickName = this.nickName.value,
     email = this.email.value,
-    imageId = this.userImageId?.value
+    imageId = this.userImageId?.value,
+    groups = this.groups.map { group ->
+        GroupInfoMessage(
+            id = group.id.value,
+            name = group.name,
+            userStatus = group.userStatus,
+            userRole = group.userRole,
+            lastMatch = group.lastMatch
+        )
+    }
 )

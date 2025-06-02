@@ -6,7 +6,6 @@ import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
-import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.http.HttpStatus

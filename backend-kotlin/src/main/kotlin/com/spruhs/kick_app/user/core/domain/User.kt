@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.*
-import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent

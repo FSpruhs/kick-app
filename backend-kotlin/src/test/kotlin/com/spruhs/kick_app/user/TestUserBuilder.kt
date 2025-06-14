@@ -53,6 +53,7 @@ class TestUserBuilder {
         return RegisterUserRequest(
             nickName = nickName,
             email = email,
+            password = null
         )
     }
 

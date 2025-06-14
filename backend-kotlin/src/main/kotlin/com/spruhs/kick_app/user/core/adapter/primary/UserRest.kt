@@ -96,6 +96,7 @@ class UserExceptionHandler {
 data class RegisterUserRequest(
     val nickName: String,
     val email: String,
+    val password: String?,
 )
 
 data class UserMessage(
@@ -116,7 +117,8 @@ data class GroupInfoMessage(
 
 private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
     nickName = NickName(this.nickName),
-    email = Email(this.email)
+    email = Email(this.email),
+    password = this.password?.let { Password.fromPlaintext(it) }
 )
 
 private fun UserAggregate.toMessage() = UserMessage(

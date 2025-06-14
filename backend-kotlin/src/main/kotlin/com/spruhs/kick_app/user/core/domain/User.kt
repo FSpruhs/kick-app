@@ -6,6 +6,7 @@ import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.io.InputStream
 import java.time.LocalDateTime
 import javax.mail.internet.AddressException
@@ -60,8 +61,12 @@ class UserAggregate(
 }
 
 interface UserIdentityProviderPort {
-    fun save(email: Email, nickName: NickName): UserId
-    fun changeNickName(userId: UserId, nickName: NickName)
+    suspend fun save(email: Email, nickName: NickName, password: Password?): UserId
+    suspend fun changeNickName(userId: UserId, nickName: NickName)
+}
+
+interface UserLoginPort {
+    suspend fun getPassword(email: Email): Password?
 }
 
 interface UserProjectionPort {
@@ -93,6 +98,34 @@ value class NickName(val value: String) {
         require(value.length in 2..20) { "Nick name must be between 2 and 20 characters" }
     }
 }
+
+
+@JvmInline
+value class Password private constructor(val value: String) {
+
+    companion object {
+        private val encoder = BCryptPasswordEncoder()
+
+        fun fromPlaintext(plaintext: String): Password {
+            require(plaintext.length >= 8) { "Password must be at least 8 characters long" }
+            require(plaintext.any { it.isDigit() }) { "Password must contain at least one digit" }
+            require(plaintext.any { it.isUpperCase() }) { "Password must contain at least one uppercase letter" }
+            require(plaintext.any { it.isLowerCase() }) { "Password must contain at least one lowercase letter" }
+
+            return Password(encoder.encode(plaintext))
+        }
+
+        fun fromHash(hash: String): Password {
+            return Password(hash)
+        }
+
+    }
+
+    fun matches(plaintext: String): Boolean {
+        return encoder.matches(plaintext, value)
+    }
+}
+
 
 interface UserImagePort {
     fun save(inputStream: InputStream, contentType: String): UserImageId

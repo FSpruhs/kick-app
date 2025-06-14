@@ -20,7 +20,7 @@ class UserCommandsPort(
             throw UserWithEmailAlreadyExistsException(command.email)
         }
 
-        val newId = userIdentityProviderPort.save(command.email, command.nickName)
+        val newId = userIdentityProviderPort.save(command.email, command.nickName, command.password)
 
         return UserAggregate(newId.value).also {
             it.createUser(command)
@@ -72,6 +72,7 @@ class UserQueryPort(
 data class RegisterUserCommand(
     var nickName: NickName,
     var email: Email,
+    var password: Password? = null
 )
 
 data class ChangeUserNickNameCommand(

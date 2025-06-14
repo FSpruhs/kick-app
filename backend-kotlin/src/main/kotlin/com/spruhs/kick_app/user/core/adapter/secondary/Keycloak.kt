@@ -6,8 +6,10 @@ import com.spruhs.kick_app.user.core.domain.*
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.UserRepresentation
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 
+@Profile("oauth2")
 @Service
 class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
 
@@ -16,7 +18,7 @@ class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
     @Value("\${keycloak.realm}")
     private var realm: String? = null
 
-    override fun save(email: Email, nickName: NickName): UserId {
+    override suspend fun save(email: Email, nickName: NickName, password: Password?): UserId {
         val response = UserRepresentation().apply {
             this.username = nickName.value
             this.firstName = nickName.value + " firstname"
@@ -41,7 +43,7 @@ class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
         }
     }
 
-    override fun changeNickName(userId: UserId, nickName: NickName) {
+    override suspend fun changeNickName(userId: UserId, nickName: NickName) {
         val userResource = keycloak.realm(realm).users().get(userId.value)
         val userRepresentation: UserRepresentation = userResource.toRepresentation()
         userRepresentation.username = nickName.value

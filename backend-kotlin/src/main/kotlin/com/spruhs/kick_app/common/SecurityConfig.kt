@@ -5,6 +5,7 @@ import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -13,8 +14,9 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
+@Profile("oauth2")
 @Configuration
-class JWTSecurityConfig {
+class OAuth2SecurityConfig {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -56,4 +58,6 @@ class JWTSecurityConfig {
             .build()
     }
 }
+
+
 

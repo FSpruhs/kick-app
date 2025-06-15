@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
+import com.spruhs.kick_app.user.core.application.AuthUser
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -66,7 +67,7 @@ interface UserIdentityProviderPort {
 }
 
 interface UserLoginPort {
-    suspend fun getPassword(email: Email): Password?
+    suspend fun getAuthUser(email: Email): AuthUser?
 }
 
 interface UserProjectionPort {

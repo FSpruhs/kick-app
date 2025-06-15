@@ -3,6 +3,7 @@ package com.spruhs.kick_app.user.core.adapter.secondary
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.generateId
 import com.spruhs.kick_app.common.getLogger
+import com.spruhs.kick_app.user.core.application.AuthUser
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password
@@ -44,10 +45,14 @@ class UserAuthMongoDBAdapter(private val repository: UserAuthRepository) : UserI
         log.info("Changing nickname for user {}", nickName)
     }
 
-    override suspend fun getPassword(email: Email): Password? {
+    override suspend fun getAuthUser(email: Email): AuthUser? {
         return repository.findByEmail(email.value)
             .awaitFirstOrNull()
-            ?.let { Password.fromHash(it.passwordHash) }
+            ?.let { AuthUser(
+                email = Email(it.email),
+                userId = UserId(it.userId),
+                password = Password.fromHash(it.passwordHash)
+            ) }
     }
 
 }

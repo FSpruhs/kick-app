@@ -1,7 +1,14 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
+import com.spruhs.kick_app.user.core.application.LoginCommand
+import com.spruhs.kick_app.user.core.application.LoginException
+import com.spruhs.kick_app.user.core.domain.Email
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -17,13 +24,21 @@ class LoginRestController(
 
     @PostMapping("/login")
     suspend fun login(@RequestBody request: LoginRequest): AuthResponse {
-        return authUseCases.login(request)
+        return authUseCases.login(LoginCommand(Email(request.email), request.password))
     }
 
     @PostMapping("/refresh/{refreshToken}")
     suspend fun refresh(@PathVariable refreshToken: String): AuthResponse {
         return authUseCases.refresh(refreshToken)
     }
+}
+
+@ControllerAdvice
+class LoginExceptionHandler {
+
+    @ExceptionHandler
+    fun handleLoginException(e: LoginException) =
+        ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
 }
 
 data class LoginRequest(

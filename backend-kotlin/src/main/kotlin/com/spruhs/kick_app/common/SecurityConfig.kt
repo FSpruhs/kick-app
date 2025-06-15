@@ -119,8 +119,8 @@ class JwtAuthFilter(private val jwtUtil: JwtUtil) : OncePerRequestFilter() {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             val token = authHeader.substring(7)
             if (jwtUtil.isTokenValid(token)) {
-                val username = jwtUtil.getUsername(token)
-                val auth = UsernamePasswordAuthenticationToken(username, null, emptyList())
+                val userId = jwtUtil.getUserId(token)
+                val auth = UsernamePasswordAuthenticationToken(userId.value, null, emptyList())
                 SecurityContextHolder.getContext().authentication = auth
             }
         }
@@ -133,17 +133,17 @@ class JwtUtil(secret: String) {
     private val log = getLogger(this::class.java)
     private val key: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun generateToken(username: String, expirationMillis: Long): String {
+    fun generateToken(userId: UserId, expirationMillis: Long): String {
         return Jwts.builder()
-            .setSubject(username)
+            .setSubject(userId.value)
             .setIssuedAt(Date())
             .setExpiration(Date(System.currentTimeMillis() + expirationMillis))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
     }
 
-    fun getUsername(token: String): String =
-        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body.subject
+    fun getUserId(token: String): UserId =
+        UserId(Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body.subject)
 
     fun isTokenValid(token: String): Boolean = try {
         Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token)

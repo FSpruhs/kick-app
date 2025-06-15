@@ -82,6 +82,7 @@ class UserRestControllerIT {
 
         webTestClient.post()
             .uri("/api/v1/user")
+            .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
             .bodyValue(userBuilder.buildRegisterUserRequest())
             .exchange()
             .expectStatus().isCreated

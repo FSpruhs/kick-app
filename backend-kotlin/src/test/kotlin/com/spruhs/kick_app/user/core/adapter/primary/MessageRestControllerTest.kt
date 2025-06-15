@@ -7,6 +7,8 @@ import com.spruhs.kick_app.common.MessageId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.user.core.application.MessageUseCases
+import com.spruhs.kick_app.user.core.application.UserCommandsPort
+import com.spruhs.kick_app.user.core.application.UserQueryPort
 import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessageType
 import io.mockk.coEvery
@@ -32,6 +34,12 @@ class MessageRestControllerTest {
     class TestConfig {
         @Bean
         fun messageUseCases(): MessageUseCases = mockk(relaxed = true)
+
+        @Bean
+        fun userQueryPort(): UserQueryPort = mockk(relaxed = true)
+
+        @Bean
+        fun userCommandsPort(): UserCommandsPort = mockk(relaxed = true)
     }
 
     @Autowired

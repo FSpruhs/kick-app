@@ -1,0 +1,2 @@
+jwt:
+  secret: "my-256-bit-secret-my-256-bit-secret"

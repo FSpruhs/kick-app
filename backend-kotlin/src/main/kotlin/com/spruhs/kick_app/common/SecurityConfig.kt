@@ -76,7 +76,7 @@ class JwtSecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
-                auth.requestMatchers(HttpMethod.POST, "/api/v1/auth").permitAll()
+                auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                 auth.anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
@@ -89,7 +89,6 @@ class JwtSecurityConfig(
 
     @Bean
     fun jwtUtil(@Value("\${jwt.secret}") secret: String) = JwtUtil(secret)
-
 
 }
 

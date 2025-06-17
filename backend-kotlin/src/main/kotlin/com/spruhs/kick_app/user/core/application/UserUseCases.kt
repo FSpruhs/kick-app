@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.AggregateStore
-import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
+import com.spruhs.kick_app.viewservice.api.UserApi
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 
@@ -12,11 +12,11 @@ import org.springframework.web.multipart.MultipartFile
 class UserCommandsPort(
     private val aggregateStore: AggregateStore,
     private val userIdentityProviderPort: UserIdentityProviderPort,
-    private val userQueryPort: UserQueryPort,
     private val userImagePort: UserImagePort,
+    private val userApi: UserApi,
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
-        require(userQueryPort.existsByEmail(command.email).not()) {
+        require(userApi.existsByEmail(command.email.value).not()) {
             throw UserWithEmailAlreadyExistsException(command.email)
         }
 
@@ -49,24 +49,6 @@ class UserCommandsPort(
         }
         return imageId
     }
-
-}
-
-
-@Service
-class UserQueryPort(
-    private val projectionPort: UserProjectionPort
-) {
-
-    suspend fun existsByEmail(email: Email): Boolean = projectionPort.existsByEmail(email)
-
-    suspend fun getUser(userId: UserId): UserProjection =
-        projectionPort.getUser(userId) ?: throw UserNotFoundException(userId)
-
-    suspend fun getUsersByIds(userIds: List<UserId>): List<UserProjection> =
-        userIds.map { projectionPort.getUser(it) ?: throw UserNotFoundException(it) }
-
-    suspend fun getUsers(exceptGroupId: GroupId? = null): List<UserProjection> = projectionPort.findAll(exceptGroupId)
 }
 
 data class RegisterUserCommand(

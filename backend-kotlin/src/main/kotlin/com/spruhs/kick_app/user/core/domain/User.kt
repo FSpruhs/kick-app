@@ -70,29 +70,6 @@ interface UserLoginPort {
     suspend fun getAuthUser(email: Email): AuthUser?
 }
 
-interface UserProjectionPort {
-    suspend fun whenEvent(event: BaseEvent)
-    suspend fun existsByEmail(email: Email): Boolean
-    suspend fun getUser(userId: UserId): UserProjection?
-    suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection>
-}
-
-data class UserProjection (
-    val id: UserId,
-    val nickName: NickName,
-    val email: Email,
-    val userImageId: UserImageId? = null,
-    val groups: List<GroupProjection> = emptyList(),
-)
-
-data class GroupProjection(
-    val id: GroupId,
-    val name: String,
-    val userStatus: PlayerStatusType,
-    val userRole: PlayerRole,
-    val lastMatch: LocalDateTime? = null,
-)
-
 @JvmInline
 value class NickName(val value: String) {
     init {
@@ -152,7 +129,6 @@ value class Email(val value: String) {
     }
 }
 
-data class UserNotFoundException(val userId: UserId) : RuntimeException("User not found: $userId")
 data class UserWithEmailAlreadyExistsException(val email: Email) :
     RuntimeException("User with email already exists: $email")
 class CreateUserIdentityProviderException(message: String) : Exception(message)

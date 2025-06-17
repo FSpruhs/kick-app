@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.user.core.adapter.secondary
+package com.spruhs.kick_app.viewservice.core.persistence
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
@@ -7,12 +7,12 @@ import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.common.UserNotFoundException
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
-import com.spruhs.kick_app.user.api.UserCreatedEvent
-import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
-import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
-import com.spruhs.kick_app.user.core.domain.*
+import com.spruhs.kick_app.viewservice.core.service.GroupProjection
+import com.spruhs.kick_app.viewservice.core.service.UserProjection
+import com.spruhs.kick_app.viewservice.core.service.UserProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
@@ -46,14 +46,10 @@ data class GroupDocument(
 @Service
 class UserProjectionMongoAdapter(
     private val repository: UserRepository,
-) : UserProjectionPort {
+) : UserProjectionRepository {
 
     override suspend fun whenEvent(event: BaseEvent) {
         when (event) {
-            is UserCreatedEvent -> handleUserCreated(event)
-            is UserNickNameChangedEvent -> handleUserNickNameChanged(event)
-            is UserImageUpdatedEvent -> handleUserImageUpdated(event)
-
             is GroupNameChangedEvent -> handleGroupNameChanged(event)
             is GroupCreatedEvent -> addGroupToUser(event.userId, event.toDocument())
             is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.toDocument())
@@ -98,8 +94,12 @@ class UserProjectionMongoAdapter(
         }
     }
 
-    override suspend fun existsByEmail(email: Email): Boolean {
-        return repository.existsByEmail(email.value).awaitSingle()
+    override suspend fun save(userProjection: UserProjection) {
+        repository.save(userProjection.toDocument()).awaitSingle()
+    }
+
+    override suspend fun existsByEmail(email: String): Boolean {
+        return repository.existsByEmail(email).awaitSingle()
     }
 
     private suspend fun updateUserStatus(
@@ -165,28 +165,11 @@ class UserProjectionMongoAdapter(
         }
     }
 
-    private suspend fun handleUserNickNameChanged(event: UserNickNameChangedEvent) {
-        findUserById(event.aggregateId).let {
-            it.nickName = event.nickName
-            repository.save(it).awaitSingle()
-        }
-    }
-
-    private suspend fun handleUserCreated(event: UserCreatedEvent) {
-        repository.save(event.toDocument()).awaitFirstOrNull()
-    }
-
     private suspend fun findUserById(userId: String): UserDocument = repository
         .findById(userId)
         .awaitFirstOrNull()
         ?: throw UserNotFoundException(UserId(userId))
 
-    private suspend fun handleUserImageUpdated(event: UserImageUpdatedEvent) {
-        findUserById(event.aggregateId).let {
-            it.userImageId = event.imageId.value
-            repository.save(it).awaitSingle()
-        }
-    }
 }
 
 @Repository
@@ -198,17 +181,10 @@ interface UserRepository : ReactiveMongoRepository<UserDocument, String> {
     fun findByGroupsId(groupId: String): Flux<UserDocument>
 }
 
-private fun UserCreatedEvent.toDocument() = UserDocument(
-    id = this.aggregateId,
-    nickName = this.nickName,
-    email = this.email,
-    groups = emptyList()
-)
-
 private fun UserDocument.toProjection() = UserProjection(
     id = UserId(this.id),
-    nickName = NickName(this.nickName),
-    email = Email(this.email),
+    nickName = this.nickName,
+    email = this.email,
     userImageId = this.userImageId?.let { UserImageId(it) },
     groups = this.groups.map {
         GroupProjection(
@@ -235,4 +211,20 @@ private fun PlayerEnteredGroupEvent.toDocument() = GroupDocument(
     userRole = this.userRole.name,
     userStatus = this.userStatus.name,
     lastMatch = null
+)
+
+private fun UserProjection.toDocument() = UserDocument(
+    id = this.id.value,
+    nickName = this.nickName,
+    email = this.email,
+    userImageId = this.userImageId?.value,
+    groups = this.groups.map {
+        GroupDocument(
+            id = it.id.value,
+            name = it.name,
+            userRole = it.userRole.name,
+            userStatus = it.userStatus.name,
+            lastMatch = it.lastMatch
+        )
+    }
 )

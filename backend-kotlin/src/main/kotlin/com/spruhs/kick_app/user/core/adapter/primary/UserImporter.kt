@@ -3,13 +3,10 @@ package com.spruhs.kick_app.user.core.adapter.primary
 import com.spruhs.kick_app.common.AggregateStore
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.getLogger
-import com.spruhs.kick_app.user.core.adapter.secondary.UserDocument
-import com.spruhs.kick_app.user.core.adapter.secondary.UserRepository
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile

@@ -2,8 +2,8 @@ package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.*
-import com.spruhs.kick_app.user.api.UserApi
-import com.spruhs.kick_app.user.api.UserData
+import com.spruhs.kick_app.viewservice.api.UserApi
+import com.spruhs.kick_app.viewservice.api.UserData
 import org.springframework.stereotype.Service
 
 data class GroupDetail(
@@ -126,7 +126,7 @@ class GroupQueryPort(
         groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
 
     suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
-        groupProjectionPort.getGroupNameList(groupId)
+        return groupProjectionPort.getGroupNameList(groupId)
     }
 
     suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {

@@ -8,7 +8,7 @@ import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.domain.*
-import com.spruhs.kick_app.user.api.UserApi
+import com.spruhs.kick_app.viewservice.api.UserApi
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle

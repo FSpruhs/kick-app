@@ -9,7 +9,6 @@ import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.io.InputStream
-import java.time.LocalDateTime
 import javax.mail.internet.AddressException
 import javax.mail.internet.InternetAddress
 

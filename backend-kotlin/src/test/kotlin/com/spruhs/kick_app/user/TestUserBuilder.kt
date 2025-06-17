@@ -4,11 +4,11 @@ import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.viewservice.api.UserData
 import com.spruhs.kick_app.user.core.adapter.primary.RegisterUserRequest
-import com.spruhs.kick_app.user.core.adapter.primary.UserMessage
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import com.spruhs.kick_app.user.core.domain.UserProjection
+import com.spruhs.kick_app.viewservice.core.controller.rest.UserMessage
+import com.spruhs.kick_app.viewservice.core.service.UserProjection
 
 class TestUserBuilder {
     var id =  "testUserId"
@@ -43,8 +43,8 @@ class TestUserBuilder {
     fun buildProjection(): UserProjection {
         return UserProjection(
             id = UserId(id),
-            nickName = NickName(nickName),
-            email = Email(email),
+            nickName = nickName,
+            email = email,
             userImageId = UserImageId(imageId)
         )
     }

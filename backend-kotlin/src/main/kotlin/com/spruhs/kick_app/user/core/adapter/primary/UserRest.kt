@@ -3,6 +3,7 @@ package com.spruhs.kick_app.user.core.adapter.primary
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.common.UserNotFoundException
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.http.HttpStatus

@@ -281,6 +281,7 @@ interface GroupProjectionPort {
     suspend fun whenEvent(event: BaseEvent)
     suspend fun findById(groupId: GroupId): GroupProjection?
     suspend fun findByPlayer(userId: UserId): List<GroupProjection>
+    suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String>
 }
 
 data class GroupProjection(

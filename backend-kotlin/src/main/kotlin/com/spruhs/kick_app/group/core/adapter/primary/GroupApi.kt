@@ -17,4 +17,8 @@ class GroupApiAdapter(private val groupQueryPort: GroupQueryPort) : GroupApi {
 
     override suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
         groupQueryPort.getActivePlayers(groupId)
+
+    override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
+        return groupQueryPort.getGroupNameList(groupId)
+    }
 }

@@ -95,9 +95,11 @@ class MatchRestController(
     suspend fun getMatch(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
-    ): MatchMessage = matchQueryPort
-        .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
-        .toMessage()
+    ): MatchMessage {
+        val (match, groupNameList) = matchQueryPort
+            .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
+        return match.toMessage(groupNameList)
+    }
 
     @GetMapping("/group/{groupId}")
     suspend fun getMatchPreviews(
@@ -137,12 +139,17 @@ data class MatchMessage(
     val maxPlayer: Int,
     val minPlayer: Int,
     val isCanceled: Boolean,
-    val cadrePlayers: Set<String>,
-    val deregisteredPlayers: Set<String>,
-    val waitingBenchPlayers: Set<String>,
-    val teamA: Set<String>,
-    val teamB: Set<String>,
+    val cadrePlayers: Set<PlayerMessage>,
+    val deregisteredPlayers: Set<PlayerMessage>,
+    val waitingBenchPlayers: Set<PlayerMessage>,
+    val teamA: Set<PlayerMessage>,
+    val teamB: Set<PlayerMessage>,
     val result: Result?
+)
+
+data class PlayerMessage(
+    val id: String,
+    val nickname: String,
 )
 
 private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
@@ -153,7 +160,7 @@ private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchComm
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer))
 )
 
-private fun MatchProjection.toMessage() = MatchMessage(
+private fun MatchProjection.toMessage(groupNameList: Map<UserId, String>) = MatchMessage(
     id = this.id.value,
     groupId = this.groupId.value,
     start = this.start,
@@ -161,11 +168,11 @@ private fun MatchProjection.toMessage() = MatchMessage(
     maxPlayer = this.playerCount.maxPlayer.value,
     minPlayer = this.playerCount.minPlayer.value,
     isCanceled = this.isCanceled,
-    cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
-    deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
-    waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
-    teamA = this.teamA.map { it.value}.toSet(),
-    teamB = this.teamB.map { it.value}.toSet(),
+    cadrePlayers = this.cadrePlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
+    deregisteredPlayers = this.deregisteredPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
+    waitingBenchPlayers = this.waitingBenchPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
+    teamA = this.teamA.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
+    teamB = this.teamB.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
     result = this.result
 )
 

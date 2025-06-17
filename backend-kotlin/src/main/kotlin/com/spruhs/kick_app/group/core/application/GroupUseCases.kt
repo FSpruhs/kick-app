@@ -125,6 +125,10 @@ class GroupQueryPort(
     suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> =
         groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
 
+    suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
+        groupProjectionPort.getGroupNameList(groupId)
+    }
+
     suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
         val group = fetchGroup(groupId).apply {
             require(this.isPlayer(userId)) { throw UserNotAuthorizedException(userId) }

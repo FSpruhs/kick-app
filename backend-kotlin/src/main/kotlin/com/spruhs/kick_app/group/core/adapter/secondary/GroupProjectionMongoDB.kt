@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.domain.*
+import com.spruhs.kick_app.user.api.UserApi
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -30,9 +31,22 @@ data class PlayerDocument(
     var role: String
 )
 
+@Document(collation = "group_name_list")
+data class GroupNameListDocument(
+    val groupId: String,
+    val playerNames: MutableList<PlayerNameDocument>
+)
+
+data class PlayerNameDocument(
+    val userId: String,
+    val name: String,
+)
+
 @Service
 class GroupProjectionMongoAdapter(
     private val repository: GroupRepository,
+    private val userApi: UserApi,
+    private val groupListRepository: GroupNameListRepository
 ) : GroupProjectionPort {
     override suspend fun whenEvent(event: BaseEvent) {
         when (event) {
@@ -96,6 +110,14 @@ class GroupProjectionMongoAdapter(
         ).also {
             repository.save(it).awaitFirstOrNull()
         }
+
+        val user = userApi.findUserById(event.userId)
+        GroupNameListDocument(
+            groupId = event.aggregateId,
+            playerNames = mutableListOf(PlayerNameDocument(user.id.value, user.nickName))
+        ).also {
+            groupListRepository.save(it).awaitFirstOrNull()
+        }
     }
 
     private suspend fun fetchGroup(groupId: String): GroupDocument =
@@ -117,6 +139,12 @@ class GroupProjectionMongoAdapter(
             it.players += newPlayerDocument(event.userId)
             repository.save(it).awaitSingle()
         }
+
+        val user = userApi.findUserById(event.userId)
+        val groupNameList = groupListRepository.findByGroupId(event.aggregateId)
+            .awaitFirstOrNull() ?: GroupNameListDocument(event.aggregateId, mutableListOf())
+        groupNameList.playerNames.add(PlayerNameDocument(user.id.value, user.nickName))
+        groupListRepository.save(groupNameList).awaitSingle()
     }
 
     private suspend fun handlePlayerRoleEvent(groupId: GroupId, userId: UserId, role: PlayerRole) {
@@ -144,11 +172,24 @@ class GroupProjectionMongoAdapter(
             .collectList()
             .awaitFirst()
             .map { it.toProjection() }
+
+    override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
+        return groupListRepository.findByGroupId(groupId.value)
+            .awaitFirstOrNull()
+            ?.playerNames
+            ?.associate { UserId(it.userId) to it.name }
+            ?: emptyMap()
+    }
 }
 
 @Repository
 interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
     fun findAllByPlayersIdContains(userId: String): Flux<GroupDocument>
+}
+
+@Repository
+interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocument, String> {
+    fun findByGroupId(groupId: String): Flux<GroupNameListDocument>
 }
 
 private fun GroupDocument.toProjection() = GroupProjection(

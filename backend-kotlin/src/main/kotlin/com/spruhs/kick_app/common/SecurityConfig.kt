@@ -70,7 +70,11 @@ class JwtSecurityConfig(
     private val corsConfigurationSource: CorsConfigurationSource
 ) {
     @Bean
-    fun securityFilterChain(http: HttpSecurity, jwtAuthFilter: JwtAuthFilter): SecurityFilterChain {
+    fun securityFilterChain(
+        http: HttpSecurity,
+        jwtAuthFilter: JwtAuthFilter,
+        requestLoggingFilter: RequestLoggingFilter
+    ): SecurityFilterChain {
         http
             .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
@@ -79,6 +83,7 @@ class JwtSecurityConfig(
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                 auth.anyRequest().authenticated()
             }
+            .addFilterBefore(requestLoggingFilter, JwtAuthFilter::class.java)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
@@ -89,6 +94,9 @@ class JwtSecurityConfig(
 
     @Bean
     fun jwtUtil(@Value("\${jwt.secret}") secret: String) = JwtUtil(secret)
+
+    @Bean
+    fun requestLoggingFilter() = RequestLoggingFilter()
 
 }
 
@@ -152,6 +160,21 @@ class JwtUtil(secret: String) {
         false
     }
 }
+
+class RequestLoggingFilter : OncePerRequestFilter() {
+
+    private val log = getLogger(this::class.java)
+
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        filterChain: FilterChain
+    ) {
+        log.info("Incoming Request: ${request.method} ${request.requestURI}")
+        filterChain.doFilter(request, response)
+    }
+}
+
 
 
 

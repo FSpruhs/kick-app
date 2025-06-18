@@ -82,24 +82,6 @@ class MatchCommandPort(
     }
 }
 
-@Service
-class MatchQueryPort(
-    private val projectionPort: MatchProjectionPort,
-    private val groupApi: GroupApi,
-) {
-    suspend fun getMatch(matchId: MatchId, userId: UserId): Pair<MatchProjection, Map<UserId, String>> {
-        val match = projectionPort.findById(matchId) ?: throw MatchNotFoundException(matchId)
-        require(groupApi.isActiveMember(match.groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        val groupNameList = groupApi.getGroupNameList(match.groupId)
-        return Pair(match, groupNameList)
-    }
-
-    suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId): List<MatchProjection> {
-        require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        return projectionPort.findAllByGroupId(groupId)
-    }
-}
-
 data class EnterResultCommand(
     val userId: UserId,
     val matchId: MatchId,

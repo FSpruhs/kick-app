@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.Serializer
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -53,7 +54,7 @@ data class PlaygroundChangedEvent(
 data class MatchResultEnteredEvent(
     override val aggregateId: String,
     val groupId: GroupId,
-    val result: String,
+    val result: Result,
     val start: LocalDateTime,
     val teamA: List<UserId>,
     val teamB: List<UserId>,

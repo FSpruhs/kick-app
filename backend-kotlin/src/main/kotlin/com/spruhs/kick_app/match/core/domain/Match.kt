@@ -11,12 +11,6 @@ import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
-enum class Result {
-    WINNER_TEAM_A,
-    WINNER_TEAM_B,
-    DRAW
-}
-
 data class ParticipatingPlayer(
     val userId: UserId,
     val team: Team
@@ -77,27 +71,6 @@ value class MinPlayer(val value: Int) {
         require(value in 4..1_000) { "Min player must be between 4 and 1000" }
     }
 }
-
-interface MatchProjectionPort {
-    suspend fun whenEvent(event: BaseEvent)
-    suspend fun findById(matchId: MatchId): MatchProjection?
-    suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection>
-}
-
-data class MatchProjection(
-    val id: MatchId,
-    val groupId: GroupId,
-    val start: LocalDateTime,
-    val playground: Playground?,
-    val isCanceled: Boolean,
-    val playerCount: PlayerCount,
-    val cadrePlayers: Set<UserId>,
-    val waitingBenchPlayers: Set<UserId>,
-    val deregisteredPlayers: Set<UserId>,
-    val teamA: Set<UserId>,
-    val teamB: Set<UserId>,
-    val result: Result? = null,
-)
 
 class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
 class MatchStartTimeException(matchId: MatchId) :

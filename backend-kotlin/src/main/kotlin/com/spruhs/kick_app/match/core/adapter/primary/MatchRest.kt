@@ -16,7 +16,6 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1/match")
 class MatchRestController(
     private val matchCommandPort: MatchCommandPort,
-    private val matchQueryPort: MatchQueryPort,
     private val jwtParser: JWTParser
 ) {
 
@@ -90,25 +89,6 @@ class MatchRestController(
             )
         )
     }
-
-    @GetMapping("/{matchId}")
-    suspend fun getMatch(
-        @PathVariable matchId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): MatchMessage {
-        val (match, groupNameList) = matchQueryPort
-            .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
-        return match.toMessage(groupNameList)
-    }
-
-    @GetMapping("/group/{groupId}")
-    suspend fun getMatchPreviews(
-        @PathVariable groupId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): List<MatchPreviewMessage> {
-        return matchQueryPort.getMatchesByGroup(GroupId(groupId), jwtParser.getUserId(jwt))
-            .map { it.toPreviewMessage() }
-    }
 }
 
 data class EnterResultRequest(
@@ -125,59 +105,10 @@ data class PlanMatchRequest(
     val minPlayer: Int
 )
 
-data class MatchPreviewMessage(
-    val id: String,
-    val isCanceled: Boolean,
-    val start: LocalDateTime,
-)
-
-data class MatchMessage(
-    val id: String,
-    val groupId: String,
-    val start: LocalDateTime,
-    val playground: String?,
-    val maxPlayer: Int,
-    val minPlayer: Int,
-    val isCanceled: Boolean,
-    val cadrePlayers: Set<PlayerMessage>,
-    val deregisteredPlayers: Set<PlayerMessage>,
-    val waitingBenchPlayers: Set<PlayerMessage>,
-    val teamA: Set<PlayerMessage>,
-    val teamB: Set<PlayerMessage>,
-    val result: Result?
-)
-
-data class PlayerMessage(
-    val id: String,
-    val nickname: String,
-)
-
 private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
     requesterId = requestingUserId,
     groupId = GroupId(groupId),
     start = start,
     playground = Playground(playground),
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer))
-)
-
-private fun MatchProjection.toMessage(groupNameList: Map<UserId, String>) = MatchMessage(
-    id = this.id.value,
-    groupId = this.groupId.value,
-    start = this.start,
-    playground = this.playground?.value,
-    maxPlayer = this.playerCount.maxPlayer.value,
-    minPlayer = this.playerCount.minPlayer.value,
-    isCanceled = this.isCanceled,
-    cadrePlayers = this.cadrePlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    deregisteredPlayers = this.deregisteredPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    waitingBenchPlayers = this.waitingBenchPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    teamA = this.teamA.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    teamB = this.teamB.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    result = this.result
-)
-
-private fun MatchProjection.toPreviewMessage() = MatchPreviewMessage(
-    id = this.id.value,
-    isCanceled = this.isCanceled,
-    start = this.start
 )

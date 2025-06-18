@@ -50,3 +50,9 @@ fun String.toLocalDateTime(): LocalDateTime {
 fun LocalDateTime.toISOString(): String {
     return this.format(DateTimeFormatter.ISO_DATE_TIME)
 }
+
+enum class Result {
+    WINNER_TEAM_A,
+    WINNER_TEAM_B,
+    DRAW
+}

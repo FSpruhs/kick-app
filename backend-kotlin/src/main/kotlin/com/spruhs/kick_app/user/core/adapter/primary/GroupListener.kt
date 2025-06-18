@@ -1,12 +1,10 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.MessageType
-import com.spruhs.kick_app.user.core.domain.UserProjectionPort
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
@@ -15,26 +13,10 @@ import org.springframework.stereotype.Component
 @Component("UserGroupListener")
 class GroupListener(
     private val messageUseCases: MessageUseCases,
-    private val userProjectionPort: UserProjectionPort,
     private val applicationScope: CoroutineScope
 ) {
 
     private val log = getLogger(this::class.java)
-
-    @EventListener(
-        GroupNameChangedEvent::class,
-        GroupCreatedEvent::class,
-        PlayerEnteredGroupEvent::class,
-        PlayerLeavedEvent::class,
-        PlayerActivatedEvent::class,
-        PlayerDeactivatedEvent::class,
-    )
-    fun onEvent(event: BaseEvent) {
-        log.info("User scope received: $event")
-        applicationScope.launch {
-            userProjectionPort.whenEvent(event)
-        }
-    }
 
     @EventListener
     fun onEvent(event: PlayerInvitedEvent) {
@@ -48,7 +30,6 @@ class GroupListener(
     fun onEvent(event: PlayerRemovedEvent) {
         log.info("PlayerRemovedEvent received: $event")
         applicationScope.launch {
-            userProjectionPort.whenEvent(event)
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
         }
     }
@@ -57,7 +38,6 @@ class GroupListener(
     fun onEvent(event: PlayerPromotedEvent) {
         log.info("PlayerPromotedEvent received: $event")
         applicationScope.launch {
-            userProjectionPort.whenEvent(event)
             messageUseCases.send(MessageType.USER_PROMOTED, event.toMessageParams())
         }
     }
@@ -66,7 +46,6 @@ class GroupListener(
     fun onEvent(event: PlayerDowngradedEvent) {
         log.info("PlayerDowngradedEvent received: $event")
         applicationScope.launch {
-            userProjectionPort.whenEvent(event)
             messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
         }
     }

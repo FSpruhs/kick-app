@@ -162,7 +162,7 @@ class MatchAggregate(
     }
 
     private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
-        this.result = Result.valueOf(event.result)
+        this.result = event.result
         this.participatingPlayers =
             event.teamA.map { ParticipatingPlayer(it, Team.A) } + event.teamB.map { ParticipatingPlayer(it, Team.B) }
     }
@@ -199,7 +199,7 @@ class MatchAggregate(
             MatchResultEnteredEvent(
                 aggregateId = aggregateId,
                 groupId = groupId,
-                result = result.name,
+                result = result,
                 start = start,
                 teamA = participatingPlayer.filter { it.team == Team.A }.map { it.userId },
                 teamB = participatingPlayer.filter { it.team == Team.B }.map { it.userId }

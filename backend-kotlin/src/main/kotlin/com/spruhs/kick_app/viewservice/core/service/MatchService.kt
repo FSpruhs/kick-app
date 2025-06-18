@@ -115,6 +115,10 @@ class MatchService(
         require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
         return repository.findAllByGroupId(groupId)
     }
+
+    suspend fun getPlayerMatches(playerId: UserId, after: LocalDateTime? = null): Pair<List<MatchProjection>, Map<UserId, String>> {
+        return Pair(emptyList(), emptyMap())
+    }
 }
 
 interface MatchProjectionRepository {

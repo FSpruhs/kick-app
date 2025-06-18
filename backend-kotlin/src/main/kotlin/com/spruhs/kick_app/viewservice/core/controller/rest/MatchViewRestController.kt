@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.viewservice.core.service.MatchProjection
 import com.spruhs.kick_app.viewservice.core.service.MatchService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 
@@ -30,6 +32,19 @@ class MatchViewRestController(
         val (match, groupNameList) = matchService
             .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
         return match.toMessage(groupNameList)
+    }
+
+    //TODO matches for a group filter date
+
+    @GetMapping("player/{playerId}")
+    suspend fun getPlayerMatches(
+        @PathVariable playerId: String,
+        @RequestParam after: LocalDateTime? = null,
+        @AuthenticationPrincipal jwt: Jwt
+    ): List<MatchMessage> {
+        require(playerId == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(playerId)) }
+        val (matches, groupNameList) =  matchService.getPlayerMatches(UserId(playerId), after)
+        return matches.map { it.toMessage(groupNameList) }
     }
 
     @GetMapping("/group/{groupId}")
@@ -74,7 +89,7 @@ data class MatchMessage(
     val id: String,
     val groupId: String,
     val start: LocalDateTime,
-    val playground: String?,
+    val playground: String? = null,
     val maxPlayer: Int,
     val minPlayer: Int,
     val isCanceled: Boolean,

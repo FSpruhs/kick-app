@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.match.core.application.*
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.http.HttpStatus

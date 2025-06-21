@@ -14,11 +14,14 @@ class GroupApiAdapter(private val groupQueryPort: GroupQueryPort) : GroupApi {
     override suspend fun isActiveCoach(groupId: GroupId, userId: UserId): Boolean =
         groupQueryPort.isActiveCoach(groupId, userId)
 
-
     override suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
         groupQueryPort.getActivePlayers(groupId)
 
     override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
         return groupQueryPort.getGroupNameList(groupId)
+    }
+
+    override suspend fun getUserGroups(userId: UserId): List<GroupId> {
+        return groupQueryPort.getUserGroups(userId)
     }
 }

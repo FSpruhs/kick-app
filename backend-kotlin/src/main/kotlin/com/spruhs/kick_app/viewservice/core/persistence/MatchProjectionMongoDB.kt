@@ -29,11 +29,21 @@ class MatchProjectionMongoDB(
             .awaitFirstOrNull()
             ?.toProjection()
 
-    override suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection> =
-        repository.findByGroupId(groupId.value).collectList()
-            .awaitSingle()
-            .map { it.toProjection() }
-
+    override suspend fun findAllByGroupId(
+        groupId: GroupId,
+        after: LocalDateTime?
+    ): List<MatchProjection> {
+        return if (after == null) {
+            repository.findByGroupId(groupId.value).collectList()
+                .awaitSingle()
+                .map { it.toProjection() }
+        } else {
+            repository.findByGroupIdAndStartAfterAndCanceledFalse(groupId.value, after)
+                .collectList()
+                .awaitSingle()
+                .map { it.toProjection() }
+        }
+    }
 }
 
 @Document(collection = "matches")
@@ -45,7 +55,7 @@ data class MatchDocument(
     var playground: String?,
     val maxPlayer: Int,
     val minPlayer: Int,
-    var isCanceled: Boolean,
+    var canceled: Boolean,
     var cadrePlayers: Set<String>,
     var deregisteredPlayers: Set<String>,
     var waitingBenchPlayers: Set<String>,
@@ -57,6 +67,8 @@ data class MatchDocument(
 @Repository
 interface MatchRepository : ReactiveMongoRepository<MatchDocument, String> {
     fun findByGroupId(groupId: String): Flux<MatchDocument>
+    fun findByGroupIdAndStartAfterAndCanceledFalse(groupId: String, start: LocalDateTime): Flux<MatchDocument>
+
 }
 
 private fun MatchDocument.toProjection() = MatchProjection(
@@ -64,7 +76,7 @@ private fun MatchDocument.toProjection() = MatchProjection(
     groupId = GroupId(groupId),
     start = start,
     playground = playground,
-    isCanceled = this.isCanceled,
+    isCanceled = this.canceled,
     maxPlayer = maxPlayer,
     minPlayer = minPlayer,
     result = result?.let { Result.valueOf(it) },
@@ -82,7 +94,7 @@ private fun MatchProjection.toDocument() = MatchDocument(
     playground = playground,
     maxPlayer = maxPlayer,
     minPlayer = minPlayer,
-    isCanceled = isCanceled,
+    canceled = isCanceled,
     cadrePlayers = cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { it.value }.toSet(),

@@ -104,11 +104,10 @@ class MatchService(
         repository.save(match)
     }
 
-    suspend fun getMatch(matchId: MatchId, userId: UserId): Pair<MatchProjection, Map<UserId, String>> {
+    suspend fun getMatch(matchId: MatchId, userId: UserId): MatchProjection {
         val match = repository.findById(matchId) ?: throw MatchNotFoundException(matchId)
         require(groupApi.isActiveMember(match.groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        val groupNameList = groupApi.getGroupNameList(match.groupId)
-        return Pair(match, groupNameList)
+        return match
     }
 
     suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId): List<MatchProjection> {
@@ -116,15 +115,25 @@ class MatchService(
         return repository.findAllByGroupId(groupId)
     }
 
-    suspend fun getPlayerMatches(playerId: UserId, after: LocalDateTime? = null): Pair<List<MatchProjection>, Map<UserId, String>> {
-        return Pair(emptyList(), emptyMap())
+    suspend fun getPlayerMatches(
+        playerId: UserId,
+        after: LocalDateTime? = null,
+    ): List<MatchProjection> {
+        val groups = groupApi.getUserGroups(playerId)
+        val matches = groups.flatMap { group ->
+            repository.findAllByGroupId(group, after)
+        }
+        return matches
     }
 }
 
 interface MatchProjectionRepository {
     suspend fun save(matchProjection: MatchProjection)
     suspend fun findById(matchId: MatchId): MatchProjection?
-    suspend fun findAllByGroupId(groupId: GroupId): List<MatchProjection>
+    suspend fun findAllByGroupId(
+        groupId: GroupId,
+        after: LocalDateTime? = null,
+    ): List<MatchProjection>
 }
 
 data class MatchProjection(

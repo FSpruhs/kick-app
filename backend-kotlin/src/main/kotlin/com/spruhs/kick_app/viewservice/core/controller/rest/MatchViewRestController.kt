@@ -29,9 +29,8 @@ class MatchViewRestController(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): MatchMessage {
-        val (match, groupNameList) = matchService
-            .getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
-        return match.toMessage(groupNameList)
+        val match = matchService.getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
+        return match.toMessage()
     }
 
     //TODO matches for a group filter date
@@ -43,8 +42,8 @@ class MatchViewRestController(
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchMessage> {
         require(playerId == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(playerId)) }
-        val (matches, groupNameList) =  matchService.getPlayerMatches(UserId(playerId), after)
-        return matches.map { it.toMessage(groupNameList) }
+        val matches =  matchService.getPlayerMatches(UserId(playerId), after)
+        return matches.map { it.toMessage() }
     }
 
     @GetMapping("/group/{groupId}")
@@ -57,7 +56,7 @@ class MatchViewRestController(
     }
 }
 
-private fun MatchProjection.toMessage(groupNameList: Map<UserId, String>) = MatchMessage(
+private fun MatchProjection.toMessage() = MatchMessage(
     id = this.id.value,
     groupId = this.groupId.value,
     start = this.start,
@@ -65,11 +64,11 @@ private fun MatchProjection.toMessage(groupNameList: Map<UserId, String>) = Matc
     maxPlayer = this.maxPlayer,
     minPlayer = this.minPlayer,
     isCanceled = this.isCanceled,
-    cadrePlayers = this.cadrePlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    deregisteredPlayers = this.deregisteredPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    waitingBenchPlayers = this.waitingBenchPlayers.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    teamA = this.teamA.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
-    teamB = this.teamB.map { PlayerMessage(it.value, groupNameList[it] ?: "") }.toSet(),
+    cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
+    deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
+    waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
+    teamA = this.teamA.map { it.value }.toSet(),
+    teamB = this.teamB.map { it.value }.toSet(),
     result = this.result
 )
 
@@ -93,15 +92,10 @@ data class MatchMessage(
     val maxPlayer: Int,
     val minPlayer: Int,
     val isCanceled: Boolean,
-    val cadrePlayers: Set<PlayerMessage>,
-    val deregisteredPlayers: Set<PlayerMessage>,
-    val waitingBenchPlayers: Set<PlayerMessage>,
-    val teamA: Set<PlayerMessage>,
-    val teamB: Set<PlayerMessage>,
+    val cadrePlayers: Set<String>,
+    val deregisteredPlayers: Set<String>,
+    val waitingBenchPlayers: Set<String>,
+    val teamA: Set<String>,
+    val teamB: Set<String>,
     val result: Result?
-)
-
-data class PlayerMessage(
-    val id: String,
-    val nickname: String,
 )

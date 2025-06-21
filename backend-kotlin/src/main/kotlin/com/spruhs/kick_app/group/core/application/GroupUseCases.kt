@@ -142,6 +142,8 @@ class GroupQueryPort(
     private suspend fun fetchGroup(groupId: GroupId): GroupProjection =
         groupProjectionPort.findById(groupId) ?: throw GroupNotFoundException(groupId)
 
+    suspend fun getUserGroups(userId: UserId): List<GroupId> =
+        groupProjectionPort.findByPlayer(userId).map { it.id }
 }
 
 private fun GroupProjection.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = GroupDetail(

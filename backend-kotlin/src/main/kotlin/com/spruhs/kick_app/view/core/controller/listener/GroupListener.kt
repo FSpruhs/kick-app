@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.core.controller.listener
+package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.getLogger
@@ -11,7 +11,7 @@ import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
-import com.spruhs.kick_app.viewservice.core.service.UserService
+import com.spruhs.kick_app.view.core.service.UserService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener

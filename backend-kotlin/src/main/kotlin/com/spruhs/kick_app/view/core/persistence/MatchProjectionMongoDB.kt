@@ -1,16 +1,15 @@
-package com.spruhs.kick_app.viewservice.core.persistence
+package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.Result
-import com.spruhs.kick_app.viewservice.core.service.MatchProjection
-import com.spruhs.kick_app.viewservice.core.service.MatchProjectionRepository
+import com.spruhs.kick_app.view.core.service.MatchProjection
+import com.spruhs.kick_app.view.core.service.MatchProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.query.Criteria

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/v1/group")
 class GroupRest(
     private val groupCommandPort: GroupCommandPort,
-    private val groupQueryPort: GroupQueryPort,
     private val jwtParser: JWTParser
 ) {
 
@@ -52,33 +51,12 @@ class GroupRest(
         }
     }
 
-    @GetMapping("/{groupId}")
-    suspend fun getGroup(
-        @PathVariable groupId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): GroupDetail =
-        groupQueryPort.getGroupDetails(GroupId(groupId), jwtParser.getUserId(jwt))
-
-    @GetMapping("/player/{userId}")
-    suspend fun getGroups(
-        @PathVariable userId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): List<GroupMessage> {
-        require(userId == jwtParser.getUserId(jwt).value) {
-            throw UserNotAuthorizedException(UserId(userId))
-        }
-
-        return groupQueryPort.getGroupsByPlayer(UserId(userId)).map { it.toMessage() }
-    }
-
     @PostMapping
     suspend fun createGroup(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest
-    ): GroupMessage = groupCommandPort
-        .createGroup(CreateGroupCommand(jwtParser.getUserId(jwt), Name(request.name)))
-        .toMessage()
-
+    ): String = groupCommandPort
+        .createGroup(CreateGroupCommand(jwtParser.getUserId(jwt), Name(request.name))).aggregateId
 
     @PutMapping("/{groupId}/name")
     suspend fun updateGroupName(
@@ -152,23 +130,8 @@ data class InviteUserResponse(
     val response: Boolean,
 )
 
-data class GroupMessage(
-    val id: String,
-    val name: String,
-)
-
 private fun InviteUserResponse.toCommand() = InviteUserResponseCommand(
     userId = UserId(this.userId),
     groupId = GroupId(this.groupId),
     response = this.response
-)
-
-private fun GroupAggregate.toMessage() = GroupMessage(
-    id = this.aggregateId,
-    name = this.name.value
-)
-
-private fun GroupProjection.toMessage() = GroupMessage(
-    id = this.id.value,
-    name = this.name.value
 )

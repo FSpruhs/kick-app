@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.core.controller.listener
+package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.getLogger
@@ -9,8 +9,8 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.viewservice.core.service.MatchService
-import com.spruhs.kick_app.viewservice.core.service.UserService
+import com.spruhs.kick_app.view.core.service.MatchService
+import com.spruhs.kick_app.view.core.service.UserService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener

@@ -2,13 +2,13 @@ package com.spruhs.kick_app.user
 
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
-import com.spruhs.kick_app.viewservice.api.UserData
+import com.spruhs.kick_app.view.api.UserData
 import com.spruhs.kick_app.user.core.adapter.primary.RegisterUserRequest
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import com.spruhs.kick_app.viewservice.core.controller.rest.UserMessage
-import com.spruhs.kick_app.viewservice.core.service.UserProjection
+import com.spruhs.kick_app.view.core.controller.rest.UserMessage
+import com.spruhs.kick_app.view.core.service.UserProjection
 
 class TestUserBuilder {
     var id =  "testUserId"

@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.core.service
+package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
@@ -145,7 +145,7 @@ data class MatchProjection(
     val id: MatchId,
     val groupId: GroupId,
     val start: LocalDateTime,
-    var playground: String?,
+    var playground: String? = null,
     var isCanceled: Boolean,
     val maxPlayer: Int,
     val minPlayer: Int,

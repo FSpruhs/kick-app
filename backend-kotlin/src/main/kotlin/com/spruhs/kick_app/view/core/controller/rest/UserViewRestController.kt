@@ -1,12 +1,12 @@
-package com.spruhs.kick_app.viewservice.core.controller.rest
+package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
-import com.spruhs.kick_app.viewservice.core.service.UserProjection
-import com.spruhs.kick_app.viewservice.core.service.UserService
+import com.spruhs.kick_app.view.core.service.UserProjection
+import com.spruhs.kick_app.view.core.service.UserService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping

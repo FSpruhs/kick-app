@@ -3,6 +3,7 @@ package com.spruhs.kick_app.group.core.domain
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.application.*
+import com.spruhs.kick_app.view.core.service.GroupProjection
 
 class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregateId, TYPE) {
 
@@ -284,27 +285,7 @@ interface GroupProjectionPort {
     suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String>
 }
 
-data class GroupProjection(
-    val id: GroupId,
-    val name: Name,
-    val players: List<PlayerProjection>,
-) {
-    fun isActivePlayer(userId: UserId): Boolean =
-        players.any { it.id == userId && it.status == PlayerStatusType.ACTIVE }
 
-    fun isActiveCoach(userId: UserId): Boolean =
-        players.any { it.id == userId && it.role == PlayerRole.COACH && it.status == PlayerStatusType.ACTIVE }
-
-    fun isPlayer(userId: UserId): Boolean =
-        players.any { it.id == userId && (it.status == PlayerStatusType.ACTIVE || it.status == PlayerStatusType.INACTIVE) }
-
-}
-
-data class PlayerProjection(
-    val id: UserId,
-    val status: PlayerStatusType,
-    val role: PlayerRole
-)
 
 data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")
 data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")

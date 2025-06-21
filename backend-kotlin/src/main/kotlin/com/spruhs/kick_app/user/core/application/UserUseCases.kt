@@ -4,7 +4,7 @@ import com.spruhs.kick_app.common.AggregateStore
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
-import com.spruhs.kick_app.viewservice.api.UserApi
+import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 

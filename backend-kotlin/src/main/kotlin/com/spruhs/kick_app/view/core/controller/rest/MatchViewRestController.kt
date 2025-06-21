@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.core.controller.rest
+package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
@@ -6,8 +6,8 @@ import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
-import com.spruhs.kick_app.viewservice.core.service.MatchProjection
-import com.spruhs.kick_app.viewservice.core.service.MatchService
+import com.spruhs.kick_app.view.core.service.MatchProjection
+import com.spruhs.kick_app.view.core.service.MatchService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
@@ -60,7 +60,6 @@ class MatchViewRestController(
         val matches =  matchService.getPlayerMatches(UserId(playerId), after)
         return matches.map { it.toMessage() }
     }
-
 }
 
 private fun MatchProjection.toMessage() = MatchMessage(

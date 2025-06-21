@@ -2,8 +2,8 @@ package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.*
-import com.spruhs.kick_app.viewservice.api.UserApi
-import com.spruhs.kick_app.viewservice.api.UserData
+import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.view.api.UserData
 import org.springframework.stereotype.Service
 
 data class GroupDetail(

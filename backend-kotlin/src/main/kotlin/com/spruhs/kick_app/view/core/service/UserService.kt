@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.core.service
+package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
@@ -21,8 +21,8 @@ import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
-import com.spruhs.kick_app.viewservice.api.UserApi
-import com.spruhs.kick_app.viewservice.api.UserData
+import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.view.api.UserData
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

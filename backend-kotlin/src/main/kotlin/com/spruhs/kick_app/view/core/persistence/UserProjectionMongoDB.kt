@@ -1,13 +1,13 @@
-package com.spruhs.kick_app.viewservice.core.persistence
+package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
-import com.spruhs.kick_app.viewservice.core.service.UserGroupProjection
-import com.spruhs.kick_app.viewservice.core.service.UserProjection
-import com.spruhs.kick_app.viewservice.core.service.UserProjectionRepository
+import com.spruhs.kick_app.view.core.service.UserGroupProjection
+import com.spruhs.kick_app.view.core.service.UserProjection
+import com.spruhs.kick_app.view.core.service.UserProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id

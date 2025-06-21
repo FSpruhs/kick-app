@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.viewservice.api
+package com.spruhs.kick_app.view.api
 
 import com.spruhs.kick_app.common.UserId
 

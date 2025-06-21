@@ -8,7 +8,7 @@ import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.domain.*
-import com.spruhs.kick_app.viewservice.api.UserApi
+import com.spruhs.kick_app.view.api.UserApi
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -18,18 +18,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
-@Document(collection = "groups")
-data class GroupDocument(
-    val id: String,
-    var name: String,
-    var players: List<PlayerDocument>,
-)
 
-data class PlayerDocument(
-    val id: String,
-    var status: String,
-    var role: String
-)
 
 @Document(collation = "group_name_list")
 data class GroupNameListDocument(
@@ -180,11 +169,6 @@ class GroupProjectionMongoAdapter(
             ?.associate { UserId(it.userId) to it.name }
             ?: emptyMap()
     }
-}
-
-@Repository
-interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
-    fun findAllByPlayersIdContains(userId: String): Flux<GroupDocument>
 }
 
 @Repository

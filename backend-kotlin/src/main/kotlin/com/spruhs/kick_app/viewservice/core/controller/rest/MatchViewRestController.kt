@@ -79,18 +79,6 @@ private fun MatchProjection.toMessage() = MatchMessage(
     result = this.result
 )
 
-private fun MatchProjection.toPreviewMessage() = MatchPreviewMessage(
-    id = this.id.value,
-    isCanceled = this.isCanceled,
-    start = this.start
-)
-
-data class MatchPreviewMessage(
-    val id: String,
-    val isCanceled: Boolean,
-    val start: LocalDateTime,
-)
-
 data class MatchMessage(
     val id: String,
     val groupId: String,

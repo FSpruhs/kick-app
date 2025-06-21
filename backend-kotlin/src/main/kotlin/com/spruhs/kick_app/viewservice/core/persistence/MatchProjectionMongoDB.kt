@@ -9,7 +9,12 @@ import com.spruhs.kick_app.viewservice.core.service.MatchProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
+import org.springframework.data.domain.Sort
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
@@ -31,20 +36,23 @@ class MatchProjectionMongoDB(
 
     override suspend fun findAllByGroupId(
         groupId: GroupId,
-        after: LocalDateTime?
+        after: LocalDateTime?,
+        before: LocalDateTime?,
+        limit: Int?,
     ): List<MatchProjection> {
-        return if (after == null) {
-            repository.findByGroupId(groupId.value).collectList()
-                .awaitSingle()
-                .map { it.toProjection() }
-        } else {
-            repository.findByGroupIdAndStartAfterAndCanceledFalse(groupId.value, after)
-                .collectList()
-                .awaitSingle()
-                .map { it.toProjection() }
-        }
+        return repository.findFilteredMatches(
+            groupId = groupId.value,
+            after = after,
+            before = before,
+            limit = limit
+        )
+            .map { it.toProjection() }
+            .collectList()
+            .awaitSingle()
     }
 }
+
+
 
 @Document(collection = "matches")
 data class MatchDocument(
@@ -65,10 +73,47 @@ data class MatchDocument(
 )
 
 @Repository
-interface MatchRepository : ReactiveMongoRepository<MatchDocument, String> {
-    fun findByGroupId(groupId: String): Flux<MatchDocument>
-    fun findByGroupIdAndStartAfterAndCanceledFalse(groupId: String, start: LocalDateTime): Flux<MatchDocument>
+interface MatchRepository : ReactiveMongoRepository<MatchDocument, String>, MatchRepositoryCustom
 
+interface MatchRepositoryCustom { fun findFilteredMatches(
+    groupId: String,
+    after: LocalDateTime? = null,
+    before: LocalDateTime? = null,
+    limit: Int? = null
+ ): Flux<MatchDocument>
+}
+
+class MatchRepositoryImpl(
+    private val mongoTemplate: ReactiveMongoTemplate,
+) : MatchRepositoryCustom {
+    override fun findFilteredMatches(
+        groupId: String,
+        after: LocalDateTime?,
+        before: LocalDateTime?,
+        limit: Int?
+    ): Flux<MatchDocument> {
+        val criterias = mutableListOf<Criteria>()
+        criterias.add(Criteria.where("groupId").`is`(groupId))
+        criterias.add(Criteria.where("canceled").`is`(false))
+        if (after != null) {
+            criterias.add(Criteria.where("start").gte(after))
+        }
+        if (before != null) {
+            criterias.add(Criteria.where("start").lte(before))
+        }
+        val query = Query()
+        if (criterias.isNotEmpty()) {
+            query.addCriteria(Criteria().andOperator(*criterias.toTypedArray()))
+        }
+
+        query.with(Sort.by(Sort.Direction.DESC, "start"))
+
+        if (limit != null) {
+            query.limit(limit)
+        }
+
+        return mongoTemplate.find(query, MatchDocument::class.java)
+    }
 }
 
 private fun MatchDocument.toProjection() = MatchProjection(

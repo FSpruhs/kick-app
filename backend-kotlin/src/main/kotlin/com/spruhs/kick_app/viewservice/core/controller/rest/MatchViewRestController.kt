@@ -33,7 +33,22 @@ class MatchViewRestController(
         return match.toMessage()
     }
 
-    //TODO matches for a group filter date
+    @GetMapping("/group/{groupId}")
+    suspend fun getMatchesByGroup(
+        @PathVariable groupId: String,
+        @RequestParam after: LocalDateTime? = null,
+        @RequestParam before: LocalDateTime? = null,
+        @RequestParam limit: Int? = null,
+        @AuthenticationPrincipal jwt: Jwt
+    ): List<MatchMessage> {
+        val matches = matchService.getMatchesByGroup(
+            GroupId(groupId),
+            jwtParser.getUserId(jwt),
+            after,
+            before,
+            limit)
+        return matches.map { it.toMessage() }
+    }
 
     @GetMapping("player/{playerId}")
     suspend fun getPlayerMatches(
@@ -46,14 +61,6 @@ class MatchViewRestController(
         return matches.map { it.toMessage() }
     }
 
-    @GetMapping("/group/{groupId}")
-    suspend fun getMatchPreviews(
-        @PathVariable groupId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): List<MatchPreviewMessage> {
-        return matchService.getMatchesByGroup(GroupId(groupId), jwtParser.getUserId(jwt))
-            .map { it.toPreviewMessage() }
-    }
 }
 
 private fun MatchProjection.toMessage() = MatchMessage(

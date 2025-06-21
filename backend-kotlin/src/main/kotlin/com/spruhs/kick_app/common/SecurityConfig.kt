@@ -72,7 +72,7 @@ class JwtSecurityConfig(
     @Bean
     fun securityFilterChain(
         http: HttpSecurity,
-        jwtAuthFilter: JwtAuthFilter,
+        jwtUtil: JwtUtil,
         requestLoggingFilter: RequestLoggingFilter
     ): SecurityFilterChain {
         http
@@ -83,21 +83,16 @@ class JwtSecurityConfig(
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                 auth.anyRequest().authenticated()
             }
+            .addFilterBefore(JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter::class.java)
             .addFilterBefore(requestLoggingFilter, JwtAuthFilter::class.java)
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
-
         return http.build()
     }
-
-    @Bean
-    fun jwtAuthFilter(jwtUtil: JwtUtil) = JwtAuthFilter(jwtUtil)
 
     @Bean
     fun jwtUtil(@Value("\${jwt.secret}") secret: String) = JwtUtil(secret)
 
     @Bean
     fun requestLoggingFilter() = RequestLoggingFilter()
-
 }
 
 @Configuration

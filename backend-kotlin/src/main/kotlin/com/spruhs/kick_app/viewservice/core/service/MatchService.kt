@@ -110,9 +110,12 @@ class MatchService(
         return match
     }
 
-    suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId): List<MatchProjection> {
+    suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId, after: LocalDateTime? = null, before: LocalDateTime?, limit: Int? = null): List<MatchProjection> {
         require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        return repository.findAllByGroupId(groupId)
+        require(after == null || before == null || after.isBefore(before)) {
+            throw IllegalArgumentException("After date must be before before date")
+        }
+        return repository.findAllByGroupId(groupId, after, before, limit)
     }
 
     suspend fun getPlayerMatches(
@@ -133,6 +136,8 @@ interface MatchProjectionRepository {
     suspend fun findAllByGroupId(
         groupId: GroupId,
         after: LocalDateTime? = null,
+        before: LocalDateTime? = null,
+        limit: Int? = null
     ): List<MatchProjection>
 }
 

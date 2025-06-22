@@ -48,6 +48,6 @@ data class PlayerProjection(
 )
 
 interface GroupProjectionRepository {
-    suspend fun findById(groupId: GroupId): GroupProjection
+    suspend fun findById(groupId: GroupId): GroupProjection?
     suspend fun save(groupProjection: GroupProjection)
 }

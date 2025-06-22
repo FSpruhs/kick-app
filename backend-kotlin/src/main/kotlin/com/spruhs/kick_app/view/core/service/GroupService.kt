@@ -81,12 +81,19 @@ class GroupService(
     private suspend fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
         val user = userApi.findUserById(event.userId)
         val group = fetchGroup(GroupId(event.aggregateId))
-        group.players += PlayerProjection(
-            id = event.userId,
-            status = event.userStatus,
-            role = event.userRole,
-            email = user.email,
-        )
+        val player = group.players.find { it.id == event.userId }
+        if (player == null) {
+            group.players += PlayerProjection(
+                id = event.userId,
+                status = event.userStatus,
+                role = event.userRole,
+                email = user.email,
+            )
+        } else {
+            player.status = event.userStatus
+            player.role = event.userRole
+            player.email = user.email
+        }
         repository.save(group)
 
         val groupNameList = fetchGroupNameList(GroupId(event.aggregateId))
@@ -153,33 +160,40 @@ data class PlayerProjection(
     var status: PlayerStatusType,
     var role: PlayerRole,
     val avatarUrl: String? = null,
-    val email: String,
+    var email: String,
 )
 
 @Service
 class GroupApiService(
-    private val groupProjectionRepository: GroupProjectionRepository
+    private val repository: GroupProjectionRepository,
+    private val groupNameListRepository: GroupNameListProjectionRepository
 ) : GroupApi {
     override suspend fun isActiveMember(
         groupId: GroupId,
         userId: UserId
     ): Boolean {
-        TODO("Not yet implemented")
+        val group = repository.findById(groupId) ?: return false
+        return group.isActivePlayer(userId)
     }
 
     override suspend fun isActiveCoach(
         groupId: GroupId,
         userId: UserId
     ): Boolean {
-        TODO("Not yet implemented")
+        val group = repository.findById(groupId) ?: return false
+        return group.isActiveCoach(userId)
     }
 
     override suspend fun getActivePlayers(groupId: GroupId): List<UserId> {
-        TODO("Not yet implemented")
+        val group = repository.findById(groupId) ?: return emptyList()
+        return group.players.filter { it.status == PlayerStatusType.ACTIVE }
+            .map { it.id }
     }
 
     override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
-        TODO("Not yet implemented")
+        val groupNameList = groupNameListRepository.findByGroupId(groupId)
+            ?: return emptyMap()
+        return groupNameList.players.associate { it.userId to it.name }
     }
 
     override suspend fun getUserGroups(userId: UserId): List<GroupId> {

@@ -2,22 +2,7 @@ package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.group.core.domain.*
-import com.spruhs.kick_app.view.api.UserApi
-import com.spruhs.kick_app.view.api.UserData
 import org.springframework.stereotype.Service
-
-data class GroupDetail(
-    val id: String,
-    val name: String,
-    val players: List<PlayerDetail>,
-)
-
-data class PlayerDetail(
-    val id: String,
-    val nickName: String,
-    val role: PlayerRole,
-    val status: PlayerStatusType,
-)
 
 data class InviteUserCommand(
     val inviterId: UserId,
@@ -101,60 +86,3 @@ class GroupCommandPort(
         }
     }
 }
-
-@Service
-class GroupQueryPort(
-    private val groupProjectionPort: GroupProjectionPort,
-    private val userApi: UserApi
-) {
-    suspend fun getActivePlayers(groupId: GroupId): List<UserId> =
-        fetchGroup(groupId).players
-            .filter { it.status == PlayerStatusType.ACTIVE }
-            .map { it.id }
-
-    suspend fun isActiveMember(
-        groupId: GroupId,
-        userId: UserId
-    ): Boolean = groupProjectionPort.findById(groupId)?.isActivePlayer(userId) ?: false
-
-    suspend fun isActiveCoach(
-        groupId: GroupId,
-        userId: UserId
-    ): Boolean = groupProjectionPort.findById(groupId)?.isActiveCoach(userId) ?: false
-
-    suspend fun getGroupsByPlayer(userId: UserId): List<GroupProjection> =
-        groupProjectionPort.findByPlayer(userId).filter { it.isPlayer(userId) }
-
-    suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
-        return groupProjectionPort.getGroupNameList(groupId)
-    }
-
-    suspend fun getGroupDetails(groupId: GroupId, userId: UserId): GroupDetail {
-        val group = fetchGroup(groupId).apply {
-            require(this.isPlayer(userId)) { throw UserNotAuthorizedException(userId) }
-        }
-
-        val users = userApi.findUsersByIds(group.players.map { it.id }).associateBy { it.id }
-
-        return group.toGroupDetails(users)
-    }
-
-    private suspend fun fetchGroup(groupId: GroupId): GroupProjection =
-        groupProjectionPort.findById(groupId) ?: throw GroupNotFoundException(groupId)
-
-    suspend fun getUserGroups(userId: UserId): List<GroupId> =
-        groupProjectionPort.findByPlayer(userId).map { it.id }
-}
-
-private fun GroupProjection.toGroupDetails(users: Map<UserId, UserData>): GroupDetail = GroupDetail(
-    id = id.value,
-    name = name.value,
-    players = players.map { player ->
-        PlayerDetail(
-            id = player.id.value,
-            nickName = users.getValue(player.id).nickName,
-            role = player.role,
-            status = player.status,
-        )
-    }
-)

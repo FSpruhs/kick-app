@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.*
-import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime

@@ -7,7 +7,7 @@ import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
-import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent

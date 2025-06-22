@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.group.api
+package com.spruhs.kick_app.view.api
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId

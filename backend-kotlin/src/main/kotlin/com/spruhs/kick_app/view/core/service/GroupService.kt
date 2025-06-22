@@ -1,21 +1,120 @@
 package com.spruhs.kick_app.view.core.service
 
+import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
+import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.group.core.domain.Name
+import com.spruhs.kick_app.group.api.GroupCreatedEvent
+import com.spruhs.kick_app.group.api.GroupNameChangedEvent
+import com.spruhs.kick_app.group.api.PlayerActivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDeactivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
+import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
+import com.spruhs.kick_app.group.api.PlayerLeavedEvent
+import com.spruhs.kick_app.group.api.PlayerPromotedEvent
+import com.spruhs.kick_app.group.api.PlayerRemovedEvent
+import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
+import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 
 @Service
 class GroupService(
     private val repository: GroupProjectionRepository,
+    private val groupNameListRepository: GroupNameListProjectionRepository,
     private val userApi: UserApi
 ) {
+    suspend fun whenEvent(event: BaseEvent) {
+        when (event) {
+            is GroupCreatedEvent -> handleGroupCreatedEvent(event)
+            is GroupNameChangedEvent -> handleGroupNameChangedEvent(event)
+            is PlayerEnteredGroupEvent -> handlePlayerEnteredGroupEvent(event)
+            is PlayerLeavedEvent -> handlePlayerStatusEvent(GroupId(event.aggregateId), event.userId, PlayerStatusType.LEAVED)
+            is PlayerActivatedEvent -> handlePlayerStatusEvent(GroupId(event.aggregateId), event.userId, PlayerStatusType.ACTIVE)
+            is PlayerDeactivatedEvent -> handlePlayerStatusEvent(GroupId(event.aggregateId), event.userId, PlayerStatusType.INACTIVE)
+            is PlayerRemovedEvent -> handlePlayerStatusEvent(GroupId(event.aggregateId), event.userId, PlayerStatusType.REMOVED)
+            is PlayerPromotedEvent -> handlePlayerRoleEvent(GroupId(event.aggregateId), event.userId, PlayerRole.COACH)
+            is PlayerDowngradedEvent -> handlePlayerRoleEvent(GroupId(event.aggregateId), event.userId, PlayerRole.PLAYER)
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+    private suspend fun handleGroupCreatedEvent(event: GroupCreatedEvent) {
+        val user = userApi.findUserById(event.userId)
+        GroupProjection(
+            id = GroupId(event.aggregateId),
+            name = event.name,
+            players = listOf(PlayerProjection(
+                id = event.userId,
+                status = event.userStatus,
+                role = event.userRole,
+                email = user.email,
+            )),
+        ).also {
+            repository.save(it)
+        }
+
+        GroupNameListProjection(
+            groupId = GroupId(event.aggregateId),
+            players = mutableListOf(GroupNameListEntry(user.id, user.nickName))
+        ).also {
+            groupNameListRepository.save(it)
+        }
+    }
+
+    private suspend fun fetchGroup(groupId: GroupId): GroupProjection =
+        repository.findById(groupId) ?: throw GroupNotFoundException(groupId)
+
+    private suspend fun fetchGroupNameList(groupId: GroupId): GroupNameListProjection =
+        groupNameListRepository.findByGroupId(groupId) ?: throw GroupNotFoundException(groupId)
+
+
+    private suspend fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
+        fetchGroup(GroupId(event.aggregateId)).let {
+            it.name = event.name
+            repository.save(it)
+        }
+    }
+
+    private suspend fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
+        val user = userApi.findUserById(event.userId)
+        val group = fetchGroup(GroupId(event.aggregateId))
+        group.players += PlayerProjection(
+            id = event.userId,
+            status = event.userStatus,
+            role = event.userRole,
+            email = user.email,
+        )
+        repository.save(group)
+
+        val groupNameList = fetchGroupNameList(GroupId(event.aggregateId))
+        groupNameList.players += GroupNameListEntry(user.id, user.nickName)
+        groupNameListRepository.save(groupNameList)
+    }
+
+    private suspend fun handlePlayerRoleEvent(groupId: GroupId, userId: UserId, role: PlayerRole) {
+        val group = fetchGroup(groupId)
+        val player = group.players.find { it.id == userId }
+        if (player != null) {
+            player.role = role
+            repository.save(group)
+        }
+    }
+
+    private suspend fun handlePlayerStatusEvent(groupId: GroupId, userId: UserId, status: PlayerStatusType) {
+        val group = fetchGroup(groupId)
+        val player = group.players.find { it.id == userId }
+        if (player != null) {
+            player.status = status
+            repository.save(group)
+        }
+    }
+
     suspend fun getGroup(groupId: GroupId, userId: UserId): GroupProjection {
         val group = repository.findById(groupId)
-        val player = group.players.find { it.id == userId }
+        val player = group?.players?.find { it.id == userId }
             ?: throw IllegalArgumentException("User not found in group")
         require(player.status == PlayerStatusType.ACTIVE || player.status == PlayerStatusType.INACTIVE) {
             "User is not an active or inactive member of the group"
@@ -24,10 +123,20 @@ class GroupService(
     }
 }
 
+data class GroupNameListProjection(
+    val groupId: GroupId,
+    var players: List<GroupNameListEntry>,
+)
+
+data class GroupNameListEntry(
+    val userId: UserId,
+    val name: String,
+)
+
 data class GroupProjection(
     val id: GroupId,
-    val name: Name,
-    val players: List<PlayerProjection>,
+    var name: String,
+    var players: List<PlayerProjection>,
 ) {
     fun isActivePlayer(userId: UserId): Boolean =
         players.any { it.id == userId && it.status == PlayerStatusType.ACTIVE }
@@ -41,13 +150,50 @@ data class GroupProjection(
 
 data class PlayerProjection(
     val id: UserId,
-    val status: PlayerStatusType,
-    val role: PlayerRole,
+    var status: PlayerStatusType,
+    var role: PlayerRole,
     val avatarUrl: String? = null,
     val email: String,
 )
 
+@Service
+class GroupApiService(
+    private val groupProjectionRepository: GroupProjectionRepository
+) : GroupApi {
+    override suspend fun isActiveMember(
+        groupId: GroupId,
+        userId: UserId
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun isActiveCoach(
+        groupId: GroupId,
+        userId: UserId
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getActivePlayers(groupId: GroupId): List<UserId> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getUserGroups(userId: UserId): List<GroupId> {
+        TODO("Not yet implemented")
+    }
+
+}
+
 interface GroupProjectionRepository {
     suspend fun findById(groupId: GroupId): GroupProjection?
     suspend fun save(groupProjection: GroupProjection)
+}
+
+interface GroupNameListProjectionRepository {
+    suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection?
+    suspend fun save(groupNameList: GroupNameListProjection)
 }

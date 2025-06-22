@@ -4,12 +4,15 @@ import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.group.core.domain.Name
+import com.spruhs.kick_app.view.core.service.GroupNameListEntry
+import com.spruhs.kick_app.view.core.service.GroupNameListProjection
+import com.spruhs.kick_app.view.core.service.GroupNameListProjectionRepository
 import com.spruhs.kick_app.view.core.service.GroupProjection
 import com.spruhs.kick_app.view.core.service.GroupProjectionRepository
 import com.spruhs.kick_app.view.core.service.PlayerProjection
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
@@ -26,11 +29,36 @@ class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupPro
     }
 }
 
+@Service
+class GroupNameListMongoDB(private val repository: GroupNameListRepository) : GroupNameListProjectionRepository {
+    override suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection? {
+        return repository.findById(groupId.value).awaitFirstOrNull()?.toProjection()
+    }
+
+    override suspend fun save(groupNameList: GroupNameListProjection) {
+        repository.save(groupNameList.toDocument()).awaitSingle()
+    }
+
+}
+
 @Document(collection = "groups")
 data class GroupDocument(
+    @Id
     val id: String,
     val name: String,
     val players: List<PlayerDocument>,
+)
+
+@Document(collection = "group_name_list")
+data class GroupNameListDocument(
+    @Id
+    val groupId: String,
+    val playerEntries: List<GroupNameListEntryDocument>
+)
+
+data class GroupNameListEntryDocument(
+    val userId: String,
+    val name: String,
 )
 
 data class PlayerDocument(
@@ -44,9 +72,12 @@ data class PlayerDocument(
 @Repository
 interface GroupRepository : ReactiveMongoRepository<GroupDocument, String>
 
+@Repository
+interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocument, String>
+
 private fun GroupDocument.toProjection() = GroupProjection(
         id = GroupId(id),
-        name = Name(name),
+        name = name,
         players = players.map {
             PlayerProjection(
                 id = UserId(it.id),
@@ -60,7 +91,7 @@ private fun GroupDocument.toProjection() = GroupProjection(
 
 private fun GroupProjection.toDocument() = GroupDocument(
         id = id.value,
-        name = name.value,
+        name = name,
         players = players.map {
             PlayerDocument(
                 id = it.id.value,
@@ -68,6 +99,26 @@ private fun GroupProjection.toDocument() = GroupDocument(
                 role = it.role.name,
                 avatarUrl = it.avatarUrl,
                 email = it.email,
+            )
+        }
+    )
+
+private fun GroupNameListDocument.toProjection() = GroupNameListProjection(
+        groupId = GroupId(groupId),
+        players = playerEntries.map {
+            GroupNameListEntry(
+                userId = UserId(it.userId),
+                name = it.name,
+            )
+        }
+    )
+
+private fun GroupNameListProjection.toDocument() = GroupNameListDocument(
+        groupId = groupId.value,
+        playerEntries = players.map {
+            GroupNameListEntryDocument(
+                userId = it.userId.value,
+                name = it.name,
             )
         }
     )

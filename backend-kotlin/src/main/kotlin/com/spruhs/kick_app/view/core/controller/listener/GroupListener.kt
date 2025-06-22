@@ -11,6 +11,7 @@ import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
+import com.spruhs.kick_app.view.core.service.GroupService
 import com.spruhs.kick_app.view.core.service.UserService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component
 class GroupListener(
     private val applicationScope: CoroutineScope,
     private val userService: UserService,
+    private val groupService: GroupService,
 ) {
 
     private val log = getLogger(this::class.java)
@@ -41,6 +43,9 @@ class GroupListener(
         log.info("User scope received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
+        }
+        applicationScope.launch {
+            groupService.whenEvent(event)
         }
     }
 }

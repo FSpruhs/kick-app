@@ -31,6 +31,7 @@ data class UserDocument(
 
 @Document
 data class UserGroupDocument(
+    @Id
     val id: String,
     var name: String,
     var userRole: String,

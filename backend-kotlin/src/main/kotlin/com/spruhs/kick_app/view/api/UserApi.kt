@@ -10,5 +10,6 @@ interface UserApi {
 
 data class UserData(
     val id: UserId,
+    val email: String,
     val nickName: String,
 )

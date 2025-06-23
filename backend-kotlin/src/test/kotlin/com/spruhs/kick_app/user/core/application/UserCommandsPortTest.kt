@@ -8,6 +8,7 @@ import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
+import com.spruhs.kick_app.view.api.UserApi
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
@@ -29,10 +30,10 @@ class UserCommandsPortTest {
     lateinit var userIdentityProviderPort: UserIdentityProviderPort
 
     @MockK
-    lateinit var userQueryPort: UserQueryPort
+    lateinit var userImagePort: UserImagePort
 
     @MockK
-    lateinit var userImagePort: UserImagePort
+    lateinit var userApi: UserApi
 
     @InjectMockKs
     lateinit var userCommandsPort: UserCommandsPort
@@ -41,7 +42,7 @@ class UserCommandsPortTest {
     fun `registerUser should throw exception if email exists`(): Unit = runBlocking {
         // Given
         val command = RegisterUserCommand(NickName("Test"), Email("test@testen.com"))
-        coEvery { userQueryPort.existsByEmail(command.email) } returns true
+        coEvery { userApi.existsByEmail(command.email.value) } returns true
 
         // When + Then
         assertFailsWith<UserWithEmailAlreadyExistsException> {

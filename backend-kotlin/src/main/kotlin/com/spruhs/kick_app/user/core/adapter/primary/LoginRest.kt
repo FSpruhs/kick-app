@@ -23,14 +23,13 @@ class LoginRestController(
 ) {
 
     @PostMapping("/login")
-    suspend fun login(@RequestBody request: LoginRequest): AuthResponse {
-        return authUseCases.login(LoginCommand(Email(request.email), request.password))
-    }
+    suspend fun login(@RequestBody request: LoginRequest): AuthResponse =
+        authUseCases.login(request.toCommand())
 
     @PostMapping("/refresh/{refreshToken}")
-    suspend fun refresh(@PathVariable refreshToken: String): AuthResponse {
-        return authUseCases.refresh(refreshToken)
-    }
+    suspend fun refresh(@PathVariable refreshToken: String): AuthResponse =
+        authUseCases.refresh(refreshToken)
+
 }
 
 @ControllerAdvice
@@ -40,6 +39,11 @@ class LoginExceptionHandler {
     fun handleLoginException(e: LoginException) =
         ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
 }
+
+private fun LoginRequest.toCommand() = LoginCommand(
+    email = Email(this.email),
+    password = this.password
+)
 
 data class LoginRequest(
     val email: String,

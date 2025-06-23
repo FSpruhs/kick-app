@@ -11,7 +11,7 @@ import com.spruhs.kick_app.view.core.controller.rest.UserMessage
 import com.spruhs.kick_app.view.core.service.UserProjection
 
 class TestUserBuilder {
-    var id =  "testUserId"
+    var id = "testUserId"
     var nickName = "testNickName"
     var email = "test@testen.com"
     var imageId = "testImageId"
@@ -28,6 +28,7 @@ class TestUserBuilder {
         return UserData(
             id = UserId(id),
             nickName = nickName,
+            email = email,
         )
     }
 

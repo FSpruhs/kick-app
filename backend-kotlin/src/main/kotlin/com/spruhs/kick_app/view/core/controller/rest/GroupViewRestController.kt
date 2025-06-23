@@ -43,7 +43,7 @@ data class GroupMemberMessage(
 private fun GroupProjection.toMessage(): GroupMessage {
     return GroupMessage(
         groupId = id.value,
-        name = name.value,
+        name = name,
         members = players.map { player ->
             GroupMemberMessage(
                 userId = player.id.value,

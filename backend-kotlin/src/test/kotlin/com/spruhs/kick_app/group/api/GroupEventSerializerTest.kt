@@ -33,8 +33,7 @@ class GroupEventSerializerTest {
         assertThat(deserialized).isEqualTo(event)
     }
 
-    companion object
-    {
+    companion object {
         @JvmStatic
         fun data() = listOf(
             GroupCreatedEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.COACH),

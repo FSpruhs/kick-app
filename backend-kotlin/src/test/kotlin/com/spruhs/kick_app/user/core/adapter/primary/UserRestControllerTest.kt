@@ -3,7 +3,6 @@ package com.spruhs.kick_app.user.core.adapter.primary
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
-import com.spruhs.kick_app.user.core.application.UserQueryPort
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
@@ -29,39 +28,16 @@ class UserRestControllerIT {
 
     @TestConfiguration
     class TestConfig {
-        @Bean
-        fun userQueryPort(): UserQueryPort = mockk(relaxed = true)
 
         @Bean
         fun userCommandsPort(): UserCommandsPort = mockk(relaxed = true)
     }
 
     @Autowired
-    lateinit var userQueryPort: UserQueryPort
-
-    @Autowired
     lateinit var userCommandsPort: UserCommandsPort
 
     @Autowired
     lateinit var webTestClient: WebTestClient
-
-    @Test
-    fun `getUser should get user`() {
-        val userBuilder = TestUserBuilder()
-
-        coEvery { userQueryPort.getUser(UserId(userBuilder.id)) } returns userBuilder.buildProjection()
-
-        webTestClient.get()
-            .uri("/api/v1/user/${userBuilder.id}")
-            .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<UserMessage>()
-            .consumeWith { response ->
-                assertThat(response.responseBody).isNotNull()
-                assertThat(response.responseBody).isEqualTo(userBuilder.buildMessage())
-            }
-    }
 
     @Test
     fun `getUser should throw exception when different user requested`() {
@@ -86,10 +62,10 @@ class UserRestControllerIT {
             .bodyValue(userBuilder.buildRegisterUserRequest())
             .exchange()
             .expectStatus().isCreated
-            .expectBody<UserMessage>()
+            .expectBody<String>()
             .consumeWith { response ->
                 assertThat(response.responseBody).isNotNull()
-                assertThat(response.responseBody).isEqualTo(userBuilder.buildMessage())
+                assertThat(response.responseBody).isNotEmpty()
             }
     }
 

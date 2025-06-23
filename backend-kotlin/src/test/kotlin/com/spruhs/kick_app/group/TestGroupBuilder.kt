@@ -3,12 +3,13 @@ package com.spruhs.kick_app.group
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.group.core.adapter.secondary.GroupDocument
-import com.spruhs.kick_app.group.core.adapter.secondary.PlayerDocument
-import com.spruhs.kick_app.group.core.domain.GroupProjection
 import com.spruhs.kick_app.group.core.domain.Name
-import com.spruhs.kick_app.group.core.domain.PlayerProjection
+
 import com.spruhs.kick_app.group.core.domain.PlayerStatus
+import com.spruhs.kick_app.view.core.persistence.GroupDocument
+import com.spruhs.kick_app.view.core.persistence.PlayerDocument
+import com.spruhs.kick_app.view.core.service.GroupProjection
+import com.spruhs.kick_app.view.core.service.PlayerProjection
 
 class TestGroupBuilder() {
     private var groupId = "groupId"
@@ -19,20 +20,20 @@ class TestGroupBuilder() {
         return GroupDocument(
             id = groupId,
             name = groupName,
-            players = players.map { PlayerDocument(it.id.value, it.status.name, it.role.name) }
+            players = players.map { PlayerDocument(it.id.value, it.status.name, it.role.name, null, "") }
         )
     }
 
     fun buildProjection(): GroupProjection {
         return GroupProjection(
             id = GroupId(groupId),
-            name = Name(groupName),
+            name = groupName,
             players = players
         )
     }
 
     fun withPlayer(playerId: String, status: PlayerStatus, role: PlayerRole) =
-        also { players += PlayerProjection(UserId(playerId), status.type(), role) }
+        also { players += PlayerProjection(UserId(playerId), status.type(), role, null, "") }
 
     fun withName(name: String) = also { this.groupName = name }
 

@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.match.api
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
@@ -35,7 +36,7 @@ class MatchEventSerializerTest {
             PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),
             MatchCanceledEvent("matchId", GroupId("groupId")),
             PlaygroundChangedEvent("matchId", "newPlayground", GroupId("groupId")),
-            MatchResultEnteredEvent("matchId", GroupId("groupId"),"result", LocalDateTime.now(), listOf(UserId("userId1")), listOf(UserId("userId2"))),
+            MatchResultEnteredEvent("matchId", GroupId("groupId"), Result.DRAW, LocalDateTime.now(), listOf(UserId("userId1")), listOf(UserId("userId2"))),
         )
     }
 }

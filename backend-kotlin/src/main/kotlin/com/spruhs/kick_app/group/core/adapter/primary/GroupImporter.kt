@@ -1,7 +1,5 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.getLogger
 import jakarta.annotation.PostConstruct
 import org.springframework.beans.factory.annotation.Value

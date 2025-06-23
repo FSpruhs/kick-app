@@ -3,7 +3,6 @@ package com.spruhs.kick_app.group
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.group.core.domain.Name
 
 import com.spruhs.kick_app.group.core.domain.PlayerStatus
 import com.spruhs.kick_app.view.core.persistence.GroupDocument

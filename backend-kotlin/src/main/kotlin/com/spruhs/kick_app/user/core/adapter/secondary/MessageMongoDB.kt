@@ -29,7 +29,7 @@ class MessagePersistenceAdapter(private val messageRepository: MessageRepository
     }
 
     override suspend fun findByUser(userId: UserId): List<Message> {
-        return messageRepository.findByUserId(userId.value).collectList().awaitSingle().map { it.toDomain() }
+        return messageRepository.findByUserId(userId.value).map { it.toDomain() }.collectList().awaitSingle()
     }
 }
 

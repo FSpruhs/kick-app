@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Flux
 
 @Service
 class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupProjectionRepository {
@@ -37,6 +38,10 @@ class GroupNameListMongoDB(private val repository: GroupNameListRepository) : Gr
 
     override suspend fun save(groupNameList: GroupNameListProjection) {
         repository.save(groupNameList.toDocument()).awaitSingle()
+    }
+
+    override suspend fun findByUserId(userId: UserId): List<GroupNameListProjection> {
+        return repository.findByPlayerEntriesUserId(userId.value).map { it.toProjection() }.collectList().awaitSingle()
     }
 
 }
@@ -73,7 +78,9 @@ data class PlayerDocument(
 interface GroupRepository : ReactiveMongoRepository<GroupDocument, String>
 
 @Repository
-interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocument, String>
+interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocument, String> {
+    fun findByPlayerEntriesUserId(userId: String): Flux<GroupNameListDocument>
+}
 
 private fun GroupDocument.toProjection() = GroupProjection(
         id = GroupId(id),

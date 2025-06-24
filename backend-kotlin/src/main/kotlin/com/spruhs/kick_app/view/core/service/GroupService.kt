@@ -70,7 +70,6 @@ class GroupService(
     private suspend fun fetchGroupNameList(groupId: GroupId): GroupNameListProjection =
         groupNameListRepository.findByGroupId(groupId) ?: throw GroupNotFoundException(groupId)
 
-
     private suspend fun handleGroupNameChangedEvent(event: GroupNameChangedEvent) {
         fetchGroup(GroupId(event.aggregateId)).let {
             it.name = event.name
@@ -120,13 +119,36 @@ class GroupService(
     }
 
     suspend fun getGroup(groupId: GroupId, userId: UserId): GroupProjection {
-        val group = repository.findById(groupId)
-        val player = group?.players?.find { it.id == userId }
+        val group = fetchGroup(groupId)
+        val player = group.players.find { it.id == userId }
             ?: throw IllegalArgumentException("User not found in group")
         require(player.status == PlayerStatusType.ACTIVE || player.status == PlayerStatusType.INACTIVE) {
             "User is not an active or inactive member of the group"
         }
         return group
+    }
+
+    suspend fun getPlayer(groupId: GroupId, userId: UserId, requesterId: UserId): PlayerProjection {
+        val group = fetchGroup(groupId)
+        val player = group.players.find { it.id == userId }
+            ?: throw IllegalArgumentException("User not found in group")
+        val requester = group.players.find { it.id == requesterId }
+            ?: throw IllegalArgumentException("Requester not found in group")
+        require(requester.status == PlayerStatusType.ACTIVE || requester.status == PlayerStatusType.INACTIVE) {
+            "User is not an active or inactive member of the group"
+        }
+        return player
+    }
+
+    suspend fun getGroupNameList(groupId: GroupId, requesterId: UserId): List<GroupNameListEntry> {
+        val groupNameList = fetchGroupNameList(groupId)
+        val requester = groupNameList.players.find { it.userId == requesterId }
+            ?: throw IllegalArgumentException("Requester not found in group name list")
+
+        require(requester.userId == requesterId) {
+            "Requester is not authorized to view the group name list"
+        }
+        return groupNameList.players
     }
 }
 
@@ -197,7 +219,7 @@ class GroupApiService(
     }
 
     override suspend fun getUserGroups(userId: UserId): List<GroupId> {
-        TODO("Not yet implemented")
+        return groupNameListRepository.findByUserId(userId).map { it.groupId }
     }
 
 }
@@ -209,5 +231,6 @@ interface GroupProjectionRepository {
 
 interface GroupNameListProjectionRepository {
     suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection?
+    suspend fun findByUserId(userId: UserId): List<GroupNameListProjection>
     suspend fun save(groupNameList: GroupNameListProjection)
 }

@@ -2,8 +2,11 @@ package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.view.core.service.GroupNameListEntry
 import com.spruhs.kick_app.view.core.service.GroupProjection
 import com.spruhs.kick_app.view.core.service.GroupService
+import com.spruhs.kick_app.view.core.service.PlayerProjection
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,6 +27,22 @@ class GroupViewRestController(
         @AuthenticationPrincipal jwt: Jwt
     ): GroupMessage =
         groupService.getGroup(GroupId(groupId), jwtParser.getUserId(jwt)).toMessage()
+
+    @GetMapping("{groupId}/player/{userId}")
+    suspend fun getGroupPlayer(
+        @PathVariable groupId: String,
+        @PathVariable userId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): GroupPlayerMessage =
+        groupService.getPlayer(GroupId(groupId), UserId(userId), jwtParser.getUserId(jwt)).toMessage()
+
+    @GetMapping("/{groupId}/name-list")
+    suspend fun getGroupNameList(
+        @PathVariable groupId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ): List<GroupNameEntryMessage> =
+        groupService.getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt)).map { it.toMessage() }
+
 }
 
 data class GroupMessage(
@@ -40,18 +59,28 @@ data class GroupPlayerMessage(
     val email: String,
 )
 
+data class GroupNameEntryMessage(
+    val userId: String,
+    val name: String,
+)
+
+private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage = GroupNameEntryMessage(
+    userId = userId.value,
+    name = name,
+)
+
 private fun GroupProjection.toMessage(): GroupMessage {
     return GroupMessage(
         groupId = id.value,
         name = name,
-        players = players.map { player ->
-            GroupPlayerMessage(
-                userId = player.id.value,
-                role = player.role.name,
-                status = player.status.name,
-                avatarUrl = player.avatarUrl,
-                email = player.email,
-            )
-        }
+        players = players.map { player -> player.toMessage() }
     )
 }
+
+private fun PlayerProjection.toMessage(): GroupPlayerMessage = GroupPlayerMessage(
+    userId = id.value,
+    role = role.name,
+    status = status.name,
+    avatarUrl = avatarUrl,
+    email = email,
+)

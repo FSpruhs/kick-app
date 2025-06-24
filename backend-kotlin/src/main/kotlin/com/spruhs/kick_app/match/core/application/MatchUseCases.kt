@@ -40,8 +40,7 @@ class MatchCommandPort(
         aggregateStore.save(match)
     }
 
-    suspend fun addRegistration(command: AddRegistrationCommand) {
-        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
+    private suspend fun validateRegistrationRequest(command: AddRegistrationCommand, match: MatchAggregate) {
         require(groupApi.isActiveMember(match.groupId, command.updatedUser)) {
             throw UserNotAuthorizedException(command.updatingUser)
         }
@@ -70,7 +69,11 @@ class MatchCommandPort(
                 }
             }
         }
+    }
 
+    suspend fun addRegistration(command: AddRegistrationCommand) {
+        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
+        validateRegistrationRequest(command, match)
         match.addRegistration(command.updatedUser, command.status)
         aggregateStore.save(match)
     }

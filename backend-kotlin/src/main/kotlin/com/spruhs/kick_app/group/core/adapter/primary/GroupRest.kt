@@ -52,6 +52,7 @@ class GroupRest(
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     suspend fun createGroup(
         @AuthenticationPrincipal jwt: Jwt,
         @RequestBody request: CreateGroupRequest

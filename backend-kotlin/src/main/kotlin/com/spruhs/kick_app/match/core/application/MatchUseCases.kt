@@ -47,19 +47,27 @@ class MatchCommandPort(
         }
         when (command.status) {
             RegistrationStatusType.REGISTERED -> {
-                require(command.updatedUser == command.updatingUser) {}
+                require(command.updatedUser == command.updatingUser) {
+                    throw UserNotAuthorizedException(command.updatingUser)
+                }
             }
 
             RegistrationStatusType.DEREGISTERED -> {
-                require(command.updatedUser == command.updatingUser) {}
+                require(command.updatedUser == command.updatingUser) {
+                    throw UserNotAuthorizedException(command.updatingUser)
+                }
             }
 
             RegistrationStatusType.CANCELLED -> {
-                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {}
+                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {
+                    throw UserNotAuthorizedException(command.updatingUser)
+                }
             }
 
             RegistrationStatusType.ADDED -> {
-                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {}
+                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {
+                    throw UserNotAuthorizedException(command.updatingUser)
+                }
             }
         }
 

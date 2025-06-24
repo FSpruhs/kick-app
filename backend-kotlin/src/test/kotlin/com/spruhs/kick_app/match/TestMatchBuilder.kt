@@ -6,7 +6,11 @@ import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.core.adapter.primary.EnterResultRequest
 import com.spruhs.kick_app.match.core.adapter.primary.PlanMatchRequest
+import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
+import com.spruhs.kick_app.match.core.application.CancelMatchCommand
+import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
 import com.spruhs.kick_app.match.core.application.EnterResultCommand
+import com.spruhs.kick_app.match.core.application.MatchCommandPort
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MaxPlayer
@@ -16,6 +20,7 @@ import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegisteredPlayer
 import com.spruhs.kick_app.match.core.domain.RegistrationStatus
+import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.match.core.domain.Team
 import java.time.LocalDateTime
 
@@ -23,7 +28,7 @@ class TestMatchBuilder {
 
     val matchId = "testMatchId"
     val groupId = "testGroupId"
-    val start = LocalDateTime.now()
+    var start = LocalDateTime.now()
     val isCanceled = false
     val playground = "testPlayground"
     val maxPlayers = 8
@@ -47,6 +52,8 @@ class TestMatchBuilder {
         ParticipatingPlayer(UserId("player 3"), Team.A),
         ParticipatingPlayer(UserId("player 4"), Team.B),
     )
+
+    fun withStart(start: LocalDateTime) = apply { this.start = start }
 
 
     fun build(): MatchAggregate {
@@ -107,6 +114,30 @@ class TestMatchBuilder {
             result = this.result,
             teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId }.toSet(),
             teamB = this.participatingPlayers.filter { it.team == Team.B }.map { it.userId }.toSet()
+        )
+    }
+
+    fun toCancelMatchCommand(userId: UserId): CancelMatchCommand {
+        return CancelMatchCommand(
+            userId = userId,
+            matchId = MatchId(this.matchId)
+        )
+    }
+
+    fun toChangePlaygroundCommand(userId: UserId, playground: Playground): ChangePlaygroundCommand {
+        return ChangePlaygroundCommand(
+            userId = userId,
+            matchId = MatchId(this.matchId),
+            playground = playground
+        )
+    }
+
+    fun toAddRegistrationCommand(updatingUser: UserId, updatedUser: UserId, status: RegistrationStatusType): AddRegistrationCommand {
+        return AddRegistrationCommand(
+            updatingUser = updatingUser,
+            updatedUser = updatedUser,
+            matchId = MatchId(this.matchId),
+            status = status
         )
     }
 }

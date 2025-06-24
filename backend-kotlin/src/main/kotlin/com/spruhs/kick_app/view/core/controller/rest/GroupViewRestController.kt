@@ -29,10 +29,10 @@ class GroupViewRestController(
 data class GroupMessage(
     val groupId: String,
     val name: String,
-    val members: List<GroupMemberMessage>
+    val players: List<GroupPlayerMessage>
 )
 
-data class GroupMemberMessage(
+data class GroupPlayerMessage(
     val userId: String,
     val role: String,
     val status: String,
@@ -44,8 +44,8 @@ private fun GroupProjection.toMessage(): GroupMessage {
     return GroupMessage(
         groupId = id.value,
         name = name,
-        members = players.map { player ->
-            GroupMemberMessage(
+        players = players.map { player ->
+            GroupPlayerMessage(
                 userId = player.id.value,
                 role = player.role.name,
                 status = player.status.name,

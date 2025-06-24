@@ -96,7 +96,7 @@ class MatchAggregate(
     val waitingBench = mutableListOf<RegisteredPlayer>()
     val deregistered = mutableListOf<RegisteredPlayer>()
     var result: Result? = null
-    var participatingPlayers: List<ParticipatingPlayer> = mutableListOf()
+    var participatingPlayers = mutableListOf<ParticipatingPlayer>()
 
     override fun whenEvent(event: Any) {
         when (event) {
@@ -163,8 +163,9 @@ class MatchAggregate(
 
     private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
         this.result = event.result
-        this.participatingPlayers =
+        this.participatingPlayers.addAll(
             event.teamA.map { ParticipatingPlayer(it, Team.A) } + event.teamB.map { ParticipatingPlayer(it, Team.B) }
+        )
     }
 
     fun planMatch(command: PlanMatchCommand) {

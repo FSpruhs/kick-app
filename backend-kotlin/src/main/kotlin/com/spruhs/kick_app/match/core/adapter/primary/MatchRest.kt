@@ -25,9 +25,9 @@ class MatchRestController(
     suspend fun planMatch(
         @RequestBody request: PlanMatchRequest,
         @AuthenticationPrincipal jwt: Jwt
-    ) {
-        matchCommandPort.plan(request.toCommand(jwtParser.getUserId(jwt)))
-    }
+    ) = matchCommandPort
+        .plan(request.toCommand(jwtParser.getUserId(jwt)))
+        .aggregateId
 
     @DeleteMapping("/{matchId}")
     suspend fun cancelMatch(

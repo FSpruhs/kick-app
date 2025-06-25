@@ -79,6 +79,7 @@ class JwtSecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource) }
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
+                auth.requestMatchers("/v3/api-docs*/**", "/swagger-ui/**").permitAll()
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                 auth.anyRequest().authenticated()

@@ -3,7 +3,6 @@ package com.spruhs.kick_app.view.core.controller.rest
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.view.core.service.MatchService
 import com.spruhs.kick_app.view.core.service.PlayerStatisticProjection
 import com.spruhs.kick_app.view.core.service.StatisticService
 import org.springframework.security.core.annotation.AuthenticationPrincipal

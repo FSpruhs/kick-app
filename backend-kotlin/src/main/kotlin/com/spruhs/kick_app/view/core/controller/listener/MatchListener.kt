@@ -10,6 +10,7 @@ import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.view.core.service.MatchService
+import com.spruhs.kick_app.view.core.service.StatisticService
 import com.spruhs.kick_app.view.core.service.UserService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -20,7 +21,8 @@ import org.springframework.stereotype.Component
 class MatchListener(
     private val applicationScope: CoroutineScope,
     private val userService: UserService,
-    private val matchService: MatchService
+    private val matchService: MatchService,
+    private val statisticService: StatisticService
 ) {
 
     private val log = getLogger(this::class.java)
@@ -33,6 +35,9 @@ class MatchListener(
         }
         applicationScope.launch {
             matchService.whenEvent(event)
+        }
+        applicationScope.launch {
+            statisticService.whenEvent(event)
         }
     }
 

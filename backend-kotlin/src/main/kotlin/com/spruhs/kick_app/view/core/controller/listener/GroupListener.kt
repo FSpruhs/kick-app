@@ -12,6 +12,7 @@ import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.view.core.service.GroupService
+import com.spruhs.kick_app.view.core.service.StatisticService
 import com.spruhs.kick_app.view.core.service.UserService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -24,6 +25,7 @@ class GroupListener(
     private val applicationScope: CoroutineScope,
     private val userService: UserService,
     private val groupService: GroupService,
+    private val statisticService: StatisticService
 ) {
 
     private val log = getLogger(this::class.java)
@@ -39,13 +41,39 @@ class GroupListener(
         PlayerPromotedEvent::class,
         PlayerDowngradedEvent::class
     )
-    fun onEvent(event: BaseEvent) {
-        log.info("User scope received: $event")
+    fun onGroupRelevantEvent(event: BaseEvent) {
+        log.info("Group relevant event received: $event")
+        applicationScope.launch {
+            groupService.whenEvent(event)
+        }
+    }
+
+    @EventListener(
+        GroupNameChangedEvent::class,
+        GroupCreatedEvent::class,
+        PlayerEnteredGroupEvent::class,
+        PlayerLeavedEvent::class,
+        PlayerActivatedEvent::class,
+        PlayerDeactivatedEvent::class,
+        PlayerRemovedEvent::class,
+        PlayerPromotedEvent::class,
+        PlayerDowngradedEvent::class
+    )
+    fun onUserRelevantEvent(event: BaseEvent) {
+        log.info("User relevant event received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
         }
+    }
+
+    @EventListener(
+        GroupCreatedEvent::class,
+        PlayerEnteredGroupEvent::class
+    )
+    fun onStatisticRelevantEvent(event: BaseEvent) {
+        log.info("Group scope received: $event")
         applicationScope.launch {
-            groupService.whenEvent(event)
+            statisticService.whenEvent(event)
         }
     }
 }

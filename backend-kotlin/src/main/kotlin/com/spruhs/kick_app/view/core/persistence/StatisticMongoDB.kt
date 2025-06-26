@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @Document(collation = "statistics")
 data class PlayerStatisticDocument(
@@ -44,7 +44,7 @@ class StatisticProjectionMongoAdapter(
 
 @Repository
 interface StatisticsRepository : ReactiveMongoRepository<PlayerStatisticDocument, String> {
-    fun findByGroupIdAndUserId(groupId: String, userId: String): Flux<PlayerStatisticDocument>
+    fun findByGroupIdAndUserId(groupId: String, userId: String): Mono<PlayerStatisticDocument>
 }
 
 private fun PlayerStatisticDocument.toProjection() = PlayerStatisticProjection(

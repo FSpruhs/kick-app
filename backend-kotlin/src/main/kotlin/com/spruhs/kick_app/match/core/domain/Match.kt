@@ -95,8 +95,6 @@ class MatchAggregate(
     val cadre = mutableListOf<RegisteredPlayer>()
     val waitingBench = mutableListOf<RegisteredPlayer>()
     val deregistered = mutableListOf<RegisteredPlayer>()
-    var result: Result? = null
-    var participatingPlayers = mutableListOf<ParticipatingPlayer>()
 
     override fun whenEvent(event: Any) {
         when (event) {
@@ -121,7 +119,6 @@ class MatchAggregate(
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
-            is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -159,13 +156,6 @@ class MatchAggregate(
 
     private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
         this.playground = Playground(event.newPlayground)
-    }
-
-    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
-        this.result = event.result
-        this.participatingPlayers.addAll(
-            event.teamA.map { ParticipatingPlayer(it, Team.A) } + event.teamB.map { ParticipatingPlayer(it, Team.B) }
-        )
     }
 
     fun planMatch(command: PlanMatchCommand) {

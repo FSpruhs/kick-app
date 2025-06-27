@@ -89,7 +89,12 @@ class UserService(
     ) {
         val users = repository.findByGroupId(groupId)
         users.forEach { user ->
-            user.groups.find { it.id == groupId }?.lastMatch = lastMatch
+            user.groups.find { it.id == groupId }.let {
+
+                if (it?.lastMatch?.isBefore(lastMatch) ?: true) {
+                    it?.lastMatch = lastMatch
+                }
+            }
         }
         repository.saveAll(users)
     }
@@ -167,7 +172,6 @@ class UserApiService(
 interface UserProjectionRepository {
     suspend fun existsByEmail(email: String): Boolean
     suspend fun getUser(userId: UserId): UserProjection?
-    suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection>
     suspend fun save(userProjection: UserProjection)
     suspend fun saveAll(userProjection: List<UserProjection>)
     suspend fun findByGroupId(groupId: GroupId): List<UserProjection>

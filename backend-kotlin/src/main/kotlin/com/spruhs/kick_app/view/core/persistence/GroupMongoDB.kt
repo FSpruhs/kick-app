@@ -70,7 +70,6 @@ data class PlayerDocument(
     val id: String,
     val status: String,
     val role: String,
-    val avatarUrl: String? = null,
     val email: String,
 )
 
@@ -90,7 +89,6 @@ private fun GroupDocument.toProjection() = GroupProjection(
                 id = UserId(it.id),
                 status = PlayerStatusType.valueOf(it.status),
                 role = PlayerRole.valueOf(it.role),
-                avatarUrl = it.avatarUrl,
                 email = it.email,
             )
         }
@@ -104,7 +102,6 @@ private fun GroupProjection.toDocument() = GroupDocument(
                 id = it.id.value,
                 status = it.status.name,
                 role = it.role.name,
-                avatarUrl = it.avatarUrl,
                 email = it.email,
             )
         }

@@ -10,7 +10,6 @@ import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
 import com.spruhs.kick_app.match.core.application.CancelMatchCommand
 import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
 import com.spruhs.kick_app.match.core.application.EnterResultCommand
-import com.spruhs.kick_app.match.core.application.MatchCommandPort
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MaxPlayer
@@ -71,10 +70,6 @@ class TestMatchBuilder {
             }
             this.deregistered.forEach { player ->
                 match.deregistered.add(player)
-            }
-            match.result = this.result
-            this.participatingPlayers.forEach { player ->
-                match.participatingPlayers.add(player)
             }
         }
     }

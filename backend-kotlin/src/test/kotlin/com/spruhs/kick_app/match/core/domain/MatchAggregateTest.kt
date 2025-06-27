@@ -83,24 +83,6 @@ class MatchAggregateTest {
     }
 
     @Test
-    fun `enterResult should enter result`() {
-        // Given
-        val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now().minusDays(1)
-
-        val result = Result.WINNER_TEAM_A
-        val participatingPlayers =
-            listOf(ParticipatingPlayer(UserId("player 1"), Team.A), ParticipatingPlayer(UserId("player 2"), Team.B))
-
-        // When
-        matchAggregate.enterResult(result, participatingPlayers)
-
-        // Then
-        assertThat(matchAggregate.result).isEqualTo(result)
-        assertThat(matchAggregate.participatingPlayers).isEqualTo(participatingPlayers)
-    }
-
-    @Test
     fun `enterResult should throw exception if match is not started`() {
         // Given
         val matchAggregate = MatchAggregate("matchId")

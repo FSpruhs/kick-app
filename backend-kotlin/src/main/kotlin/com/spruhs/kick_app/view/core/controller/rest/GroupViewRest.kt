@@ -81,6 +81,5 @@ private fun PlayerProjection.toMessage(): GroupPlayerMessage = GroupPlayerMessag
     userId = id.value,
     role = role.name,
     status = status.name,
-    avatarUrl = avatarUrl,
     email = email,
 )

@@ -16,6 +16,8 @@ import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
+import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
+import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
@@ -28,6 +30,9 @@ class GroupService(
 ) {
     suspend fun whenEvent(event: BaseEvent) {
         when (event) {
+            is UserNickNameChangedEvent -> handleUserNickNameChangedEvent(event)
+            is UserImageUpdatedEvent -> handleUserImageUpdatedEvent(event)
+
             is GroupCreatedEvent -> handleGroupCreatedEvent(event)
             is GroupNameChangedEvent -> handleGroupNameChangedEvent(event)
             is PlayerEnteredGroupEvent -> handlePlayerEnteredGroupEvent(event)
@@ -38,6 +43,28 @@ class GroupService(
             is PlayerPromotedEvent -> handlePlayerRoleEvent(GroupId(event.aggregateId), event.userId, PlayerRole.COACH)
             is PlayerDowngradedEvent -> handlePlayerRoleEvent(GroupId(event.aggregateId), event.userId, PlayerRole.PLAYER)
             else -> throw UnknownEventTypeException(event)
+        }
+    }
+
+    private suspend fun handleUserNickNameChangedEvent(event: UserNickNameChangedEvent) {
+        val groupNameLists = groupNameListRepository.findByUserId(UserId(event.aggregateId))
+        for (groupNameList in groupNameLists) {
+            val entry = groupNameList.players.find { it.userId.value == event.aggregateId }
+            if (entry != null) {
+                entry.name = event.nickName
+                groupNameListRepository.save(groupNameList)
+            }
+        }
+    }
+
+    private suspend fun handleUserImageUpdatedEvent(event: UserImageUpdatedEvent) {
+        val groupNameLists = groupNameListRepository.findByUserId(UserId(event.aggregateId))
+        for (groupNameList in groupNameLists) {
+            val entry = groupNameList.players.find { it.userId.value == event.aggregateId }
+            if (entry != null) {
+                entry.imageUrl = event.imageId.value
+                groupNameListRepository.save(groupNameList)
+            }
         }
     }
 
@@ -159,7 +186,8 @@ data class GroupNameListProjection(
 
 data class GroupNameListEntry(
     val userId: UserId,
-    val name: String,
+    var name: String,
+    var imageUrl: String? = null,
 )
 
 data class GroupProjection(
@@ -172,16 +200,12 @@ data class GroupProjection(
 
     fun isActiveCoach(userId: UserId): Boolean =
         players.any { it.id == userId && it.role == PlayerRole.COACH && it.status == PlayerStatusType.ACTIVE }
-
-    fun isPlayer(userId: UserId): Boolean =
-        players.any { it.id == userId && (it.status == PlayerStatusType.ACTIVE || it.status == PlayerStatusType.INACTIVE) }
 }
 
 data class PlayerProjection(
     val id: UserId,
     var status: PlayerStatusType,
     var role: PlayerRole,
-    val avatarUrl: String? = null,
     var email: String,
 )
 

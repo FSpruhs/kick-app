@@ -31,7 +31,7 @@ class TestGroupBuilder() {
         return GroupDocument(
             id = groupId,
             name = groupName,
-            players = players.map { PlayerDocument(it.id.value, it.status.type().name, it.role.name, null, "") }
+            players = players.map { PlayerDocument(it.id.value, it.status.type().name, it.role.name, "") }
         )
     }
 
@@ -39,7 +39,7 @@ class TestGroupBuilder() {
         return GroupProjection(
             id = GroupId(groupId),
             name = groupName,
-            players = players.map { PlayerProjection(it.id, it.status.type(), it.role, null, "") }
+            players = players.map { PlayerProjection(it.id, it.status.type(), it.role, "") }
         )
     }
 

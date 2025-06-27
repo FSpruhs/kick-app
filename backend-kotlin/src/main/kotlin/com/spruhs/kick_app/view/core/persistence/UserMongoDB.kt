@@ -49,20 +49,6 @@ class UserProjectionMongoAdapter(
             .awaitFirstOrNull()
             ?.toProjection()
 
-    override suspend fun findAll(exceptGroupId: GroupId?): List<UserProjection> {
-        return if (exceptGroupId != null) {
-            repository.findByGroupsIdNot(exceptGroupId.value)
-                .collectList()
-                .awaitSingle()
-                .map { it.toProjection() }
-        } else {
-            repository.findAll()
-                .collectList()
-                .awaitSingle()
-                .map { it.toProjection() }
-        }
-    }
-
     override suspend fun save(userProjection: UserProjection) {
         repository.save(userProjection.toDocument()).awaitSingle()
     }
@@ -86,8 +72,6 @@ class UserProjectionMongoAdapter(
 @Repository
 interface UserRepository : ReactiveMongoRepository<UserDocument, String> {
     fun existsByEmail(email: String): Mono<Boolean>
-
-    fun findByGroupsIdNot(groupId: String): Flux<UserDocument>
 
     fun findByGroupsId(groupId: String): Flux<UserDocument>
 }

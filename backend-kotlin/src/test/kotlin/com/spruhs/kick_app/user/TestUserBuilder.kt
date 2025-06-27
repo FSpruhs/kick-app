@@ -1,5 +1,8 @@
 package com.spruhs.kick_app.user
 
+import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.PlayerRole
+import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserImageId
 import com.spruhs.kick_app.view.api.UserData
@@ -8,13 +11,22 @@ import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.view.core.controller.rest.UserMessage
+import com.spruhs.kick_app.view.core.service.UserGroupProjection
 import com.spruhs.kick_app.view.core.service.UserProjection
+import java.time.LocalDateTime
 
 class TestUserBuilder {
     var id = "testUserId"
     var nickName = "testNickName"
     var email = "test@testen.com"
     var imageId = "testImageId"
+    var groups = listOf(UserGroupProjection(
+        id = GroupId("testGroupId"),
+        name = "testGroupName",
+        userStatus = PlayerStatusType.ACTIVE,
+        userRole = PlayerRole.PLAYER,
+        lastMatch = LocalDateTime.now(),
+    ))
 
     fun buildAggregate(): UserAggregate {
         val user =  UserAggregate(id)
@@ -46,7 +58,8 @@ class TestUserBuilder {
             id = UserId(id),
             nickName = nickName,
             email = email,
-            userImageId = UserImageId(imageId)
+            userImageId = UserImageId(imageId),
+            groups = groups
         )
     }
 
@@ -59,6 +72,7 @@ class TestUserBuilder {
     }
 
     fun withId(id: String) = this.apply { this.id = id }
+    fun withGroups(groups: List<UserGroupProjection>) = this.apply { this.groups = groups }
     fun withNickName(nickName: String) = this.apply { this.nickName = nickName }
     fun withEmail(email: String) = this.apply { this.email = email }
     fun withImageId(imageId: String) = this.apply { this.imageId = imageId }

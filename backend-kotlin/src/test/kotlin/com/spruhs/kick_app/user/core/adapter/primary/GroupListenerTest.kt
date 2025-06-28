@@ -9,12 +9,15 @@ import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
+import io.mockk.MockKAnnotations
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -28,19 +31,26 @@ class GroupListenerTest {
 
     lateinit var listener: GroupListener
 
+    @BeforeEach
+    fun setUp() {
+        MockKAnnotations.init(this)
+        listener = GroupListener(
+            messageUseCases = messageUseCases,
+            applicationScope = CoroutineScope(Dispatchers.Default)
+        )
+    }
+
 
     @Test
     fun `onEvent should send message when player is invited`() = runBlocking {
         // Given
-        listener = GroupListener(
-            messageUseCases = messageUseCases,
-            applicationScope = testScope
-        )
         val event = PlayerInvitedEvent(
             userId = UserId("user-123"),
             aggregateId = "aggregate-789",
             name = "Test User",
         )
+
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
 
         // When
         listener.onEvent(event)
@@ -58,11 +68,9 @@ class GroupListenerTest {
     @Test
     fun `onEvent should handle player removed event`() = runBlocking {
         // Given
-        listener = GroupListener(
-            messageUseCases = messageUseCases,
-            applicationScope = testScope
-        )
         val event = PlayerRemovedEvent("aggregate-123", UserId("user-456"), "Test User")
+
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
 
         // When
         listener.onEvent(event)
@@ -80,14 +88,12 @@ class GroupListenerTest {
     @Test
     fun `onEvent should handle player promoted event`() = runBlocking {
         // Given
-        listener = GroupListener(
-            messageUseCases = messageUseCases,
-            applicationScope = testScope
-        )
         val event = PlayerPromotedEvent(
             userId = UserId("user-123"),
             aggregateId = "aggregate-789",
         )
+
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
 
         // When
         listener.onEvent(event)
@@ -104,14 +110,12 @@ class GroupListenerTest {
     @Test
     fun `onEvent should handle player downgraded event`() = runBlocking {
         // Given
-        listener = GroupListener(
-            messageUseCases = messageUseCases,
-            applicationScope = testScope
-        )
         val event = PlayerDowngradedEvent(
             userId = UserId("user-123"),
             aggregateId = "aggregate-789",
         )
+
+        coEvery { messageUseCases.send(any(), any()) } returns Unit
 
         // When
         listener.onEvent(event)

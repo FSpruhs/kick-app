@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
-@Document(collation = "statistics")
+@Document(collection = "player-statistics")
 data class PlayerStatisticDocument(
     @Id
     val id: String,

@@ -3,7 +3,8 @@ package com.spruhs.kick_app.view.core.service
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.Result
+import com.spruhs.kick_app.common.MatchTeam
+import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
@@ -46,27 +47,17 @@ class StatisticService(
 
     private suspend fun handleResultEntered(event: MatchResultEnteredEvent) {
         val oldResult = resultRepository.findByMatchId(MatchId(event.aggregateId))
+        val newResult = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) }
         if (oldResult == null) {
 
-            event.teamA.forEach { player ->
-                val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                    ?: throw PlayerNotFoundException(player)
+            event.players.forEach { player ->
+                val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
+                    ?: throw PlayerNotFoundException(player.userId)
                 playerStatistic.totalMatches += 1
-                when (event.result) {
-                    Result.WINNER_TEAM_A -> playerStatistic.wins += 1
-                    Result.WINNER_TEAM_B -> playerStatistic.losses += 1
-                    Result.DRAW -> playerStatistic.draws += 1
-                }
-            }
-
-            event.teamB.forEach { player ->
-                val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                    ?: throw PlayerNotFoundException(player)
-                playerStatistic.totalMatches += 1
-                when (event.result) {
-                    Result.WINNER_TEAM_B -> playerStatistic.wins += 1
-                    Result.WINNER_TEAM_A -> playerStatistic.losses += 1
-                    Result.DRAW -> playerStatistic.draws += 1
+                when (player.matchResult) {
+                    PlayerResult.WIN -> playerStatistic.wins += 1
+                    PlayerResult.LOSS -> playerStatistic.losses += 1
+                    PlayerResult.DRAW -> playerStatistic.draws += 1
                 }
             }
 
@@ -74,112 +65,65 @@ class StatisticService(
                 ResultProjection(
                     id = generateId(),
                     matchId = MatchId(event.aggregateId),
-                    teamA = event.teamA,
-                    teamB = event.teamB,
-                    result = event.result
+                    players = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) },
                 )
             )
+
         } else {
 
-            event.teamA.forEach { player ->
-                val teamAPlayer = oldResult.teamA.find { oldPlayer -> oldPlayer == player }
-                if (teamAPlayer != null) {
-                    if (event.result != oldResult.result) {
-                        val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                            ?: throw PlayerNotFoundException(player)
-                        when (event.result) {
-                            Result.WINNER_TEAM_A -> playerStatistic.wins += 1
-                            Result.WINNER_TEAM_B -> playerStatistic.losses += 1
-                            Result.DRAW -> playerStatistic.draws += 1
-                        }
-                        when (oldResult.result) {
-                            Result.WINNER_TEAM_A -> playerStatistic.wins -= 1
-                            Result.WINNER_TEAM_B -> playerStatistic.losses -= 1
-                            Result.DRAW -> playerStatistic.draws -= 1
-                        }
-                    }
-                }
-            }
-
-            event.teamB.forEach { player ->
-                val teamBPlayer = oldResult.teamB.find { oldPlayer -> oldPlayer == player }
-                if (teamBPlayer != null) {
-                    if (event.result != oldResult.result) {
-                        val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                            ?: throw PlayerNotFoundException(player)
-                        when (event.result) {
-                            Result.WINNER_TEAM_B -> playerStatistic.wins += 1
-                            Result.WINNER_TEAM_A -> playerStatistic.losses += 1
-                            Result.DRAW -> playerStatistic.draws += 1
-                        }
-                        when (oldResult.result) {
-                            Result.WINNER_TEAM_B -> playerStatistic.wins -= 1
-                            Result.WINNER_TEAM_A -> playerStatistic.losses -= 1
-                            Result.DRAW -> playerStatistic.draws -= 1
-                        }
-                    }
-                }
-            }
-
-            event.teamA.forEach { player ->
-                if (!oldResult.teamA.contains(player) && !oldResult.teamB.contains(player)) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                        ?: throw PlayerNotFoundException(player)
+            event.players.forEach { player ->
+                val oldPlayer = oldResult.players[player.userId]
+                if (oldPlayer == null) {
+                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
+                        ?: throw PlayerNotFoundException(player.userId)
                     playerStatistic.totalMatches += 1
-                    when (event.result) {
-                        Result.WINNER_TEAM_A -> playerStatistic.wins += 1
-                        Result.WINNER_TEAM_B -> playerStatistic.losses += 1
-                        Result.DRAW -> playerStatistic.draws += 1
+                    when (player.matchResult) {
+                        PlayerResult.WIN -> playerStatistic.wins += 1
+                        PlayerResult.LOSS -> playerStatistic.losses += 1
+                        PlayerResult.DRAW -> playerStatistic.draws += 1
+                    }
+                    statisticRepository.save(playerStatistic)
+                } else {
+                    if (player.matchResult != oldPlayer.matchResult) {
+                        val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
+                            ?: throw PlayerNotFoundException(player.userId)
+                        when (player.matchResult) {
+                            PlayerResult.WIN -> playerStatistic.wins += 1
+                            PlayerResult.LOSS -> playerStatistic.losses += 1
+                            PlayerResult.DRAW -> playerStatistic.draws += 1
+                        }
+                        when (oldPlayer.matchResult) {
+                            PlayerResult.WIN -> playerStatistic.wins -= 1
+                            PlayerResult.LOSS -> playerStatistic.losses -= 1
+                            PlayerResult.DRAW -> playerStatistic.draws -= 1
+                        }
+                        statisticRepository.save(playerStatistic)
                     }
                 }
             }
 
-            event.teamB.forEach { player ->
-                if (!oldResult.teamA.contains(player) && !oldResult.teamB.contains(player)) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                        ?: throw PlayerNotFoundException(player)
-                    playerStatistic.totalMatches += 1
-                    when (event.result) {
-                        Result.WINNER_TEAM_B -> playerStatistic.wins += 1
-                        Result.WINNER_TEAM_A -> playerStatistic.losses += 1
-                        Result.DRAW -> playerStatistic.draws += 1
-                    }
-                }
-            }
-
-            oldResult.teamA.forEach { player ->
-                if (!event.teamA.contains(player) && !event.teamB.contains(player)) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                        ?: throw PlayerNotFoundException(player)
+            oldResult.players.keys.forEach { oldPlayer ->
+                val player = newResult[oldPlayer]
+                if (player == null) {
+                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, oldPlayer)
+                        ?: throw PlayerNotFoundException(oldPlayer)
                     playerStatistic.totalMatches -= 1
-                    when (oldResult.result) {
-                        Result.WINNER_TEAM_A -> playerStatistic.wins -= 1
-                        Result.WINNER_TEAM_B -> playerStatistic.losses -= 1
-                        Result.DRAW -> playerStatistic.draws -= 1
+                    when (oldResult.players[oldPlayer]!!.matchResult) {
+                        PlayerResult.WIN -> playerStatistic.wins -= 1
+                        PlayerResult.LOSS -> playerStatistic.losses -= 1
+                        PlayerResult.DRAW -> playerStatistic.draws -= 1
                     }
+                    statisticRepository.save(playerStatistic)
                 }
             }
 
-            oldResult.teamB.forEach { player ->
-                if (!event.teamA.contains(player) && !event.teamB.contains(player)) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player)
-                        ?: throw PlayerNotFoundException(player)
-                    playerStatistic.totalMatches -= 1
-                    when (oldResult.result) {
-                        Result.WINNER_TEAM_B -> playerStatistic.wins -= 1
-                        Result.WINNER_TEAM_A -> playerStatistic.losses -= 1
-                        Result.DRAW -> playerStatistic.draws -= 1
-                    }
-                }
-            }
+
 
             resultRepository.save(
                 ResultProjection(
                     id = oldResult.id,
                     matchId = MatchId(event.aggregateId),
-                    teamA = event.teamA,
-                    teamB = event.teamB,
-                    result = event.result
+                    players = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) },
                 )
             )
         }
@@ -221,7 +165,10 @@ data class PlayerStatisticProjection(
 data class ResultProjection(
     val id: String,
     val matchId: MatchId,
-    val teamA: List<UserId>,
-    val teamB: List<UserId>,
-    val result: Result,
+    val players: Map<UserId, PlayerResultProjection>
+)
+
+data class PlayerResultProjection(
+    val matchResult: PlayerResult,
+    val team: MatchTeam
 )

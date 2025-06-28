@@ -3,7 +3,6 @@ package com.spruhs.kick_app.view.core.controller.rest
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.MatchProjection
@@ -73,9 +72,11 @@ private fun MatchProjection.toMessage() = MatchMessage(
     cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
-    teamA = this.teamA.map { it.value }.toSet(),
-    teamB = this.teamB.map { it.value }.toSet(),
-    result = this.result
+    result = this.result.map { PlayerResultMessage(
+        userId = it.userId.value,
+        result = it.matchResult.name,
+        team = it.team.name
+    ) }
 )
 
 data class MatchMessage(
@@ -89,7 +90,11 @@ data class MatchMessage(
     val cadrePlayers: Set<String>,
     val deregisteredPlayers: Set<String>,
     val waitingBenchPlayers: Set<String>,
-    val teamA: Set<String>,
-    val teamB: Set<String>,
-    val result: Result?
+    val result: List<PlayerResultMessage>,
+)
+
+data class PlayerResultMessage(
+    val userId: String,
+    val result: String,
+    val team: String
 )

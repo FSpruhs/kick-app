@@ -2,8 +2,8 @@ package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.ParticipatingPlayer
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
@@ -49,9 +49,7 @@ class MatchService(
             cadrePlayers = emptySet(),
             deregisteredPlayers = emptySet(),
             waitingBenchPlayers = emptySet(),
-            teamA = emptySet(),
-            teamB = emptySet(),
-            result = null
+            result = emptyList()
         )
         repository.save(matchProjection)
     }
@@ -98,9 +96,7 @@ class MatchService(
 
     private suspend fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
         val match = findMatch(MatchId(event.aggregateId))
-        match.result = event.result
-        match.teamA = event.teamA.toSet()
-        match.teamB = event.teamB.toSet()
+        match.result = event.players
         repository.save(match)
     }
 
@@ -152,7 +148,5 @@ data class MatchProjection(
     var cadrePlayers: Set<UserId>,
     var waitingBenchPlayers: Set<UserId>,
     var deregisteredPlayers: Set<UserId>,
-    var teamA: Set<UserId>,
-    var teamB: Set<UserId>,
-    var result: Result? = null,
+    var result: List<ParticipatingPlayer>,
 )

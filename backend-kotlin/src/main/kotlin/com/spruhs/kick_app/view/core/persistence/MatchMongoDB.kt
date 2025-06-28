@@ -2,8 +2,10 @@ package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.MatchTeam
+import com.spruhs.kick_app.common.ParticipatingPlayer
+import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -66,9 +68,13 @@ data class MatchDocument(
     var cadrePlayers: Set<String>,
     var deregisteredPlayers: Set<String>,
     var waitingBenchPlayers: Set<String>,
-    var teamA: Set<String>,
-    var teamB: Set<String>,
-    var result: String?
+    var result: List<MatchResultDocument>
+)
+
+data class MatchResultDocument(
+    val userId: String,
+    val team: String,
+    val result: String,
 )
 
 @Repository
@@ -123,12 +129,14 @@ private fun MatchDocument.toProjection() = MatchProjection(
     isCanceled = this.canceled,
     maxPlayer = maxPlayer,
     minPlayer = minPlayer,
-    result = result?.let { Result.valueOf(it) },
+    result = result.map { ParticipatingPlayer(
+        userId = UserId(it.userId),
+        matchResult = PlayerResult.valueOf(it.result),
+        team = MatchTeam.valueOf(it.team)
+    ) },
     cadrePlayers = cadrePlayers.map { UserId(it) }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { UserId(it) }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { UserId(it) }.toSet(),
-    teamA = teamA.map { UserId(it) }.toSet(),
-    teamB = teamB.map { UserId(it) }.toSet(),
 )
 
 private fun MatchProjection.toDocument() = MatchDocument(
@@ -142,7 +150,5 @@ private fun MatchProjection.toDocument() = MatchDocument(
     cadrePlayers = cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { it.value }.toSet(),
-    teamA = teamA.map { it.value }.toSet(),
-    teamB = teamB.map { it.value }.toSet(),
-    result = result?.name
+    result = result.map { MatchResultDocument(it.userId.value, it.team.name, it.matchResult.name) }
 )

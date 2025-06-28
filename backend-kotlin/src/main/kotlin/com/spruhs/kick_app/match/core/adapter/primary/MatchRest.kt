@@ -3,8 +3,10 @@ package com.spruhs.kick_app.match.core.adapter.primary
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.MatchTeam
+import com.spruhs.kick_app.common.ParticipatingPlayer
+import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.Result
 import com.spruhs.kick_app.match.core.application.*
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.http.HttpStatus
@@ -84,18 +86,26 @@ class MatchRestController(
             EnterResultCommand(
                 userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
-                result = request.result,
-                teamA = request.teamA.map { UserId(it) }.toSet(),
-                teamB = request.teamB.map { UserId(it) }.toSet()
+                players = request.players.map { player ->
+                    ParticipatingPlayer(
+                        userId = UserId(player.userId),
+                        team = MatchTeam.valueOf(player.team),
+                        matchResult = PlayerResult.valueOf(player.result),
+                    )
+                },
             )
         )
     }
 }
 
 data class EnterResultRequest(
-    val teamA: List<String>,
-    val teamB: List<String>,
-    val result: Result
+    val players: List<PlayerMatchResult>,
+)
+
+data class PlayerMatchResult(
+    val userId: String,
+    val result: String,
+    val team: String
 )
 
 data class PlanMatchRequest(

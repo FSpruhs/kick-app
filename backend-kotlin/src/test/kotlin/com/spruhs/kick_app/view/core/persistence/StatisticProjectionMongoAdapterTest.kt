@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
+import com.spruhs.kick_app.view.TestStatisticBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

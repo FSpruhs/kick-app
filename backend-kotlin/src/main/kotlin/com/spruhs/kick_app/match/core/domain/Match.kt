@@ -11,16 +11,6 @@ import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
-data class ParticipatingPlayer(
-    val userId: UserId,
-    val team: Team
-)
-
-enum class Team {
-    A,
-    B
-}
-
 data class RegisteredPlayer(
     val userId: UserId,
     val registrationTime: LocalDateTime,
@@ -181,20 +171,16 @@ class MatchAggregate(
         apply(PlaygroundChangedEvent(aggregateId, newPlayground.value, this.groupId))
     }
 
-    fun enterResult(result: Result, participatingPlayer: List<ParticipatingPlayer>) {
+    fun enterResult(participatingPlayer: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
-        require(participatingPlayer.size == participatingPlayer.map { it.userId }
-            .toSet().size) { throw PlayerResultEnteredMultipleTimesException(MatchId(this.aggregateId)) }
 
         apply(
             MatchResultEnteredEvent(
                 aggregateId = aggregateId,
                 groupId = groupId,
-                result = result,
                 start = start,
-                teamA = participatingPlayer.filter { it.team == Team.A }.map { it.userId },
-                teamB = participatingPlayer.filter { it.team == Team.B }.map { it.userId }
+                players = participatingPlayer
             ))
     }
 

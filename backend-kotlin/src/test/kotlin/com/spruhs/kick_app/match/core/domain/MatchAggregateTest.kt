@@ -2,12 +2,12 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.ParticipatingPlayer
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
-import com.spruhs.kick_app.common.Result
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -88,12 +88,11 @@ class MatchAggregateTest {
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.start = LocalDateTime.now().plusDays(1)
 
-        val result = Result.WINNER_TEAM_A
         val participatingPlayers = emptyList<ParticipatingPlayer>()
 
         assertThatThrownBy {
             // When
-            matchAggregate.enterResult(result, participatingPlayers)
+            matchAggregate.enterResult(participatingPlayers)
 
             // Then
         }.isInstanceOf(MatchStartTimeException::class.java)
@@ -106,35 +105,14 @@ class MatchAggregateTest {
         matchAggregate.start = LocalDateTime.now().minusDays(1)
         matchAggregate.isCanceled = true
 
-        val result = Result.WINNER_TEAM_A
         val participatingPlayers = emptyList<ParticipatingPlayer>()
 
         assertThatThrownBy {
             // When
-            matchAggregate.enterResult(result, participatingPlayers)
+            matchAggregate.enterResult( participatingPlayers)
 
             // Then
         }.isInstanceOf(MatchCanceledException::class.java)
-    }
-
-    @Test
-    fun `enterResult should throw exception if player entered multiple times`() {
-        // Given
-        val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now().minusDays(1)
-
-        val result = Result.WINNER_TEAM_A
-        val participatingPlayers = listOf(
-            ParticipatingPlayer(UserId("player 1"), Team.A),
-            ParticipatingPlayer(UserId("player 1"), Team.B)
-        )
-
-        assertThatThrownBy {
-            // When
-            matchAggregate.enterResult(result, participatingPlayers)
-
-            // Then
-        }.isInstanceOf(PlayerResultEnteredMultipleTimesException::class.java)
     }
 
     @Test

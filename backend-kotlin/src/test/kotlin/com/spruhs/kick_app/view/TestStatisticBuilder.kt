@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.view.core.persistence
+package com.spruhs.kick_app.view
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId

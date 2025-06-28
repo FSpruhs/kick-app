@@ -84,10 +84,7 @@ class MatchCommandPort(
             throw UserNotAuthorizedException(command.userId)
         }
 
-        match.enterResult(
-            result = command.result,
-            participatingPlayer = command.teamA.map { ParticipatingPlayer(it, Team.A) } + command.teamB.map { ParticipatingPlayer(it, Team.B) }
-        )
+        match.enterResult(command.players)
 
         aggregateStore.save(match)
     }
@@ -96,9 +93,7 @@ class MatchCommandPort(
 data class EnterResultCommand(
     val userId: UserId,
     val matchId: MatchId,
-    val result: Result,
-    val teamA: Set<UserId>,
-    val teamB: Set<UserId>
+    val players: List<ParticipatingPlayer>
 )
 
 data class CancelMatchCommand(

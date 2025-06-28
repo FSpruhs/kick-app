@@ -2,10 +2,13 @@ package com.spruhs.kick_app.match
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.Result
+import com.spruhs.kick_app.common.MatchTeam
+import com.spruhs.kick_app.common.ParticipatingPlayer
+import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.core.adapter.primary.EnterResultRequest
 import com.spruhs.kick_app.match.core.adapter.primary.PlanMatchRequest
+import com.spruhs.kick_app.match.core.adapter.primary.PlayerMatchResult
 import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
 import com.spruhs.kick_app.match.core.application.CancelMatchCommand
 import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
@@ -14,13 +17,11 @@ import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MaxPlayer
 import com.spruhs.kick_app.match.core.domain.MinPlayer
-import com.spruhs.kick_app.match.core.domain.ParticipatingPlayer
 import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegisteredPlayer
 import com.spruhs.kick_app.match.core.domain.RegistrationStatus
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.match.core.domain.Team
 import java.time.LocalDateTime
 
 class TestMatchBuilder {
@@ -44,12 +45,11 @@ class TestMatchBuilder {
         RegisteredPlayer(UserId("player 5"), LocalDateTime.now(), RegistrationStatus.Deregistered),
         RegisteredPlayer(UserId("player 6"), LocalDateTime.now(), RegistrationStatus.Deregistered),
     )
-    val result = Result.WINNER_TEAM_A
     val participatingPlayers = listOf(
-        ParticipatingPlayer(UserId("player 1"), Team.A),
-        ParticipatingPlayer(UserId("player 2"), Team.B),
-        ParticipatingPlayer(UserId("player 3"), Team.A),
-        ParticipatingPlayer(UserId("player 4"), Team.B),
+        ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN,MatchTeam.A),
+        ParticipatingPlayer(UserId("player 2"), PlayerResult.LOSS,MatchTeam.B),
+        ParticipatingPlayer(UserId("player 3"), PlayerResult.WIN,MatchTeam.A),
+        ParticipatingPlayer(UserId("player 4"), PlayerResult.LOSS,MatchTeam.B),
     )
 
     fun withStart(start: LocalDateTime) = apply { this.start = start }
@@ -96,9 +96,7 @@ class TestMatchBuilder {
 
     fun toEnterResultRequest(): EnterResultRequest {
         return EnterResultRequest(
-            teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId.value },
-            teamB = this.participatingPlayers.filter { it.team == Team.B }.map { it.userId.value },
-            result = this.result
+            players = participatingPlayers.map { PlayerMatchResult(it.userId.value, it.matchResult.name, it.team.name) }
         )
     }
 
@@ -106,9 +104,13 @@ class TestMatchBuilder {
         return EnterResultCommand(
             userId = userId,
             matchId = MatchId(this.matchId),
-            result = this.result,
-            teamA = this.participatingPlayers.filter { it.team == Team.A }.map { it.userId }.toSet(),
-            teamB = this.participatingPlayers.filter { it.team == Team.B }.map { it.userId }.toSet()
+            players = this.participatingPlayers.map { player ->
+                ParticipatingPlayer(
+                    userId = player.userId,
+                    matchResult = player.matchResult,
+                    team = player.team
+                )
+            }
         )
     }
 

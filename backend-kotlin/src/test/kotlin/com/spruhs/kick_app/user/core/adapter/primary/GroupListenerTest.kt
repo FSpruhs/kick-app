@@ -56,7 +56,7 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should handle player removed event`() {
+    fun `onEvent should handle player removed event`() = runBlocking {
         // Given
         listener = GroupListener(
             messageUseCases = messageUseCases,
@@ -78,7 +78,7 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should handle player promoted event`() {
+    fun `onEvent should handle player promoted event`() = runBlocking {
         // Given
         listener = GroupListener(
             messageUseCases = messageUseCases,
@@ -102,7 +102,7 @@ class GroupListenerTest {
     }
 
     @Test
-    fun `onEvent should handle player downgraded event`() {
+    fun `onEvent should handle player downgraded event`() = runBlocking {
         // Given
         listener = GroupListener(
             messageUseCases = messageUseCases,
@@ -124,5 +124,4 @@ class GroupListenerTest {
             ))
         }
     }
-
 }

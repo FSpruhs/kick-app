@@ -33,9 +33,9 @@ class StatisticProjectionMongoAdapter(
     override suspend fun findByPlayer(
         groupId: GroupId,
         userId: UserId
-    ): PlayerStatisticProjection? {
-        return repository.findByGroupIdAndUserId(groupId.value, userId.value).awaitFirstOrNull()?.toProjection()
-    }
+    ): PlayerStatisticProjection? = repository.findByGroupIdAndUserId(groupId.value, userId.value)
+        .awaitFirstOrNull()
+        ?.toProjection()
 
     override suspend fun save(statistic: PlayerStatisticProjection) {
         repository.save(statistic.toDocument()).awaitSingle()

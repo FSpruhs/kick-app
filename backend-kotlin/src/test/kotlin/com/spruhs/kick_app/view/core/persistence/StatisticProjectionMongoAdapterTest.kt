@@ -1,9 +1,6 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.view.core.service.PlayerStatisticProjection
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -20,15 +17,7 @@ class StatisticProjectionMongoAdapterTest : AbstractMongoTest() {
     @Test
     fun `onSave should save statistic`(): Unit = runBlocking {
         // Given
-        val statistic = PlayerStatisticProjection(
-            id = "stat-123",
-            groupId = GroupId("group-456"),
-            userId = UserId("user-789"),
-            totalMatches = 10,
-            wins = 5,
-            losses = 3,
-            draws = 2
-        )
+        val statistic = TestStatisticBuilder().build()
 
         // When
         adapter.save(statistic)
@@ -45,5 +34,4 @@ class StatisticProjectionMongoAdapterTest : AbstractMongoTest() {
             assertThat(it?.draws).isEqualTo(statistic.draws)
         }
     }
-
 }

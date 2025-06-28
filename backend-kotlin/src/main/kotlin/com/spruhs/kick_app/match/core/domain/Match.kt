@@ -119,6 +119,7 @@ class MatchAggregate(
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
+            is MatchResultEnteredEvent -> {println()}
             else -> throw UnknownEventTypeException(event)
         }
     }

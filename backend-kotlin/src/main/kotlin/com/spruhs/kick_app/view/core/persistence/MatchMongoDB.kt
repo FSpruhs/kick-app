@@ -6,6 +6,7 @@ import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
+import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -52,67 +53,45 @@ class MatchProjectionMongoDB(
         repository.save(matchProjection.toDocument()).awaitSingle()
     }
 
-    override suspend  fun findById(matchId: MatchId): MatchProjection? =
+    override suspend fun findById(matchId: MatchId): MatchProjection? =
         repository.findById(matchId.value)
             .awaitFirstOrNull()
             ?.toProjection()
 
     override suspend fun findAllByGroupId(
         groupId: GroupId,
-        after: LocalDateTime?,
-        before: LocalDateTime?,
-        limit: Int?,
-    ): List<MatchProjection> {
-        return repository.findFilteredMatches(
-            groupId = groupId.value,
-            after = after,
-            before = before,
-            limit = limit
-        )
-            .map { it.toProjection() }
-            .collectList()
-            .awaitSingle()
-    }
+        filter: MatchFilter
+    ): List<MatchProjection> = repository.findFilteredMatches(groupId.value, filter)
+        .map { it.toProjection() }
+        .collectList()
+        .awaitSingle()
 }
 
 @Repository
 interface MatchRepository : ReactiveMongoRepository<MatchDocument, String>, MatchRepositoryCustom
 
-interface MatchRepositoryCustom { fun findFilteredMatches(
-    groupId: String,
-    after: LocalDateTime? = null,
-    before: LocalDateTime? = null,
-    limit: Int? = null
- ): Flux<MatchDocument>
+interface MatchRepositoryCustom {
+    fun findFilteredMatches(groupId: String, filter: MatchFilter): Flux<MatchDocument>
 }
 
 class MatchRepositoryImpl(
     private val mongoTemplate: ReactiveMongoTemplate,
 ) : MatchRepositoryCustom {
-    override fun findFilteredMatches(
-        groupId: String,
-        after: LocalDateTime?,
-        before: LocalDateTime?,
-        limit: Int?
-    ): Flux<MatchDocument> {
-        val criterias = mutableListOf<Criteria>()
-        criterias.add(Criteria.where("groupId").`is`(groupId))
-        criterias.add(Criteria.where("canceled").`is`(false))
-        if (after != null) {
-            criterias.add(Criteria.where("start").gte(after))
-        }
-        if (before != null) {
-            criterias.add(Criteria.where("start").lte(before))
-        }
-        val query = Query()
-        if (criterias.isNotEmpty()) {
-            query.addCriteria(Criteria().andOperator(*criterias.toTypedArray()))
+    override fun findFilteredMatches(groupId: String, filter: MatchFilter): Flux<MatchDocument> {
+
+        val criteria = buildList {
+            add(Criteria.where(MatchDocument::groupId.name).`is`(groupId))
+            add(Criteria.where(MatchDocument::canceled.name).`is`(false))
+            filter.after?.let { add(Criteria.where(MatchDocument::start.name).gte(it)) }
+            filter.before?.let { add(Criteria.where(MatchDocument::start.name).lte(it)) }
         }
 
-        query.with(Sort.by(Sort.Direction.DESC, "start"))
-
-        if (limit != null) {
-            query.limit(limit)
+        val query = Query().apply {
+            if (criteria.isNotEmpty()) {
+                addCriteria(Criteria().andOperator(*criteria.toTypedArray()))
+            }
+            with(Sort.by(Sort.Direction.DESC, MatchDocument::start.name))
+            filter.limit?.let { limit(it) }
         }
 
         return mongoTemplate.find(query, MatchDocument::class.java)

@@ -27,10 +27,10 @@ import java.time.LocalDateTime
 
 class TestMatchBuilder {
 
-    val matchId = "testMatchId"
-    val groupId = "testGroupId"
-    var start = LocalDateTime.now()
-    val isCanceled = false
+    var matchId = "testMatchId"
+    var groupId = "testGroupId"
+    var start: LocalDateTime = LocalDateTime.now()
+    var isCanceled = false
     val playground = "testPlayground"
     val maxPlayers = 8
     val minPlayers = 4
@@ -54,6 +54,9 @@ class TestMatchBuilder {
     )
 
     fun withStart(start: LocalDateTime) = apply { this.start = start }
+    fun withGroupId(groupId: String) = apply { this.groupId = groupId }
+    fun withId(matchId: String) = apply { this.matchId = matchId }
+    fun withIsCanceled(isCanceled: Boolean) = apply { this.isCanceled = isCanceled }
 
 
     fun build(): MatchAggregate {

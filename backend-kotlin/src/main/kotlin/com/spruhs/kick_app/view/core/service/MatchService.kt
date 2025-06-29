@@ -106,12 +106,19 @@ class MatchService(
         return match
     }
 
-    suspend fun getMatchesByGroup(groupId: GroupId, userId: UserId, after: LocalDateTime? = null, before: LocalDateTime?, limit: Int? = null): List<MatchProjection> {
+    suspend fun getMatchesByGroup(
+        groupId: GroupId,
+        userId: UserId,
+        after: LocalDateTime? = null,
+        before: LocalDateTime?,
+        limit: Int? = null
+    ): List<MatchProjection> {
         require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        require(after == null || before == null || after.isBefore(before)) {
-            throw IllegalArgumentException("After date must be before before date")
-        }
-        return repository.findAllByGroupId(groupId, after, before, limit)
+        return repository.findAllByGroupId(groupId, MatchFilter(
+            after = after,
+            before = before,
+            limit = limit
+        ))
     }
 
     suspend fun getPlayerMatches(
@@ -120,7 +127,7 @@ class MatchService(
     ): List<MatchProjection> {
         val groups = groupApi.getUserGroups(playerId)
         val matches = groups.flatMap { group ->
-            repository.findAllByGroupId(group, after)
+            repository.findAllByGroupId(group, MatchFilter(after = after))
         }
         return matches
     }
@@ -129,12 +136,7 @@ class MatchService(
 interface MatchProjectionRepository {
     suspend fun save(matchProjection: MatchProjection)
     suspend fun findById(matchId: MatchId): MatchProjection?
-    suspend fun findAllByGroupId(
-        groupId: GroupId,
-        after: LocalDateTime? = null,
-        before: LocalDateTime? = null,
-        limit: Int? = null
-    ): List<MatchProjection>
+    suspend fun findAllByGroupId(groupId: GroupId, filter: MatchFilter): List<MatchProjection>
 }
 
 data class MatchProjection(
@@ -150,3 +152,15 @@ data class MatchProjection(
     var deregisteredPlayers: Set<UserId>,
     var result: List<ParticipatingPlayer>,
 )
+
+data class MatchFilter(
+    val after: LocalDateTime? = null,
+    val before: LocalDateTime? = null,
+    val limit: Int? = null
+) {
+    init {
+        require(after == null || before == null || after.isBefore(before)) {
+            throw IllegalArgumentException("After date must be before before date")
+        }
+    }
+}

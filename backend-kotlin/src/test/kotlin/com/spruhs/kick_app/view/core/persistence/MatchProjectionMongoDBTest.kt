@@ -4,6 +4,7 @@ import com.spruhs.kick_app.AbstractMongoTest
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.match.TestMatchBuilder
+import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -61,10 +62,12 @@ class MatchProjectionMongoDBTest : AbstractMongoTest() {
         // When
         val result = adapter.findAllByGroupId(
             data.groupId,
-            data.after,
-            data.before,
-            data.limit
+            MatchFilter(
+                after = data.after,
+                before = data.before,
+                limit = data.limit
             )
+        )
 
         // Then
         assertThat(result.map { it.id }).containsExactlyElementsOf(data.resultMatches)
@@ -84,10 +87,17 @@ class MatchProjectionMongoDBTest : AbstractMongoTest() {
         fun data() = listOf(
             TestData(
                 matches = listOf(
-                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(2)).withGroupId("group1").toProjection(),
-                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(3)).withGroupId("group1").toProjection(),
-                    TestMatchBuilder().withId("match3").withStart(LocalDateTime.now().plusDays(4)).withGroupId("group1").toProjection(),
-                    TestMatchBuilder().withId("match4").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(2)).withGroupId("group1")
+                        .toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(3)).withGroupId("group1")
+                        .toProjection(),
+                    TestMatchBuilder().withId("match3").withStart(LocalDateTime.now().plusDays(4)).withGroupId("group1")
+                        .toProjection(),
+                    TestMatchBuilder().withId("match4").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1")
+                        .toProjection(),
+                    TestMatchBuilder().withId("match5").withStart(LocalDateTime.now().plusDays(5)).withIsCanceled(true)
+                        .withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match6").withStart(LocalDateTime.now().plusDays(6)).withGroupId("group2").toProjection(),
                 ),
                 groupId = GroupId("group1"),
                 after = LocalDateTime.now(),
@@ -97,8 +107,10 @@ class MatchProjectionMongoDBTest : AbstractMongoTest() {
             ),
             TestData(
                 matches = listOf(
-                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().minusDays(1)).withGroupId("group1").toProjection(),
-                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().minusDays(1))
+                        .withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1")
+                        .toProjection(),
                 ),
                 groupId = GroupId("group1"),
                 after = null,
@@ -108,8 +120,10 @@ class MatchProjectionMongoDBTest : AbstractMongoTest() {
             ),
             TestData(
                 matches = listOf(
-                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
-                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().minusDays(1)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1")
+                        .toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().minusDays(1))
+                        .withGroupId("group1").toProjection(),
                 ),
                 groupId = GroupId("group1"),
                 after = LocalDateTime.now(),

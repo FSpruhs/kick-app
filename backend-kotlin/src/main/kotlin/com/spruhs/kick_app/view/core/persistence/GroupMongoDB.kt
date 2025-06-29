@@ -19,33 +19,6 @@ import org.springframework.stereotype.Repository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 
-@Service
-class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupProjectionRepository {
-    override suspend fun findById(groupId: GroupId): GroupProjection? {
-        return repository.findById(groupId.value).awaitFirstOrNull()?.toProjection()
-    }
-
-    override suspend fun save(groupProjection: GroupProjection) {
-        repository.save(groupProjection.toDocument()).awaitSingle()
-    }
-}
-
-@Service
-class GroupNameListMongoDB(private val repository: GroupNameListRepository) : GroupNameListProjectionRepository {
-    override suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection? {
-        return repository.findById(groupId.value).awaitFirstOrNull()?.toProjection()
-    }
-
-    override suspend fun save(groupNameList: GroupNameListProjection) {
-        repository.save(groupNameList.toDocument()).awaitSingle()
-    }
-
-    override suspend fun findByUserId(userId: UserId): List<GroupNameListProjection> {
-        return repository.findByPlayerEntriesUserId(userId.value).map { it.toProjection() }.collectList().awaitSingle()
-    }
-
-}
-
 @Document(collection = "groups")
 data class GroupDocument(
     @Id
@@ -64,6 +37,7 @@ data class GroupNameListDocument(
 data class GroupNameListEntryDocument(
     val userId: String,
     val name: String,
+    val imageUrl: String? = null,
 )
 
 data class PlayerDocument(
@@ -72,6 +46,37 @@ data class PlayerDocument(
     val role: String,
     val email: String,
 )
+
+@Service
+class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupProjectionRepository {
+    override suspend fun findById(groupId: GroupId): GroupProjection? =
+        repository.findById(groupId.value)
+            .awaitFirstOrNull()
+            ?.toProjection()
+
+    override suspend fun save(groupProjection: GroupProjection) {
+        repository.save(groupProjection.toDocument()).awaitSingle()
+    }
+}
+
+@Service
+class GroupNameListMongoDB(private val repository: GroupNameListRepository) : GroupNameListProjectionRepository {
+    override suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection? =
+        repository.findById(groupId.value)
+            .awaitFirstOrNull()
+            ?.toProjection()
+
+    override suspend fun save(groupNameList: GroupNameListProjection) {
+        repository.save(groupNameList.toDocument()).awaitSingle()
+    }
+
+    override suspend fun findByUserId(userId: UserId): List<GroupNameListProjection> =
+        repository.findByPlayerEntriesUserId(userId.value)
+            .map { it.toProjection() }
+            .collectList()
+            .awaitSingle()
+
+}
 
 @Repository
 interface GroupRepository : ReactiveMongoRepository<GroupDocument, String>
@@ -113,6 +118,7 @@ private fun GroupNameListDocument.toProjection() = GroupNameListProjection(
             GroupNameListEntry(
                 userId = UserId(it.userId),
                 name = it.name,
+                imageUrl = it.imageUrl
             )
         }
     )
@@ -123,6 +129,7 @@ private fun GroupNameListProjection.toDocument() = GroupNameListDocument(
             GroupNameListEntryDocument(
                 userId = it.userId.value,
                 name = it.name,
+                imageUrl = it.imageUrl
             )
         }
     )

@@ -22,6 +22,7 @@ import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegisteredPlayer
 import com.spruhs.kick_app.match.core.domain.RegistrationStatus
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
+import com.spruhs.kick_app.view.core.service.MatchProjection
 import java.time.LocalDateTime
 
 class TestMatchBuilder {
@@ -137,4 +138,18 @@ class TestMatchBuilder {
             status = status
         )
     }
+
+    fun toProjection() = MatchProjection(
+        id = MatchId(matchId),
+        groupId = GroupId(groupId),
+        start = start,
+        playground = playground,
+        isCanceled = isCanceled,
+        maxPlayer = maxPlayers,
+        minPlayer = minPlayers,
+        cadrePlayers = cadre.map { it.userId }.toSet(),
+        waitingBenchPlayers = waitingBench.map { it.userId }.toSet(),
+        deregisteredPlayers = deregistered.map { it.userId }.toSet(),
+        result = participatingPlayers
+    )
 }

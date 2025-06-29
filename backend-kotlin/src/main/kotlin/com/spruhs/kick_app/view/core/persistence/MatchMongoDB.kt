@@ -22,6 +22,28 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 
+@Document(collection = "matches")
+data class MatchDocument(
+    @Id
+    val id: String,
+    val groupId: String,
+    val start: LocalDateTime,
+    var playground: String?,
+    val maxPlayer: Int,
+    val minPlayer: Int,
+    var canceled: Boolean,
+    var cadrePlayers: Set<String>,
+    var deregisteredPlayers: Set<String>,
+    var waitingBenchPlayers: Set<String>,
+    var result: List<MatchResultDocument>
+)
+
+data class MatchResultDocument(
+    val userId: String,
+    val team: String,
+    val result: String,
+)
+
 @Service
 class MatchProjectionMongoDB(
     private val repository: MatchRepository
@@ -52,30 +74,6 @@ class MatchProjectionMongoDB(
             .awaitSingle()
     }
 }
-
-
-
-@Document(collection = "matches")
-data class MatchDocument(
-    @Id
-    val id: String,
-    val groupId: String,
-    val start: LocalDateTime,
-    var playground: String?,
-    val maxPlayer: Int,
-    val minPlayer: Int,
-    var canceled: Boolean,
-    var cadrePlayers: Set<String>,
-    var deregisteredPlayers: Set<String>,
-    var waitingBenchPlayers: Set<String>,
-    var result: List<MatchResultDocument>
-)
-
-data class MatchResultDocument(
-    val userId: String,
-    val team: String,
-    val result: String,
-)
 
 @Repository
 interface MatchRepository : ReactiveMongoRepository<MatchDocument, String>, MatchRepositoryCustom

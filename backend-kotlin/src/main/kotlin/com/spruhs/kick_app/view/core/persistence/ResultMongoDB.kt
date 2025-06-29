@@ -33,11 +33,10 @@ data class PlayerResultDocument(
 class ResultProjectionMongoAdapter(
     private val repository: ResultRepository
 ) : ResultProjectionRepository {
-    override suspend fun findByMatchId(matchId: MatchId): ResultProjection? {
-        return repository.findByMatchId(matchId.value)
+    override suspend fun findByMatchId(matchId: MatchId): ResultProjection? =
+        repository.findByMatchId(matchId.value)
             .map { it.toProjection() }
             .awaitFirstOrNull()
-    }
 
     override suspend fun save(result: ResultProjection) {
         repository.save(result.toDocument()).awaitSingle()

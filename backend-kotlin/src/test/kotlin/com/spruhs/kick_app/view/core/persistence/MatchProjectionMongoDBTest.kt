@@ -1,11 +1,17 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
+import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.match.TestMatchBuilder
+import com.spruhs.kick_app.view.core.service.MatchProjection
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import java.time.LocalDateTime
 
 class MatchProjectionMongoDBTest : AbstractMongoTest() {
 
@@ -43,5 +49,85 @@ class MatchProjectionMongoDBTest : AbstractMongoTest() {
                 }
             }
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("data")
+    fun `findAllByGroupId should find all with filter`(data: TestData): Unit = runBlocking {
+        // Given
+        data.matches.forEach { match ->
+            adapter.save(match)
+        }
+        // When
+        val result = adapter.findAllByGroupId(
+            data.groupId,
+            data.after,
+            data.before,
+            data.limit
+            )
+
+        // Then
+        assertThat(result.map { it.id }).containsExactlyElementsOf(data.resultMatches)
+    }
+
+    companion object {
+        data class TestData(
+            val matches: List<MatchProjection>,
+            val groupId: GroupId,
+            val after: LocalDateTime?,
+            val before: LocalDateTime?,
+            val limit: Int?,
+            val resultMatches: List<MatchId>
+        )
+
+        @JvmStatic
+        fun data() = listOf(
+            TestData(
+                matches = listOf(
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(2)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(3)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match3").withStart(LocalDateTime.now().plusDays(4)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match4").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
+                ),
+                groupId = GroupId("group1"),
+                after = LocalDateTime.now(),
+                before = null,
+                limit = 2,
+                resultMatches = listOf(MatchId("match3"), MatchId("match2"))
+            ),
+            TestData(
+                matches = listOf(
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().minusDays(1)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
+                ),
+                groupId = GroupId("group1"),
+                after = null,
+                before = LocalDateTime.now(),
+                limit = null,
+                resultMatches = listOf(MatchId("match1"))
+            ),
+            TestData(
+                matches = listOf(
+                    TestMatchBuilder().withId("match1").withStart(LocalDateTime.now().plusDays(1)).withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match2").withStart(LocalDateTime.now().minusDays(1)).withGroupId("group1").toProjection(),
+                ),
+                groupId = GroupId("group1"),
+                after = LocalDateTime.now(),
+                before = null,
+                limit = null,
+                resultMatches = listOf(MatchId("match1"))
+            ),
+            TestData(
+                matches = listOf(
+                    TestMatchBuilder().withId("match1").withGroupId("group1").toProjection(),
+                    TestMatchBuilder().withId("match2").withGroupId("group2").toProjection(),
+                ),
+                groupId = GroupId("group1"),
+                after = null,
+                before = null,
+                limit = null,
+                resultMatches = listOf(MatchId("match1"))
+            )
+        )
     }
 }

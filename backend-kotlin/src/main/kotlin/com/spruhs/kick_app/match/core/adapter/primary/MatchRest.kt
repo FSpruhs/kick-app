@@ -3,10 +3,10 @@ package com.spruhs.kick_app.match.core.adapter.primary
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.ParticipatingPlayer
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.core.application.*
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.http.HttpStatus
@@ -90,7 +90,7 @@ class MatchRestController(
                     ParticipatingPlayer(
                         userId = UserId(player.userId),
                         team = MatchTeam.valueOf(player.team),
-                        matchResult = PlayerResult.valueOf(player.result),
+                        playerResult = PlayerResult.valueOf(player.result),
                     )
                 },
             )

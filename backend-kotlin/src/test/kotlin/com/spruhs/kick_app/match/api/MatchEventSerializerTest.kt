@@ -1,9 +1,6 @@
 package com.spruhs.kick_app.match.api
 
 import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.ParticipatingPlayer
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat

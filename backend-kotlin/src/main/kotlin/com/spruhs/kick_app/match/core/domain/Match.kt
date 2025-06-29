@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
@@ -68,10 +69,6 @@ class MatchStartTimeException(matchId: MatchId) :
 
 class MatchCanceledException(matchId: MatchId) :
     RuntimeException("Match with id: ${matchId.value} is cancelled")
-
-class PlayerResultEnteredMultipleTimesException(
-    matchId: MatchId,
-) : RuntimeException("Player  entered result multiple times for match: ${matchId.value}")
 
 class MatchAggregate(
     override val aggregateId: String,

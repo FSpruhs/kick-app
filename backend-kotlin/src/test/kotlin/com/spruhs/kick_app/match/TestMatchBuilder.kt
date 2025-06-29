@@ -2,10 +2,10 @@ package com.spruhs.kick_app.match
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.ParticipatingPlayer
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.core.adapter.primary.EnterResultRequest
 import com.spruhs.kick_app.match.core.adapter.primary.PlanMatchRequest
 import com.spruhs.kick_app.match.core.adapter.primary.PlayerMatchResult
@@ -46,7 +46,7 @@ class TestMatchBuilder {
         RegisteredPlayer(UserId("player 6"), LocalDateTime.now(), RegistrationStatus.Deregistered),
     )
     val participatingPlayers = listOf(
-        ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN,MatchTeam.A),
+        ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN, MatchTeam.A),
         ParticipatingPlayer(UserId("player 2"), PlayerResult.LOSS,MatchTeam.B),
         ParticipatingPlayer(UserId("player 3"), PlayerResult.WIN,MatchTeam.A),
         ParticipatingPlayer(UserId("player 4"), PlayerResult.LOSS,MatchTeam.B),
@@ -96,7 +96,7 @@ class TestMatchBuilder {
 
     fun toEnterResultRequest(): EnterResultRequest {
         return EnterResultRequest(
-            players = participatingPlayers.map { PlayerMatchResult(it.userId.value, it.matchResult.name, it.team.name) }
+            players = participatingPlayers.map { PlayerMatchResult(it.userId.value, it.playerResult.name, it.team.name) }
         )
     }
 
@@ -107,7 +107,7 @@ class TestMatchBuilder {
             players = this.participatingPlayers.map { player ->
                 ParticipatingPlayer(
                     userId = player.userId,
-                    matchResult = player.matchResult,
+                    playerResult = player.playerResult,
                     team = player.team
                 )
             }

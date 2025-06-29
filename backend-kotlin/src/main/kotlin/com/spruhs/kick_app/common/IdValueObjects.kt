@@ -50,16 +50,3 @@ fun String.toLocalDateTime(): LocalDateTime {
 fun LocalDateTime.toISOString(): String {
     return this.format(DateTimeFormatter.ISO_DATE_TIME)
 }
-
-enum class PlayerResult {
-    WIN, LOSS, DRAW
-}
-
-enum class MatchTeam {
-    A, B
-}
-data class ParticipatingPlayer(
-    val userId: UserId,
-    val matchResult: PlayerResult,
-    val team: MatchTeam
-)

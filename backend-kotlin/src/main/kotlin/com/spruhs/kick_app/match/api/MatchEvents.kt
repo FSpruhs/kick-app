@@ -5,7 +5,6 @@ import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.Event
 import com.spruhs.kick_app.common.EventSourcingUtils
 import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.ParticipatingPlayer
 import com.spruhs.kick_app.common.Serializer
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
@@ -153,3 +152,16 @@ class MatchEventSerializer : Serializer {
         return MatchAggregate::class.simpleName ?: "MatchAggregate"
     }
 }
+
+enum class PlayerResult {
+    WIN, LOSS, DRAW
+}
+
+enum class MatchTeam {
+    A, B
+}
+data class ParticipatingPlayer(
+    val userId: UserId,
+    val playerResult: PlayerResult,
+    val team: MatchTeam
+)

@@ -2,10 +2,10 @@ package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.ParticipatingPlayer
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchProjectionRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -129,11 +129,13 @@ private fun MatchDocument.toProjection() = MatchProjection(
     isCanceled = this.canceled,
     maxPlayer = maxPlayer,
     minPlayer = minPlayer,
-    result = result.map { ParticipatingPlayer(
-        userId = UserId(it.userId),
-        matchResult = PlayerResult.valueOf(it.result),
-        team = MatchTeam.valueOf(it.team)
-    ) },
+    result = result.map {
+        ParticipatingPlayer(
+            userId = UserId(it.userId),
+            playerResult = PlayerResult.valueOf(it.result),
+            team = MatchTeam.valueOf(it.team)
+        )
+    },
     cadrePlayers = cadrePlayers.map { UserId(it) }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { UserId(it) }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { UserId(it) }.toSet(),
@@ -150,5 +152,5 @@ private fun MatchProjection.toDocument() = MatchDocument(
     cadrePlayers = cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { it.value }.toSet(),
-    result = result.map { MatchResultDocument(it.userId.value, it.team.name, it.matchResult.name) }
+    result = result.map { MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name) }
 )

@@ -74,7 +74,7 @@ private fun MatchProjection.toMessage() = MatchMessage(
     waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
     result = this.result.map { PlayerResultMessage(
         userId = it.userId.value,
-        result = it.matchResult.name,
+        result = it.playerResult.name,
         team = it.team.name
     ) }
 )

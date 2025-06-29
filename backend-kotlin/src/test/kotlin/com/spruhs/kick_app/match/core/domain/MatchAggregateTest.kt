@@ -2,8 +2,8 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.ParticipatingPlayer
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent

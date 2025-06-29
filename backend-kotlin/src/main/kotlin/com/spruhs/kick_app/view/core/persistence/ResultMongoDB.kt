@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.core.service.PlayerResultProjection
 import com.spruhs.kick_app.view.core.service.ResultProjection
 import com.spruhs.kick_app.view.core.service.ResultProjectionRepository
@@ -30,7 +30,7 @@ data class PlayerResultDocument(
 )
 
 @Service
-class ResultProjectionMongoDB(
+class ResultProjectionMongoAdapter(
     private val repository: ResultRepository
 ) : ResultProjectionRepository {
     override suspend fun findByMatchId(matchId: MatchId): ResultProjection? {

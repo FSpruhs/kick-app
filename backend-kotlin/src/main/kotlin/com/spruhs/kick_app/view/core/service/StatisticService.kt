@@ -3,8 +3,6 @@ package com.spruhs.kick_app.view.core.service
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchTeam
-import com.spruhs.kick_app.common.PlayerResult
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
@@ -13,6 +11,8 @@ import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.api.GroupApi
 import org.springframework.stereotype.Service
 
@@ -47,14 +47,14 @@ class StatisticService(
 
     private suspend fun handleResultEntered(event: MatchResultEnteredEvent) {
         val oldResult = resultRepository.findByMatchId(MatchId(event.aggregateId))
-        val newResult = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) }
+        val newResult = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) }
         if (oldResult == null) {
 
             event.players.forEach { player ->
                 val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
                     ?: throw PlayerNotFoundException(player.userId)
                 playerStatistic.totalMatches += 1
-                when (player.matchResult) {
+                when (player.playerResult) {
                     PlayerResult.WIN -> playerStatistic.wins += 1
                     PlayerResult.LOSS -> playerStatistic.losses += 1
                     PlayerResult.DRAW -> playerStatistic.draws += 1
@@ -65,7 +65,7 @@ class StatisticService(
                 ResultProjection(
                     id = generateId(),
                     matchId = MatchId(event.aggregateId),
-                    players = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) },
+                    players = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) },
                 )
             )
 
@@ -77,17 +77,17 @@ class StatisticService(
                     val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
                         ?: throw PlayerNotFoundException(player.userId)
                     playerStatistic.totalMatches += 1
-                    when (player.matchResult) {
+                    when (player.playerResult) {
                         PlayerResult.WIN -> playerStatistic.wins += 1
                         PlayerResult.LOSS -> playerStatistic.losses += 1
                         PlayerResult.DRAW -> playerStatistic.draws += 1
                     }
                     statisticRepository.save(playerStatistic)
                 } else {
-                    if (player.matchResult != oldPlayer.matchResult) {
+                    if (player.playerResult != oldPlayer.matchResult) {
                         val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
                             ?: throw PlayerNotFoundException(player.userId)
-                        when (player.matchResult) {
+                        when (player.playerResult) {
                             PlayerResult.WIN -> playerStatistic.wins += 1
                             PlayerResult.LOSS -> playerStatistic.losses += 1
                             PlayerResult.DRAW -> playerStatistic.draws += 1
@@ -123,7 +123,7 @@ class StatisticService(
                 ResultProjection(
                     id = oldResult.id,
                     matchId = MatchId(event.aggregateId),
-                    players = event.players.associate { it.userId to PlayerResultProjection(it.matchResult, it.team) },
+                    players = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) },
                 )
             )
         }

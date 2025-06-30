@@ -35,18 +35,16 @@ class TestGroupBuilder() {
         )
     }
 
-    fun buildProjection(): GroupProjection {
-        return GroupProjection(
-            id = GroupId(groupId),
-            name = groupName,
-            players = players.map { PlayerProjection(it.id, it.status.type(), it.role, "") }
-        )
-    }
+    fun buildProjection(): GroupProjection = GroupProjection(
+        id = GroupId(groupId),
+        name = groupName,
+        players = players.map { PlayerProjection(it.id, it.status.type(), it.role, "") }
+    )
 
     fun build(): GroupAggregate {
         return GroupAggregate(groupId).also { group ->
-           group.name = Name(groupName)
-           group.invitedUsers = invitedPlayers.map { UserId(it) }.toMutableSet()
+            group.name = Name(groupName)
+            group.invitedUsers = invitedPlayers.map { UserId(it) }.toMutableSet()
             group.players = players.toMutableList()
         }
     }

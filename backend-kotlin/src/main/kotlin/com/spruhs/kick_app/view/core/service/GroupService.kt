@@ -6,6 +6,7 @@ import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent
@@ -16,6 +17,7 @@ import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
+import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.view.api.GroupApi
@@ -148,9 +150,9 @@ class GroupService(
     suspend fun getGroup(groupId: GroupId, userId: UserId): GroupProjection {
         val group = fetchGroup(groupId)
         val player = group.players.find { it.id == userId }
-            ?: throw IllegalArgumentException("User not found in group")
+            ?: throw PlayerNotFoundException(userId)
         require(player.status == PlayerStatusType.ACTIVE || player.status == PlayerStatusType.INACTIVE) {
-            "User is not an active or inactive member of the group"
+            throw UserNotAuthorizedException(userId)
         }
         return group
     }
@@ -158,23 +160,19 @@ class GroupService(
     suspend fun getPlayer(groupId: GroupId, userId: UserId, requesterId: UserId): PlayerProjection {
         val group = fetchGroup(groupId)
         val player = group.players.find { it.id == userId }
-            ?: throw IllegalArgumentException("User not found in group")
+            ?: throw PlayerNotFoundException(userId)
         val requester = group.players.find { it.id == requesterId }
-            ?: throw IllegalArgumentException("Requester not found in group")
+            ?: throw PlayerNotFoundException(requesterId)
         require(requester.status == PlayerStatusType.ACTIVE || requester.status == PlayerStatusType.INACTIVE) {
-            "User is not an active or inactive member of the group"
+            throw UserNotAuthorizedException(requesterId)
         }
         return player
     }
 
     suspend fun getGroupNameList(groupId: GroupId, requesterId: UserId): List<GroupNameListEntry> {
         val groupNameList = fetchGroupNameList(groupId)
-        val requester = groupNameList.players.find { it.userId == requesterId }
-            ?: throw IllegalArgumentException("Requester not found in group name list")
-
-        require(requester.userId == requesterId) {
-            "Requester is not authorized to view the group name list"
-        }
+        groupNameList.players.find { it.userId == requesterId }
+            ?: throw UserNotAuthorizedException(requesterId)
         return groupNameList.players
     }
 }
@@ -212,7 +210,6 @@ data class PlayerProjection(
 @Service
 class GroupApiService(
     private val repository: GroupProjectionRepository,
-    private val groupNameListRepository: GroupNameListProjectionRepository
 ) : GroupApi {
     override suspend fun isActiveMember(
         groupId: GroupId,

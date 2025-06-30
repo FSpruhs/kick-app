@@ -48,11 +48,13 @@ class UserService(
                 GroupId(event.aggregateId),
                 PlayerStatusType.ACTIVE
             )
+
             is PlayerDeactivatedEvent -> updateUserStatus(
                 event.userId,
                 GroupId(event.aggregateId),
                 PlayerStatusType.INACTIVE
             )
+
             is PlayerPromotedEvent -> updateUserRole(event.userId, GroupId(event.aggregateId), PlayerRole.COACH)
             is PlayerDowngradedEvent -> updateUserRole(event.userId, GroupId(event.aggregateId), PlayerRole.PLAYER)
             else -> throw UnknownEventTypeException(event)
@@ -60,24 +62,19 @@ class UserService(
     }
 
     private suspend fun handleUserCreated(event: UserCreatedEvent) {
-        repository.save(
-            UserProjection(
-                id = UserId(event.aggregateId),
-                nickName = event.nickName,
-                email = event.email,
-                groups = emptyList()
-            )
-        )
+        repository.save(event.toProjection())
     }
 
     private suspend fun handleNickNameChanged(event: UserNickNameChangedEvent) {
-        val user = fetchUser(UserId(event.aggregateId))
-        repository.save(user.copy(nickName = event.nickName))
+        fetchUser(UserId(event.aggregateId)).also {
+            repository.save(it.copy(nickName = event.nickName))
+        }
     }
 
     private suspend fun handleUserImageUpdated(event: UserImageUpdatedEvent) {
-        val user = fetchUser(UserId(event.aggregateId))
-        repository.save(user.copy(userImageId = event.imageId))
+        fetchUser(UserId(event.aggregateId)).also {
+            repository.save(it.copy(userImageId = event.imageId))
+        }
     }
 
     private suspend fun fetchUser(userId: UserId): UserProjection =
@@ -87,16 +84,22 @@ class UserService(
         groupId: GroupId,
         lastMatch: LocalDateTime
     ) {
-        val users = repository.findByGroupId(groupId)
-        users.forEach { user ->
-            user.groups.find { it.id == groupId }.let {
+        repository.findByGroupId(groupId).forEach { user ->
+            updatePlayerLastMatch(user, groupId, lastMatch)
+        }
+    }
 
-                if (it?.lastMatch?.isBefore(lastMatch) ?: true) {
-                    it?.lastMatch = lastMatch
-                }
+    private suspend fun updatePlayerLastMatch(
+        user: UserProjection,
+        groupId: GroupId,
+        lastMatch: LocalDateTime
+    ) {
+        fetchUserGroup(user, groupId)?.let {
+            if (it.lastMatch?.isBefore(lastMatch) ?: true) {
+                it.lastMatch = lastMatch
+                repository.save(user)
             }
         }
-        repository.saveAll(users)
     }
 
     private suspend fun updateUserStatus(
@@ -104,31 +107,32 @@ class UserService(
         groupId: GroupId,
         status: PlayerStatusType
     ) {
-        val user = fetchUser(userId)
-        user.groups.find { group ->
-            group.id == groupId
-        }?.userStatus = status
-        repository.save(user)
+        fetchUser(userId).also {
+            fetchUserGroup(it, groupId)?.userStatus = status
+            repository.save(it)
+        }
     }
+
+    private suspend fun fetchUserGroup(user: UserProjection, groupId: GroupId): UserGroupProjection? =
+        user.groups.find { it.id == groupId }
 
     private suspend fun updateUserRole(
         userId: UserId,
         groupId: GroupId,
         role: PlayerRole
     ) {
-        val user = fetchUser(userId)
-        user.groups.find { group ->
-            group.id == groupId
-        }?.userRole = role
-        repository.save(user)
+        fetchUser(userId).also {
+            fetchUserGroup(it, groupId)?.userRole = role
+            repository.save(it)
+        }
     }
 
     private suspend fun handleGroupNameChanged(event: GroupNameChangedEvent) {
-        val users = repository.findByGroupId(GroupId(event.aggregateId))
-        users.forEach { group ->
-            group.groups.find { it.id.value == event.aggregateId }?.name = event.name
+        val groupId = GroupId(event.aggregateId)
+        repository.findByGroupId(groupId).map { user ->
+            fetchUserGroup(user, groupId)?.name = event.name
+            repository.save(user)
         }
-        repository.saveAll(users)
     }
 
     private suspend fun addGroupToUser(
@@ -158,11 +162,7 @@ class UserService(
 @Service
 class UserApiService(
     private val repository: UserProjectionRepository
-): UserApi {
-
-    override suspend fun findUsersByIds(userIds: List<UserId>): List<UserData> =
-        userIds.map { repository.getUser(it)?.toData() ?: throw UserNotFoundException(it) }
-
+) : UserApi {
     override suspend fun findUserById(userId: UserId): UserData =
         repository.getUser(userId)?.toData() ?: throw UserNotFoundException(userId)
 
@@ -177,7 +177,7 @@ interface UserProjectionRepository {
     suspend fun findByGroupId(groupId: GroupId): List<UserProjection>
 }
 
-data class UserProjection (
+data class UserProjection(
     val id: UserId,
     val nickName: String,
     val email: String,
@@ -212,3 +212,11 @@ private fun PlayerEnteredGroupEvent.toProjection() = UserGroupProjection(
     userRole = this.userRole,
     userStatus = this.userStatus,
 )
+
+private fun UserCreatedEvent.toProjection() =
+    UserProjection(
+        id = UserId(this.aggregateId),
+        nickName = this.nickName,
+        email = this.email,
+        groups = emptyList()
+    )

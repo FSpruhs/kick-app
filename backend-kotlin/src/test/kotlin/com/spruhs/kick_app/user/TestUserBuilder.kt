@@ -19,7 +19,7 @@ class TestUserBuilder {
     var id = "testUserId"
     var nickName = "testNickName"
     var email = "test@testen.com"
-    var imageId = "testImageId"
+    var imageId: String? = "testImageId"
     var groups = listOf(UserGroupProjection(
         id = GroupId("testGroupId"),
         name = "testGroupName",
@@ -32,7 +32,7 @@ class TestUserBuilder {
         val user =  UserAggregate(id)
         user.email = Email(email)
         user.nickName = NickName(nickName)
-        user.userImageId = UserImageId(imageId)
+        user.userImageId = imageId?.let { UserImageId(it) }
         return user
     }
 
@@ -58,7 +58,7 @@ class TestUserBuilder {
             id = UserId(id),
             nickName = nickName,
             email = email,
-            userImageId = UserImageId(imageId),
+            userImageId = imageId?.let { UserImageId(it) },
             groups = groups
         )
     }
@@ -75,5 +75,5 @@ class TestUserBuilder {
     fun withGroups(groups: List<UserGroupProjection>) = this.apply { this.groups = groups }
     fun withNickName(nickName: String) = this.apply { this.nickName = nickName }
     fun withEmail(email: String) = this.apply { this.email = email }
-    fun withImageId(imageId: String) = this.apply { this.imageId = imageId }
+    fun withImageId(imageId: String?) = this.apply { this.imageId = imageId }
 }

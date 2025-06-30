@@ -235,17 +235,6 @@ class GroupApiService(
         return group.players.filter { it.status == PlayerStatusType.ACTIVE }
             .map { it.id }
     }
-
-    override suspend fun getGroupNameList(groupId: GroupId): Map<UserId, String> {
-        val groupNameList = groupNameListRepository.findByGroupId(groupId)
-            ?: return emptyMap()
-        return groupNameList.players.associate { it.userId to it.name }
-    }
-
-    override suspend fun getUserGroups(userId: UserId): List<GroupId> {
-        return groupNameListRepository.findByUserId(userId).map { it.groupId }
-    }
-
 }
 
 interface GroupProjectionRepository {

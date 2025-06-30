@@ -16,13 +16,15 @@ import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.domain.MatchNotFoundException
+import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class MatchService(
     private val repository: MatchProjectionRepository,
-    private val groupApi: GroupApi
+    private val groupApi: GroupApi,
+    private val userApi: UserApi,
 ) {
     suspend fun whenEvent(event: BaseEvent) {
         when (event) {
@@ -38,20 +40,7 @@ class MatchService(
     }
 
     private suspend fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
-        val matchProjection = MatchProjection(
-            id = MatchId(event.aggregateId),
-            groupId = event.groupId,
-            start = event.start,
-            playground = event.playground,
-            maxPlayer = event.maxPlayer,
-            minPlayer = event.minPlayer,
-            isCanceled = false,
-            cadrePlayers = emptySet(),
-            deregisteredPlayers = emptySet(),
-            waitingBenchPlayers = emptySet(),
-            result = emptyList()
-        )
-        repository.save(matchProjection)
+        repository.save(event.toProjection())
     }
 
     private suspend fun findMatch(matchId: MatchId): MatchProjection =
@@ -59,49 +48,55 @@ class MatchService(
             ?: throw MatchNotFoundException(matchId)
 
     private suspend fun handlePlayerAddedToCadreEvent(event: PlayerAddedToCadreEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.cadrePlayers += event.userId
-        match.deregisteredPlayers -= event.userId
-        match.waitingBenchPlayers -= event.userId
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.cadrePlayers += event.userId
+            it.deregisteredPlayers -= event.userId
+            it.waitingBenchPlayers -= event.userId
+            repository.save(it)
+        }
     }
 
     private suspend fun handlePlayerDeregisteredEvent(event: PlayerDeregisteredEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.cadrePlayers -= event.userId
-        match.deregisteredPlayers += event.userId
-        match.waitingBenchPlayers -= event.userId
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.cadrePlayers -= event.userId
+            it.deregisteredPlayers += event.userId
+            it.waitingBenchPlayers -= event.userId
+            repository.save(it)
+        }
     }
 
     private suspend fun handlePlayerPlacedOnWaitingBenchEvent(event: PlayerPlacedOnWaitingBenchEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.cadrePlayers -= event.userId
-        match.deregisteredPlayers -= event.userId
-        match.waitingBenchPlayers += event.userId
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.cadrePlayers -= event.userId
+            it.deregisteredPlayers -= event.userId
+            it.waitingBenchPlayers += event.userId
+            repository.save(it)
+        }
     }
 
     private suspend fun handleMatchCanceledEvent(event: MatchCanceledEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.isCanceled = true
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.isCanceled = true
+            repository.save(it)
+        }
     }
 
     private suspend fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.playground = event.newPlayground
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.playground = event.newPlayground
+            repository.save(it)
+        }
     }
 
     private suspend fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
-        val match = findMatch(MatchId(event.aggregateId))
-        match.result = event.players
-        repository.save(match)
+        findMatch(MatchId(event.aggregateId)).also {
+            it.result = event.players
+            repository.save(it)
+        }
     }
 
     suspend fun getMatch(matchId: MatchId, userId: UserId): MatchProjection {
-        val match = repository.findById(matchId) ?: throw MatchNotFoundException(matchId)
+        val match = findMatch(matchId)
         require(groupApi.isActiveMember(match.groupId, userId)) { throw UserNotAuthorizedException(userId) }
         return match
     }
@@ -109,28 +104,19 @@ class MatchService(
     suspend fun getMatchesByGroup(
         groupId: GroupId,
         userId: UserId,
-        after: LocalDateTime? = null,
-        before: LocalDateTime?,
-        limit: Int? = null
+        matchFilter: MatchFilter,
     ): List<MatchProjection> {
         require(groupApi.isActiveMember(groupId, userId)) { throw UserNotAuthorizedException(userId) }
-        return repository.findAllByGroupId(groupId, MatchFilter(
-            after = after,
-            before = before,
-            limit = limit
-        ))
+        return repository.findAllByGroupId(groupId, matchFilter)
     }
 
     suspend fun getPlayerMatches(
         playerId: UserId,
         after: LocalDateTime? = null,
-    ): List<MatchProjection> {
-        val groups = groupApi.getUserGroups(playerId)
-        val matches = groups.flatMap { group ->
+    ): List<MatchProjection> =
+        userApi.getGroups(playerId).flatMap { group ->
             repository.findAllByGroupId(group, MatchFilter(after = after))
         }
-        return matches
-    }
 }
 
 interface MatchProjectionRepository {
@@ -164,3 +150,18 @@ data class MatchFilter(
         }
     }
 }
+
+private fun MatchPlannedEvent.toProjection(): MatchProjection =
+    MatchProjection(
+        id = MatchId(this.aggregateId),
+        groupId = this.groupId,
+        start = this.start,
+        playground = this.playground,
+        maxPlayer = this.maxPlayer,
+        minPlayer = this.minPlayer,
+        isCanceled = false,
+        cadrePlayers = emptySet(),
+        deregisteredPlayers = emptySet(),
+        waitingBenchPlayers = emptySet(),
+        result = emptyList()
+    )

@@ -1,9 +1,11 @@
 package com.spruhs.kick_app.view.api
 
+import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 
 interface UserApi {
     suspend fun findUserById(userId: UserId): UserData
+    suspend fun getGroups(userId: UserId): List<GroupId>
     suspend fun existsByEmail(email: String): Boolean
 }
 

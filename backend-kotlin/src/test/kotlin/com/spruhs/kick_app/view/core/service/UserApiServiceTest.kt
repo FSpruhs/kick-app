@@ -62,4 +62,18 @@ class UserApiServiceTest {
             assertThat(result).isTrue
         }
     }
+
+    @Test
+    fun `getGroups should get groups`(): Unit = runBlocking {
+        // Given
+        val user = TestUserBuilder().buildProjection()
+        coEvery { repository.getUser(user.id) } returns user
+
+        // When
+        service.getGroups(user.id).let { result ->
+            // Then
+            assertThat(result).isNotEmpty
+            assertThat(result).containsExactlyInAnyOrderElementsOf(user.groups.map { it.id })
+        }
+    }
 }

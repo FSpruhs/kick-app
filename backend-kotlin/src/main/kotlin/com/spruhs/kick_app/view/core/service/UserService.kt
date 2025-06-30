@@ -166,6 +166,10 @@ class UserApiService(
     override suspend fun findUserById(userId: UserId): UserData =
         repository.getUser(userId)?.toData() ?: throw UserNotFoundException(userId)
 
+    override suspend fun getGroups(userId: UserId): List<GroupId> =
+        repository.getUser(userId)?.groups?.map { it.id }
+            ?: throw UserNotFoundException(userId)
+
     override suspend fun existsByEmail(email: String): Boolean = repository.existsByEmail(email)
 }
 

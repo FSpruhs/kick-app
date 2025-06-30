@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -43,9 +44,12 @@ class MatchViewRestController(
         val matches = matchService.getMatchesByGroup(
             GroupId(groupId),
             jwtParser.getUserId(jwt),
-            after,
-            before,
-            limit)
+            MatchFilter(
+                after = after,
+                before = before,
+                limit = limit
+            )
+        )
         return matches.map { it.toMessage() }
     }
 

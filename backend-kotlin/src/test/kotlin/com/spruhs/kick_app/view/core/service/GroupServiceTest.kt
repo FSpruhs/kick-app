@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.view.core.service
 
+import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
@@ -9,8 +10,15 @@ import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
+import com.spruhs.kick_app.group.api.PlayerActivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDeactivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
+import com.spruhs.kick_app.group.api.PlayerLeavedEvent
+import com.spruhs.kick_app.group.api.PlayerPromotedEvent
+import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.group.core.domain.Active
+import com.spruhs.kick_app.group.core.domain.Inactive
 import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.group.core.domain.Removed
@@ -19,7 +27,6 @@ import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.view.api.UserApi
 import com.spruhs.kick_app.view.api.UserData
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -27,6 +34,8 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.assertFailsWith
 
 @ExtendWith(MockKExtension::class)
@@ -405,6 +414,144 @@ class GroupServiceTest {
 
         // When
         groupService.whenEvent(event)
+    }
+    
+    @ParameterizedTest
+    @MethodSource("roleData")
+    fun `whenEvent should handle player role event`(data: TestPlayerRoleData) = runBlocking {
+        // Given
+        val group = TestGroupBuilder()
+            .withId(data.event.aggregateId)
+            .withPlayers(listOf(data.player))
+            .buildProjection()
+        
+        coEvery { repository.findById(group.id) } returns group
+        coEvery { repository.save(group.copy(players = listOf(PlayerProjection(
+            id = group.players.first().id,
+            status = group.players.first().status,
+            role = data.expectedRole,
+            email = group.players.first().email
+        )))) } returns Unit
+
+        // When
+        groupService.whenEvent(data.event)
+    }
+
+    @ParameterizedTest
+    @MethodSource("statusData")
+    fun `whenEvent should handle player status event`(data: TestPlayerStatusData) = runBlocking {
+        // Given
+        val group = TestGroupBuilder()
+            .withId(data.event.aggregateId)
+            .withPlayers(listOf(data.player))
+            .buildProjection()
+
+        coEvery { repository.findById(group.id) } returns group
+        coEvery { repository.save(group.copy(players = listOf(PlayerProjection(
+            id = group.players.first().id,
+            status = data.expectedStatus,
+            role = group.players.first().role,
+            email = group.players.first().email
+        )))) } returns Unit
+
+        // When
+        groupService.whenEvent(data.event)
+    }
+    
+    companion object {
+        data class TestPlayerRoleData(
+            val player: Player,
+            val event: BaseEvent,
+            val expectedRole: PlayerRole,
+        )
+
+        data class TestPlayerStatusData(
+            val player: Player,
+            val event: BaseEvent,
+            val expectedStatus: PlayerStatusType,
+        )
+
+        @JvmStatic
+        fun statusData() = listOf(
+            TestPlayerStatusData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Inactive(),
+                    role = PlayerRole.COACH,
+                ),
+                event = PlayerActivatedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                ),
+                expectedStatus = PlayerStatusType.ACTIVE
+            ),
+            TestPlayerStatusData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Active(),
+                    role = PlayerRole.COACH,
+                ),
+                event = PlayerDeactivatedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                ),
+                expectedStatus = PlayerStatusType.INACTIVE
+            ),
+            TestPlayerStatusData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Inactive(),
+                    role = PlayerRole.COACH,
+                ),
+                event = PlayerRemovedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                    name = "player1",
+                ),
+                expectedStatus = PlayerStatusType.REMOVED
+            ),
+            TestPlayerStatusData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Inactive(),
+                    role = PlayerRole.COACH,
+                ),
+                event = PlayerLeavedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                ),
+                expectedStatus = PlayerStatusType.LEAVED
+            )
+        )
+        
+        @JvmStatic
+        fun roleData() = listOf(
+            TestPlayerRoleData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Active(),
+                    role = PlayerRole.PLAYER,
+                ),
+                event = PlayerPromotedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                ),
+                expectedRole = PlayerRole.COACH
+            ),
+            TestPlayerRoleData(
+                player = Player(
+                    id = UserId("player1"),
+                    status = Active(),
+                    role = PlayerRole.COACH,
+                ),
+                event = PlayerDowngradedEvent(
+                    aggregateId = "groupId",
+                    userId = UserId("player1"),
+                ),
+                expectedRole = PlayerRole.PLAYER
+            )
+            
+        )
     }
 
 }

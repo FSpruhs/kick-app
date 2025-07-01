@@ -41,6 +41,7 @@ class TestUserBuilder {
             id = UserId(id),
             nickName = nickName,
             email = email,
+            imageId = imageId?.let { UserImageId(it) }
         )
     }
 

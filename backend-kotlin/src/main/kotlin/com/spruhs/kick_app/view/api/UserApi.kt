@@ -2,6 +2,7 @@ package com.spruhs.kick_app.view.api
 
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.UserImageId
 
 interface UserApi {
     suspend fun findUserById(userId: UserId): UserData
@@ -13,4 +14,5 @@ data class UserData(
     val id: UserId,
     val email: String,
     val nickName: String,
+    val imageId: UserImageId?,
 )

@@ -200,7 +200,8 @@ data class UserGroupProjection(
 private fun UserProjection.toData() = UserData(
     id = this.id,
     nickName = this.nickName,
-    email = this.email
+    email = this.email,
+    imageId = this.userImageId,
 )
 
 private fun GroupCreatedEvent.toProjection() = UserGroupProjection(

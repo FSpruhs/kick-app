@@ -346,6 +346,7 @@ class GroupServiceTest {
             id = group.players.first().id,
             email = group.players.first().email,
             nickName = "newNickName",
+            imageId = null
         )
         coEvery { groupNameListRepository.save(GroupNameListProjection(
             groupId = group.id,
@@ -398,6 +399,7 @@ class GroupServiceTest {
             id = newPlayer.id,
             email = "testMail",
             nickName = "newNickName",
+            imageId = null
         )
         coEvery { repository.save(group.copy(players = listOf(newPlayer))) } returns Unit
         coEvery { groupNameListRepository.findByGroupId(group.id) } returns GroupNameListProjection(

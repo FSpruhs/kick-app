@@ -25,4 +25,11 @@ class TestStatisticBuilder {
             draws = draws
         )
     }
+
+    fun withUserId(userId: UserId) = apply { this.userId = userId }
+    fun withGroupId(groupId: GroupId) = apply { this.groupId = groupId }
+    fun withTotalMatches(totalMatches: Int) = apply { this.totalMatches = totalMatches }
+    fun withWins(wins: Int) = apply { this.wins = wins }
+    fun withLosses(losses: Int) = apply { this.losses = losses }
+    fun withDraws(draws: Int) = apply { this.draws = draws }
 }

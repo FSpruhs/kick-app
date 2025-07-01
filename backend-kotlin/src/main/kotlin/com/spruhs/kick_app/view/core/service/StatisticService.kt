@@ -52,13 +52,18 @@ class StatisticService(
 
             event.players.forEach { player ->
                 val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
-                    ?: throw PlayerNotFoundException(player.userId)
+                    ?: PlayerStatisticProjection(
+                        id = generateId(),
+                        groupId = event.groupId,
+                        userId = player.userId
+                    )
                 playerStatistic.totalMatches += 1
                 when (player.playerResult) {
                     PlayerResult.WIN -> playerStatistic.wins += 1
                     PlayerResult.LOSS -> playerStatistic.losses += 1
                     PlayerResult.DRAW -> playerStatistic.draws += 1
                 }
+                statisticRepository.save(playerStatistic)
             }
 
             resultRepository.save(
@@ -75,7 +80,11 @@ class StatisticService(
                 val oldPlayer = oldResult.players[player.userId]
                 if (oldPlayer == null) {
                     val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
-                        ?: throw PlayerNotFoundException(player.userId)
+                        ?: PlayerStatisticProjection(
+                            id = generateId(),
+                            groupId = event.groupId,
+                            userId = player.userId
+                        )
                     playerStatistic.totalMatches += 1
                     when (player.playerResult) {
                         PlayerResult.WIN -> playerStatistic.wins += 1
@@ -116,8 +125,6 @@ class StatisticService(
                     statisticRepository.save(playerStatistic)
                 }
             }
-
-
 
             resultRepository.save(
                 ResultProjection(

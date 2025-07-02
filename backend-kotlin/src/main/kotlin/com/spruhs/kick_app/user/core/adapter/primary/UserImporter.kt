@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.AggregateStore
+import com.spruhs.kick_app.common.SampleDataImporter
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
@@ -11,26 +12,21 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
 @Profile("dev")
-class UserImporter(private val aggregateStore: AggregateStore) {
-
-    @Value("\${app.load-default-data}")
-    private var loadDefaultData: Boolean = false
+@Order(1)
+class UserImporter(private val aggregateStore: AggregateStore): SampleDataImporter {
 
     private val log = getLogger(this::class.java)
 
-    @EventListener(ApplicationReadyEvent::class)
-    suspend fun loadData() {
-        if (!loadDefaultData) {
-            return
-        }
+    override suspend fun import() {
 
+        log.info("Starting to load sample user data...")
         defaultUsers.forEach { createTestUser(it) }
-
-        log.info("Default user data loaded")
+        log.info("Sample user data loaded!")
     }
 
     private suspend fun createTestUser(data: Triple<UserId, NickName, Email>) {

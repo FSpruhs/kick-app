@@ -1,2 +1,2 @@
 app:
-  load-default-data: false
+  load-sample-data: false

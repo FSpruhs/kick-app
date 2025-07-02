@@ -12,6 +12,7 @@ import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchTeam
+import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.api.GroupApi
 import org.springframework.stereotype.Service
@@ -45,94 +46,115 @@ class StatisticService(
         }
     }
 
+    private suspend fun findPlayerStatisticOrCreateNew(
+        groupId: GroupId,
+        userId: UserId
+    ): PlayerStatisticProjection = statisticRepository.findByPlayer(groupId, userId)
+        ?: PlayerStatisticProjection(
+            id = generateId(),
+            groupId = groupId,
+            userId = userId
+        )
+
+
+    private suspend fun handleFirstResultEntered(event: MatchResultEnteredEvent) {
+        event.players.forEach { player ->
+            handelNewPlayerEnteredOldMatch(event.groupId, player)
+        }
+    }
+
+    private suspend fun handelNewPlayerEnteredOldMatch(groupId: GroupId, player: ParticipatingPlayer) {
+        findPlayerStatisticOrCreateNew(groupId, player.userId).also {
+            it.totalMatches += 1
+            when (player.playerResult) {
+                PlayerResult.WIN -> it.wins += 1
+                PlayerResult.LOSS -> it.losses += 1
+                PlayerResult.DRAW -> it.draws += 1
+            }
+            statisticRepository.save(it)
+        }
+    }
+
+    private suspend fun findPlayerStatisticOrThrow(
+        groupId: GroupId,
+        userId: UserId
+    ): PlayerStatisticProjection = statisticRepository.findByPlayer(groupId, userId)
+        ?: throw PlayerNotFoundException(userId)
+
+    private suspend fun handelOldPlayerResultInOldMatch(
+        player: ParticipatingPlayer,
+        oldPlayer: PlayerResultProjection,
+        groupId: GroupId
+    ) {
+        if (player.playerResult != oldPlayer.matchResult) {
+            findPlayerStatisticOrThrow(groupId, player.userId).apply {
+                when (player.playerResult) {
+                    PlayerResult.WIN -> this.wins += 1
+                    PlayerResult.LOSS -> this.losses += 1
+                    PlayerResult.DRAW -> this.draws += 1
+                }
+                when (oldPlayer.matchResult) {
+                    PlayerResult.WIN -> this.wins -= 1
+                    PlayerResult.LOSS -> this.losses -= 1
+                    PlayerResult.DRAW -> this.draws -= 1
+                }
+                statisticRepository.save(this)
+            }
+        }
+    }
+
+    private suspend fun handelPlayerInEnteredResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) {
+        event.players.forEach { player ->
+            val oldPlayer = oldResult.players[player.userId]
+            if (oldPlayer == null) {
+                handelNewPlayerEnteredOldMatch(event.groupId, player)
+            } else {
+                handelOldPlayerResultInOldMatch(player, oldPlayer, event.groupId)
+            }
+        }
+    }
+
+    private suspend fun handelPlayerNoLongerInResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) {
+        val newResult = event.toPlayerMap()
+        oldResult.players.keys.forEach { oldPlayer ->
+            val player = newResult[oldPlayer]
+            if (player == null) {
+                findPlayerStatisticOrThrow(event.groupId, oldPlayer).apply {
+                    this.totalMatches -= 1
+                    when (oldResult.players[oldPlayer]!!.matchResult) {
+                        PlayerResult.WIN -> this.wins -= 1
+                        PlayerResult.LOSS -> this.losses -= 1
+                        PlayerResult.DRAW -> this.draws -= 1
+                    }
+                    statisticRepository.save(this)
+                }
+            }
+        }
+    }
+
+    private suspend fun handleAnotherResultEntered(event: MatchResultEnteredEvent, oldResult: ResultProjection) {
+        handelPlayerInEnteredResult(event, oldResult)
+        handelPlayerNoLongerInResult(event, oldResult)
+        saveResult(event, oldResult.id)
+    }
+
+    private suspend fun saveResult(event: MatchResultEnteredEvent, id: String = generateId()) {
+        resultRepository.save(
+            ResultProjection(
+                id = id,
+                matchId = MatchId(event.aggregateId),
+                players = event.toPlayerMap()
+            )
+        )
+    }
+
     private suspend fun handleResultEntered(event: MatchResultEnteredEvent) {
         val oldResult = resultRepository.findByMatchId(MatchId(event.aggregateId))
-        val newResult = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) }
         if (oldResult == null) {
-
-            event.players.forEach { player ->
-                val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
-                    ?: PlayerStatisticProjection(
-                        id = generateId(),
-                        groupId = event.groupId,
-                        userId = player.userId
-                    )
-                playerStatistic.totalMatches += 1
-                when (player.playerResult) {
-                    PlayerResult.WIN -> playerStatistic.wins += 1
-                    PlayerResult.LOSS -> playerStatistic.losses += 1
-                    PlayerResult.DRAW -> playerStatistic.draws += 1
-                }
-                statisticRepository.save(playerStatistic)
-            }
-
-            resultRepository.save(
-                ResultProjection(
-                    id = generateId(),
-                    matchId = MatchId(event.aggregateId),
-                    players = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) },
-                )
-            )
-
+            handleFirstResultEntered(event)
+            saveResult(event)
         } else {
-
-            event.players.forEach { player ->
-                val oldPlayer = oldResult.players[player.userId]
-                if (oldPlayer == null) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
-                        ?: PlayerStatisticProjection(
-                            id = generateId(),
-                            groupId = event.groupId,
-                            userId = player.userId
-                        )
-                    playerStatistic.totalMatches += 1
-                    when (player.playerResult) {
-                        PlayerResult.WIN -> playerStatistic.wins += 1
-                        PlayerResult.LOSS -> playerStatistic.losses += 1
-                        PlayerResult.DRAW -> playerStatistic.draws += 1
-                    }
-                    statisticRepository.save(playerStatistic)
-                } else {
-                    if (player.playerResult != oldPlayer.matchResult) {
-                        val playerStatistic = statisticRepository.findByPlayer(event.groupId, player.userId)
-                            ?: throw PlayerNotFoundException(player.userId)
-                        when (player.playerResult) {
-                            PlayerResult.WIN -> playerStatistic.wins += 1
-                            PlayerResult.LOSS -> playerStatistic.losses += 1
-                            PlayerResult.DRAW -> playerStatistic.draws += 1
-                        }
-                        when (oldPlayer.matchResult) {
-                            PlayerResult.WIN -> playerStatistic.wins -= 1
-                            PlayerResult.LOSS -> playerStatistic.losses -= 1
-                            PlayerResult.DRAW -> playerStatistic.draws -= 1
-                        }
-                        statisticRepository.save(playerStatistic)
-                    }
-                }
-            }
-
-            oldResult.players.keys.forEach { oldPlayer ->
-                val player = newResult[oldPlayer]
-                if (player == null) {
-                    val playerStatistic = statisticRepository.findByPlayer(event.groupId, oldPlayer)
-                        ?: throw PlayerNotFoundException(oldPlayer)
-                    playerStatistic.totalMatches -= 1
-                    when (oldResult.players[oldPlayer]!!.matchResult) {
-                        PlayerResult.WIN -> playerStatistic.wins -= 1
-                        PlayerResult.LOSS -> playerStatistic.losses -= 1
-                        PlayerResult.DRAW -> playerStatistic.draws -= 1
-                    }
-                    statisticRepository.save(playerStatistic)
-                }
-            }
-
-            resultRepository.save(
-                ResultProjection(
-                    id = oldResult.id,
-                    matchId = MatchId(event.aggregateId),
-                    players = event.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) },
-                )
-            )
+            handleAnotherResultEntered(event, oldResult)
         }
     }
 
@@ -179,3 +201,6 @@ data class PlayerResultProjection(
     val matchResult: PlayerResult,
     val team: MatchTeam
 )
+
+private fun MatchResultEnteredEvent.toPlayerMap(): Map<UserId, PlayerResultProjection> =
+    this.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) }

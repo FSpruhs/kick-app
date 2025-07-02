@@ -15,6 +15,8 @@ import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.api.GroupApi
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.springframework.stereotype.Service
 
 @Service
@@ -57,9 +59,11 @@ class StatisticService(
         )
 
 
-    private suspend fun handleFirstResultEntered(event: MatchResultEnteredEvent) {
+    private suspend fun handleFirstResultEntered(event: MatchResultEnteredEvent) = coroutineScope {
         event.players.forEach { player ->
-            handelNewPlayerEnteredOldMatch(event.groupId, player)
+            launch {
+                handelNewPlayerEnteredOldMatch(event.groupId, player)
+            }
         }
     }
 
@@ -103,31 +107,44 @@ class StatisticService(
         }
     }
 
-    private suspend fun handelPlayerInEnteredResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) {
+    private suspend fun handelPlayerInEnteredResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) = coroutineScope {
         event.players.forEach { player ->
-            val oldPlayer = oldResult.players[player.userId]
-            if (oldPlayer == null) {
-                handelNewPlayerEnteredOldMatch(event.groupId, player)
-            } else {
-                handelOldPlayerResultInOldMatch(player, oldPlayer, event.groupId)
+            launch {
+                val oldPlayer = oldResult.players[player.userId]
+                if (oldPlayer == null) {
+                    handelNewPlayerEnteredOldMatch(event.groupId, player)
+                } else {
+                    handelOldPlayerResultInOldMatch(player, oldPlayer, event.groupId)
+                }
             }
         }
     }
 
-    private suspend fun handelPlayerNoLongerInResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) {
+    private suspend fun updateLeavedPlayer(
+        oldPlayer: UserId,
+        oldResult: ResultProjection,
+        newResult: Map<UserId, PlayerResultProjection>,
+        groupId: GroupId
+    ) {
+        val player = newResult[oldPlayer]
+        if (player == null) {
+            findPlayerStatisticOrThrow(groupId, oldPlayer).apply {
+                this.totalMatches -= 1
+                when (oldResult.players[oldPlayer]!!.matchResult) {
+                    PlayerResult.WIN -> this.wins -= 1
+                    PlayerResult.LOSS -> this.losses -= 1
+                    PlayerResult.DRAW -> this.draws -= 1
+                }
+                statisticRepository.save(this)
+            }
+        }
+    }
+
+    private suspend fun handelPlayerNoLongerInResult(event: MatchResultEnteredEvent, oldResult: ResultProjection) = coroutineScope {
         val newResult = event.toPlayerMap()
         oldResult.players.keys.forEach { oldPlayer ->
-            val player = newResult[oldPlayer]
-            if (player == null) {
-                findPlayerStatisticOrThrow(event.groupId, oldPlayer).apply {
-                    this.totalMatches -= 1
-                    when (oldResult.players[oldPlayer]!!.matchResult) {
-                        PlayerResult.WIN -> this.wins -= 1
-                        PlayerResult.LOSS -> this.losses -= 1
-                        PlayerResult.DRAW -> this.draws -= 1
-                    }
-                    statisticRepository.save(this)
-                }
+            launch {
+                updateLeavedPlayer(oldPlayer, oldResult, newResult, event.groupId)
             }
         }
     }

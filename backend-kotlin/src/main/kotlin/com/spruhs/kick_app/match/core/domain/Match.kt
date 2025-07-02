@@ -4,10 +4,12 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
+import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
@@ -168,16 +170,63 @@ class MatchAggregate(
         apply(PlaygroundChangedEvent(aggregateId, newPlayground.value, this.groupId))
     }
 
-    fun enterResult(participatingPlayer: List<ParticipatingPlayer>) {
+    fun enterResult(participatingPlayers: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(participatingPlayers.size >= 2) {
+            "At least two players must participate."
+        }
+
+        require(participatingPlayers.map { it.team }.toSet().size == 2) {
+            "Both teams must be present in the result."
+        }
+
+        val results = participatingPlayers.map { it.playerResult }.toSet()
+
+        when {
+            PlayerResult.DRAW in results -> {
+                if (results.size != 1) {
+                    throw IllegalArgumentException("If one player has a draw, all players must have a draw result.")
+                }
+            }
+
+            PlayerResult.WIN in results -> {
+                if (PlayerResult.DRAW in results) {
+                    throw IllegalArgumentException("If one player has a win, no player can have a draw result.")
+                }
+
+                val winningTeams = participatingPlayers
+                    .filter { it.playerResult == PlayerResult.WIN }
+                    .map { it.team }
+                    .toSet()
+
+                if (winningTeams.size != 1) {
+                    throw IllegalArgumentException("If one player has a win, all winning players must be in the same team.")
+                }
+            }
+
+            PlayerResult.LOSS in results -> {
+                if (PlayerResult.DRAW in results) {
+                    throw IllegalArgumentException("If one player has a loss, no player can have a draw result.")
+                }
+
+                val losingTeams = participatingPlayers
+                    .filter { it.playerResult == PlayerResult.LOSS }
+                    .map { it.team }
+                    .toSet()
+
+                if (losingTeams.size != 1) {
+                    throw IllegalArgumentException("If one player has a loss, all losing players must be in the same team.")
+                }
+            }
+        }
 
         apply(
             MatchResultEnteredEvent(
                 aggregateId = aggregateId,
                 groupId = groupId,
                 start = start,
-                players = participatingPlayer
+                players = participatingPlayers
             ))
     }
 

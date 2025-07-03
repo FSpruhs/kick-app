@@ -7,18 +7,20 @@ import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
+import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.event.ApplicationReadyEvent
+import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import org.springframework.context.annotation.Profile
-import org.springframework.context.event.EventListener
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 @Component
 @Profile("dev")
 @Order(1)
-class UserImporter(private val aggregateStore: AggregateStore): SampleDataImporter {
+class UserImporter(
+    private val aggregateStore: AggregateStore,
+    private val userIdentityProviderPort: UserIdentityProviderPort
+): SampleDataImporter {
 
     private val log = getLogger(this::class.java)
 
@@ -34,6 +36,7 @@ class UserImporter(private val aggregateStore: AggregateStore): SampleDataImport
         val user = UserAggregate(userId.value)
         user.createUser(RegisterUserCommand(nickName, email))
         aggregateStore.save(user)
+        userIdentityProviderPort.save(email, nickName, Password.fromPlaintext("Password123"))
     }
 }
 

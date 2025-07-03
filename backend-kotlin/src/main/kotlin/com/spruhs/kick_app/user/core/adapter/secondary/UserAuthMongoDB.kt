@@ -26,10 +26,11 @@ class UserAuthMongoDBAdapter(private val repository: UserAuthRepository) : UserI
     override suspend fun save(
         email: Email,
         nickName: NickName,
-        password: Password?
+        password: Password?,
+        userId: UserId?
     ): UserId {
         require(password != null) { "Password required" }
-        val newId = generateId()
+        val newId = userId?.value ?: generateId()
         repository.save(UserAuthDocument(
             userId = newId,
             email = email.value,

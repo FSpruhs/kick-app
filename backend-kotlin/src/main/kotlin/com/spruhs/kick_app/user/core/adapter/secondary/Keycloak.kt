@@ -18,7 +18,7 @@ class KeycloakAdapter(val keycloak: Keycloak) : UserIdentityProviderPort {
     @Value("\${keycloak.realm}")
     private var realm: String? = null
 
-    override suspend fun save(email: Email, nickName: NickName, password: Password?): UserId {
+    override suspend fun save(email: Email, nickName: NickName, password: Password?, userId: UserId?): UserId {
         val response = UserRepresentation().apply {
             this.username = nickName.value
             this.firstName = nickName.value + " firstname"

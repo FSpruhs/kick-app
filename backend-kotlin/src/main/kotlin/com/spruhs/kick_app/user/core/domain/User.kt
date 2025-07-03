@@ -61,7 +61,7 @@ class UserAggregate(
 }
 
 interface UserIdentityProviderPort {
-    suspend fun save(email: Email, nickName: NickName, password: Password?): UserId
+    suspend fun save(email: Email, nickName: NickName, password: Password? = null, userId: UserId? = null): UserId
     suspend fun changeNickName(userId: UserId, nickName: NickName)
 }
 

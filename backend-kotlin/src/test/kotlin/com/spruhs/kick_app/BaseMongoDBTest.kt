@@ -51,7 +51,8 @@ class MongoTestConfig {
         override suspend fun save(
             email: Email,
             nickName: NickName,
-            password: Password?
+            password: Password?,
+            userId: UserId?
         ): UserId {
             return UserId("fake-user-id")
         }

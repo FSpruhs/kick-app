@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Profile("dev")
 class GroupImporter() {
 
-    @Value("\${app.load-default-data}")
+    @Value("\${app.load-sample-data}")
     private var loadDefaultData: Boolean = false
 
     private val log = getLogger(this::class.java)

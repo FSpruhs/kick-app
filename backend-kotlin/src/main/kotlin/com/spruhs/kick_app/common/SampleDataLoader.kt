@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Component
 
 @Component
@@ -60,7 +61,7 @@ class MongoDBCleaner(
 @Component
 @Profile("dev")
 class PostgreSQLCleaner(
-    private val jdbcTemplate: JdbcTemplate,
+    private val client: DatabaseClient,
 ) : DatabaseCleaner {
 
     private val log = getLogger(this::class.java)
@@ -68,8 +69,8 @@ class PostgreSQLCleaner(
     override suspend fun clean() {
         log.info("Cleaning PostgreSQL tables...")
 
-        jdbcTemplate.execute("TRUNCATE TABLE kick_app.events RESTART IDENTITY CASCADE;")
-        jdbcTemplate.execute("TRUNCATE TABLE kick_app.snapshots RESTART IDENTITY CASCADE;")
+        client.sql("TRUNCATE TABLE kick_app.events RESTART IDENTITY CASCADE;").then().block()
+        client.sql("TRUNCATE TABLE kick_app.snapshots RESTART IDENTITY CASCADE;").then().block()
 
         log.info("PostgreSQL tables cleaned!")
     }

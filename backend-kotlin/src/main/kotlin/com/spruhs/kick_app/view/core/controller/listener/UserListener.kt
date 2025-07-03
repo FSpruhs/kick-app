@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-@Component
+@Component("ViewUserListener")
 class UserListener(
     private val applicationScope: CoroutineScope,
     private val userService: UserService,
@@ -26,7 +26,7 @@ class UserListener(
         UserImageUpdatedEvent::class,
     )
     fun onUserRelevantEvent(event: BaseEvent) {
-        log.info("User scope received: $event")
+        log.info("ViewUserListener received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
         }
@@ -37,7 +37,7 @@ class UserListener(
         UserImageUpdatedEvent::class,
     )
     fun onUerRelevantEvent(event: BaseEvent) {
-        log.info("User scope received: $event")
+        log.info("ViewUserListener received: $event")
         applicationScope.launch {
             groupService.whenEvent(event)
         }

@@ -42,7 +42,7 @@ class GroupListener(
         PlayerDowngradedEvent::class
     )
     fun onGroupRelevantEvent(event: BaseEvent) {
-        log.info("Group relevant event received: $event")
+        log.info("ViewGroupListener received: $event")
         applicationScope.launch {
             groupService.whenEvent(event)
         }

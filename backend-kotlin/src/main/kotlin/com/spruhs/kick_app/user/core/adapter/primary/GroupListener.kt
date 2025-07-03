@@ -20,7 +20,7 @@ class GroupListener(
 
     @EventListener
     fun onEvent(event: PlayerInvitedEvent) {
-        log.info("PlayerInvitedEvent received: $event")
+        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, event.toMessageParams())
         }
@@ -28,7 +28,7 @@ class GroupListener(
 
     @EventListener(PlayerRemovedEvent::class)
     fun onEvent(event: PlayerRemovedEvent) {
-        log.info("PlayerRemovedEvent received: $event")
+        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
         }
@@ -36,7 +36,7 @@ class GroupListener(
 
     @EventListener(PlayerPromotedEvent::class)
     fun onEvent(event: PlayerPromotedEvent) {
-        log.info("PlayerPromotedEvent received: $event")
+        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_PROMOTED, event.toMessageParams())
         }
@@ -44,7 +44,7 @@ class GroupListener(
 
     @EventListener(PlayerDowngradedEvent::class)
     fun onEvent(event: PlayerDowngradedEvent) {
-        log.info("PlayerDowngradedEvent received: $event")
+        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
         }

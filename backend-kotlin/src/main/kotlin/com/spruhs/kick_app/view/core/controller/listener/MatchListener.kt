@@ -29,7 +29,7 @@ class MatchListener(
 
     @EventListener(MatchResultEnteredEvent::class)
     fun onEvent(event: MatchResultEnteredEvent) {
-        log.info("MatchResultEnteredEvent received: $event")
+        log.info("ViewMatchListener received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
         }
@@ -50,7 +50,7 @@ class MatchListener(
         PlayerDeregisteredEvent::class,
     )
     fun onEvent(event: BaseEvent) {
-        log.info("Match scope received: $event")
+        log.info("ViewMatchListener received: $event")
         applicationScope.launch {
             matchService.whenEvent(event)
         }

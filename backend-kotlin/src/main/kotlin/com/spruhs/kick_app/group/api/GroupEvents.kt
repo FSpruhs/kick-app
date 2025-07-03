@@ -20,7 +20,7 @@ data class GroupNameChangedEvent(
 data class PlayerInvitedEvent(
     override val aggregateId: String,
     val userId: UserId,
-    val name: String,
+    val groupName: String,
 ): BaseEvent(aggregateId)
 
 data class PlayerEnteredGroupEvent(
@@ -59,7 +59,7 @@ data class PlayerDeactivatedEvent(
 data class PlayerRemovedEvent(
     override val aggregateId: String,
     val userId: UserId,
-    val name: String
+    val groupName: String
 ): BaseEvent(aggregateId)
 
 data class PlayerLeavedEvent(
@@ -168,7 +168,7 @@ class GroupEventSerializer : Serializer {
         }
     }
 
-    override fun deserialize(event: Event): Any {
+    override fun deserialize(event: Event): BaseEvent {
         return when (event.type) {
             GroupEvents.GROUP_CREATED_V1.name -> EventSourcingUtils.readValue(
                 event.data, GroupCreatedEvent::class.java

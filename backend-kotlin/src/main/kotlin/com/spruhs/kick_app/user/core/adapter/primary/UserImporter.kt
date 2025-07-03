@@ -25,7 +25,6 @@ class UserImporter(
     private val log = getLogger(this::class.java)
 
     override suspend fun import() {
-
         log.info("Starting to load sample user data...")
         defaultUsers.forEach { createTestUser(it) }
         log.info("Sample user data loaded!")
@@ -58,7 +57,10 @@ private val defaultUsers = listOf(
     Triple(UserId("user-id-15"), NickName("Lukas"), Email("lukas@kicken.com")),
     Triple(UserId("user-id-16"), NickName("Max"), Email("max@kicken.com")),
     Triple(UserId("user-id-17"), NickName("Thorsten"), Email("thorsten@kicken.com")),
-    Triple(UserId("user-id-18"), NickName("Rul"), Email("raul@kicken.com")),
+    Triple(UserId("user-id-18"), NickName("Raul"), Email("raul@kicken.com")),
     Triple(UserId("user-id-19"), NickName("phillip"), Email("phillip@kicken.com")),
-    Triple(UserId("user-id-20"), NickName("Frank"), Email("Frank@kicken.com"))
+    Triple(UserId("user-id-20"), NickName("Frank"), Email("Frank@kicken.com")),
+    Triple(UserId("user-id-21"), NickName("Tönchen"), Email("Tönchen@kicken.com")),
+    Triple(UserId("user-id-22"), NickName("Lisa"), Email("Lisa@kicken.com"))
+
 )

@@ -23,23 +23,23 @@ import java.util.*
 
 
 abstract class AggregateRoot(open val aggregateId: String, open val aggregateType: String) {
-    val changes: MutableList<Any> = mutableListOf()
+    val changes: MutableList<BaseEvent> = mutableListOf()
     var version: Int = 0
 
-    protected abstract fun whenEvent(event: Any)
+    protected abstract fun whenEvent(event: BaseEvent)
 
-    fun apply(event: Any) {
+    fun apply(event: BaseEvent) {
         changes.add(event)
         whenEvent(event)
         version++
     }
 
-    fun raiseEvent(event: Any) {
+    fun raiseEvent(event: BaseEvent) {
         whenEvent(event)
         version++
     }
 
-    fun loadEvents(events: MutableList<Any>) {
+    fun loadEvents(events: MutableList<BaseEvent>) {
         events.forEach { whenEvent(it) }
     }
 
@@ -108,6 +108,7 @@ class Snapshot(
 
 object EventSourcingConstants {
     const val AGGREGATE_ID = "aggregate_id"
+    const val SNAPSHOT_ID = "snapshot_id"
     const val AGGREGATE_TYPE = "aggregate_type"
     const val DATA = "data"
     const val METADATA = "metadata"
@@ -127,7 +128,7 @@ interface AggregateStore {
 interface Serializer {
     fun serialize(event: Any, aggregate: AggregateRoot): Event
 
-    fun deserialize(event: Event): Any
+    fun deserialize(event: Event): BaseEvent
 
     fun aggregateTypeName(): String
 }
@@ -167,6 +168,7 @@ class AggregateStoreImpl(
             if (aggregate.version % SNAPSHOT_FREQUENCY == 0) saveSnapshot(aggregate)
 
             eventPublisher.publish(aggregate.changes)
+            aggregate.clearChanges()
         }
     }
 
@@ -234,10 +236,10 @@ class AggregateStoreImpl(
     }
 
     private suspend fun <T : AggregateRoot> saveSnapshot(aggregate: T) {
-        aggregate.clearChanges()
         val snapshot = EventSourcingUtils.snapshotFromAggregate(aggregate)
 
         dbClient.sql(SAVE_SNAPSHOT_QUERY)
+            .bind(EventSourcingConstants.SNAPSHOT_ID, snapshot.id)
             .bind(EventSourcingConstants.AGGREGATE_ID, aggregate.aggregateId)
             .bind(EventSourcingConstants.AGGREGATE_TYPE, aggregate.aggregateType)
             .bind(EventSourcingConstants.DATA, snapshot.data)
@@ -248,9 +250,9 @@ class AggregateStoreImpl(
     }
 
     companion object {
-        private const val SNAPSHOT_FREQUENCY = 10
+        private const val SNAPSHOT_FREQUENCY = 25
         private const val SAVE_SNAPSHOT_QUERY =
-            """INSERT INTO kick_app.snapshots (aggregate_id, aggregate_type, data, metadata, version, timestamp) VALUES (:aggregate_id, :aggregate_type, :data, :metadata, :version, :timestamp) ON CONFLICT (aggregate_id) DO UPDATE SET data = :data, version = :version, timestamp = :timestamp"""
+            """INSERT INTO kick_app.snapshots (snapshot_id, aggregate_id, aggregate_type, data, metadata, version, timestamp) VALUES (:snapshot_id, :aggregate_id, :aggregate_type, :data, :metadata, :version, :timestamp) ON CONFLICT (aggregate_id) DO UPDATE SET data = :data, version = :version, timestamp = :timestamp"""
         private const val HANDLE_CONCURRENCY_QUERY =
             "SELECT aggregate_id FROM kick_app.events WHERE aggregate_id = :aggregate_id ORDER BY version LIMIT 1 FOR UPDATE"
         private const val LOAD_SNAPSHOT_QUERY =
@@ -301,7 +303,6 @@ object EventSourcingUtils {
     fun <T> readValue(src: ByteArray, valueType: Class<T>): T {
         return mapper.readValue(src, valueType)
     }
-
 
     fun <T : AggregateRoot> snapshotFromAggregate(aggregate: T): Snapshot {
         val dataBytes = mapper.writeValueAsBytes(aggregate)

@@ -64,11 +64,11 @@ private fun PlayerPromotedEvent.toMessageParams() = MessageParams(
 private fun PlayerInvitedEvent.toMessageParams() = MessageParams(
     userId = this.userId,
     groupId = GroupId(this.aggregateId),
-    groupName = this.name
+    groupName = this.groupName
 )
 
 private fun PlayerRemovedEvent.toMessageParams() = MessageParams(
     userId = this.userId,
     groupId = GroupId(this.aggregateId),
-    groupName = this.name
+    groupName = this.groupName
 )

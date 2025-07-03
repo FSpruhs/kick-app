@@ -508,7 +508,7 @@ class GroupServiceTest {
                 event = PlayerRemovedEvent(
                     aggregateId = "groupId",
                     userId = UserId("player1"),
-                    name = "player1",
+                    groupName = "player1",
                 ),
                 expectedStatus = PlayerStatusType.REMOVED
             ),

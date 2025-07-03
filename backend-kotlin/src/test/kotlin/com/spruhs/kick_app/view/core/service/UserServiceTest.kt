@@ -316,7 +316,7 @@ class UserServiceTest {
                 event = PlayerRemovedEvent(
                     aggregateId = "testGroupId",
                     userId = UserId("testUserId"),
-                    name = "player name",
+                    groupName = "player name",
                 ),
                 group = UserGroupProjection(
                     id = GroupId("testGroupId"),

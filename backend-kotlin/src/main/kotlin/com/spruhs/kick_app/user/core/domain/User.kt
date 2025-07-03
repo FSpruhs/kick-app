@@ -20,7 +20,7 @@ class UserAggregate(
     var email: Email = Email("default@defaults.com")
     var userImageId: UserImageId? = null
 
-    override fun whenEvent(event: Any) {
+    override fun whenEvent(event: BaseEvent) {
         when (event) {
             is UserCreatedEvent -> handleUserCreatedEvent(event)
             is UserNickNameChangedEvent -> handleUserNickNameChangedEvent(event)

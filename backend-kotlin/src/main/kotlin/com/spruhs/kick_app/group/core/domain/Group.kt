@@ -10,7 +10,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     var players: MutableList<Player> = mutableListOf()
     var invitedUsers: MutableSet<UserId> = mutableSetOf()
 
-    override fun whenEvent(event: Any) {
+    override fun whenEvent(event: BaseEvent) {
         when (event) {
             is GroupCreatedEvent -> handleGroupCreatedEvent(event)
             is GroupNameChangedEvent -> handleGroupNameChangedEvent(event)
@@ -42,7 +42,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
     }
 
     private fun handlePlayerEnteredGroupEvent(event: PlayerEnteredGroupEvent) {
-        players.add(Player(event.userId, Active(), PlayerRole.PLAYER))
+        players.add(Player(event.userId, Active(), event.userRole))
         invitedUsers -= event.userId
     }
 

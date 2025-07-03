@@ -120,7 +120,7 @@ class MatchEventSerializer : Serializer {
         }
     }
 
-    override fun deserialize(event: Event): Any {
+    override fun deserialize(event: Event): BaseEvent {
         return when (event.type) {
             MatchEvents.MATCH_PLANNED_V1.name -> EventSourcingUtils.readValue(
                 event.data, MatchPlannedEvent::class.java

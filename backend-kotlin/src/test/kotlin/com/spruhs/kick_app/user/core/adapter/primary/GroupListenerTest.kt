@@ -47,7 +47,7 @@ class GroupListenerTest {
         val event = PlayerInvitedEvent(
             userId = UserId("user-123"),
             aggregateId = "aggregate-789",
-            name = "Test User",
+            groupName = "Test User",
         )
 
         coEvery { messageUseCases.send(any(), any()) } returns Unit
@@ -60,7 +60,7 @@ class GroupListenerTest {
             messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, MessageParams(
                 userId = event.userId,
                 groupId = GroupId(event.aggregateId),
-                groupName = event.name
+                groupName = event.groupName
             ))
         }
     }
@@ -80,7 +80,7 @@ class GroupListenerTest {
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, MessageParams(
                 userId = event.userId,
                 groupId = GroupId(event.aggregateId),
-                groupName = event.name
+                groupName = event.groupName
             ))
         }
     }

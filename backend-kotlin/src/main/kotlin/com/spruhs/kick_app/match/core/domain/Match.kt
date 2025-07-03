@@ -4,7 +4,6 @@ import com.spruhs.kick_app.common.*
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
-import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
@@ -85,7 +84,7 @@ class MatchAggregate(
     val waitingBench = mutableListOf<RegisteredPlayer>()
     val deregistered = mutableListOf<RegisteredPlayer>()
 
-    override fun whenEvent(event: Any) {
+    override fun whenEvent(event: BaseEvent) {
         when (event) {
             is MatchPlannedEvent -> handleMatchPlannedEvent(event)
             is PlayerAddedToCadreEvent -> handlePlayerStatusChange(

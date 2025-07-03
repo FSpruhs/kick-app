@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS kick_app.events
     metadata       BYTEA,
     version        SERIAL       NOT NULL,
     timestamp      TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                                 UNIQUE (aggregate_id, version)
+                                 PRIMARY KEY (event_id, aggregate_id)
     ) PARTITION BY HASH (aggregate_id);
 
 CREATE INDEX IF NOT EXISTS aggregate_id_aggregate_version_idx ON kick_app.events USING btree (aggregate_id, version ASC);

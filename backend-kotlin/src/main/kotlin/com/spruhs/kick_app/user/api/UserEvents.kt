@@ -57,7 +57,7 @@ class UserEventSerializer : Serializer {
         }
     }
 
-    override fun deserialize(event: Event): Any {
+    override fun deserialize(event: Event): BaseEvent {
         return when (event.type) {
             UserEvents.USER_CREATED_V1.name -> EventSourcingUtils.readValue(
                 event.data, UserCreatedEvent::class.java

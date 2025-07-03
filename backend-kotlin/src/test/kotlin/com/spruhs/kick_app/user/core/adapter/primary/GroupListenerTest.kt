@@ -27,8 +27,6 @@ class GroupListenerTest {
     @MockK
     lateinit var messageUseCases: MessageUseCases
 
-    private val testScope = CoroutineScope(Dispatchers.Default)
-
     lateinit var listener: GroupListener
 
     @BeforeEach

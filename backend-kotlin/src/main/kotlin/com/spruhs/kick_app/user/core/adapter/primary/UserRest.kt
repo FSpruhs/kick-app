@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.OwnerOnly
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.common.UserNotFoundException
@@ -34,24 +35,24 @@ class UserRestController(
     suspend fun registerUser(@RequestBody request: RegisterUserRequest): String = userCommandsPort
         .registerUser(request.toCommand()).aggregateId
 
-    @PutMapping("/{id}/nickName")
+    @PutMapping("/{userId}/nickName")
+    @OwnerOnly
     suspend fun changeNickName(
-        @PathVariable id: String,
+        @PathVariable userId: String,
         @RequestParam nickName: String,
         @AuthenticationPrincipal jwt: Jwt
     ) {
-        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
-        userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(id), NickName(nickName)))
+        userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(userId), NickName(nickName)))
     }
 
-    @PutMapping("/{id}/user-image")
+    @PutMapping("/{userId}/user-image")
+    @OwnerOnly
     suspend fun changeUserImage(
         @RequestParam file: MultipartFile,
-        @PathVariable id: String,
+        @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): String {
-        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
-        return userCommandsPort.updateUserImage(jwtParser.getUserId(jwt), file).value
+        return userCommandsPort.updateUserImage(UserId(userId), file).value
     }
 }
 

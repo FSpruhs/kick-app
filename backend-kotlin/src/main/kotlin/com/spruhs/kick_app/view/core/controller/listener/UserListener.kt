@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
@@ -18,7 +17,6 @@ class UserListener(
     private val userService: UserService,
     private val groupService: GroupService,
 ) {
-    private val log = getLogger(this::class.java)
 
     @EventListener(
         UserCreatedEvent::class,
@@ -26,7 +24,6 @@ class UserListener(
         UserImageUpdatedEvent::class,
     )
     fun onUserRelevantEvent(event: BaseEvent) {
-        log.info("ViewUserListener received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
         }
@@ -37,7 +34,6 @@ class UserListener(
         UserImageUpdatedEvent::class,
     )
     fun onUerRelevantEvent(event: BaseEvent) {
-        log.info("ViewUserListener received: $event")
         applicationScope.launch {
             groupService.whenEvent(event)
         }

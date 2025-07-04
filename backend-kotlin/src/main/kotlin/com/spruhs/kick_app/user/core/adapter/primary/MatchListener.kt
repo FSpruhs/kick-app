@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
@@ -21,11 +20,8 @@ class MatchListener(
     private val applicationScope: CoroutineScope
 ) {
 
-    private val log = getLogger(this::class.java)
-
     @EventListener(MatchPlannedEvent::class)
     fun onEvent(event: MatchPlannedEvent) {
-        log.info("UserMatchListener received: $event")
         applicationScope.launch {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CREATED,
@@ -37,7 +33,6 @@ class MatchListener(
 
     @EventListener(MatchCanceledEvent::class)
     fun onEvent(event: MatchCanceledEvent) {
-        log.info("UserMatchListener received: $event")
         applicationScope.launch {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CANCELED,
@@ -49,7 +44,6 @@ class MatchListener(
 
     @EventListener(PlaygroundChangedEvent::class)
     fun onEvent(event: PlaygroundChangedEvent) {
-        log.info("UserMatchListener received: $event")
         applicationScope.launch {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.PLAYGROUND_CHANGED,
@@ -61,7 +55,6 @@ class MatchListener(
 
     @EventListener(PlayerAddedToCadreEvent::class)
     fun onEvent(event: PlayerAddedToCadreEvent) {
-        log.info("UserMatchListener received: $event")
         applicationScope.launch {
             messageUseCases.send(
                 messageType = MessageType.PLAYER_ADDED_TO_CADRE,
@@ -72,7 +65,6 @@ class MatchListener(
 
     @EventListener(PlayerPlacedOnWaitingBenchEvent::class)
     fun onEvent(event: PlayerPlacedOnWaitingBenchEvent) {
-        log.info("UserMatchListener received: $event")
         applicationScope.launch {
             messageUseCases.send(
                 messageType = MessageType.PLAYER_PLACED_ON_WAITING_BENCH,

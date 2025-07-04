@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.MessageType
@@ -16,11 +15,8 @@ class GroupListener(
     private val applicationScope: CoroutineScope
 ) {
 
-    private val log = getLogger(this::class.java)
-
     @EventListener
     fun onEvent(event: PlayerInvitedEvent) {
-        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, event.toMessageParams())
         }
@@ -28,7 +24,6 @@ class GroupListener(
 
     @EventListener(PlayerRemovedEvent::class)
     fun onEvent(event: PlayerRemovedEvent) {
-        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, event.toMessageParams())
         }
@@ -36,7 +31,6 @@ class GroupListener(
 
     @EventListener(PlayerPromotedEvent::class)
     fun onEvent(event: PlayerPromotedEvent) {
-        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_PROMOTED, event.toMessageParams())
         }
@@ -44,7 +38,6 @@ class GroupListener(
 
     @EventListener(PlayerDowngradedEvent::class)
     fun onEvent(event: PlayerDowngradedEvent) {
-        log.info("UserGroupListener received: $event")
         applicationScope.launch {
             messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
         }

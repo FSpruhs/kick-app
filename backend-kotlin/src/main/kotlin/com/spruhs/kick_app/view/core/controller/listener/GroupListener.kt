@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent
@@ -28,8 +27,6 @@ class GroupListener(
     private val statisticService: StatisticService
 ) {
 
-    private val log = getLogger(this::class.java)
-
     @EventListener(
         GroupNameChangedEvent::class,
         GroupCreatedEvent::class,
@@ -42,7 +39,6 @@ class GroupListener(
         PlayerDowngradedEvent::class
     )
     fun onGroupRelevantEvent(event: BaseEvent) {
-        log.info("ViewGroupListener received: $event")
         applicationScope.launch {
             groupService.whenEvent(event)
         }
@@ -60,7 +56,6 @@ class GroupListener(
         PlayerDowngradedEvent::class
     )
     fun onUserRelevantEvent(event: BaseEvent) {
-        log.info("User relevant event received: $event")
         applicationScope.launch {
             userService.whenEvent(event)
         }
@@ -71,7 +66,6 @@ class GroupListener(
         PlayerEnteredGroupEvent::class
     )
     fun onStatisticRelevantEvent(event: BaseEvent) {
-        log.info("Group scope received: $event")
         applicationScope.launch {
             statisticService.whenEvent(event)
         }

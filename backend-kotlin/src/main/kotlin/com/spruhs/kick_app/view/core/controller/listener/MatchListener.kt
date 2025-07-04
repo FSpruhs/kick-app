@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -24,24 +23,22 @@ class MatchListener(
     private val matchService: MatchService,
     private val statisticService: StatisticService
 ) {
-
-    private val log = getLogger(this::class.java)
-
     @EventListener(MatchResultEnteredEvent::class)
-    fun onEvent(event: MatchResultEnteredEvent) {
-        log.info("ViewMatchListener received: $event")
-        applicationScope.launch {
-            userService.whenEvent(event)
-        }
-        applicationScope.launch {
-            matchService.whenEvent(event)
-        }
+    fun onStatisticRelevantEvent(event: MatchResultEnteredEvent) {
         applicationScope.launch {
             statisticService.whenEvent(event)
         }
     }
 
+    @EventListener(MatchResultEnteredEvent::class)
+    fun onUserRelevantEvent(event: BaseEvent) {
+        applicationScope.launch {
+            userService.whenEvent(event)
+        }
+    }
+
     @EventListener(
+        MatchResultEnteredEvent::class,
         MatchCanceledEvent::class,
         PlayerAddedToCadreEvent::class,
         MatchPlannedEvent::class,
@@ -49,8 +46,7 @@ class MatchListener(
         PlaygroundChangedEvent::class,
         PlayerDeregisteredEvent::class,
     )
-    fun onEvent(event: BaseEvent) {
-        log.info("ViewMatchListener received: $event")
+    fun onMatchRelevantEvent(event: BaseEvent) {
         applicationScope.launch {
             matchService.whenEvent(event)
         }

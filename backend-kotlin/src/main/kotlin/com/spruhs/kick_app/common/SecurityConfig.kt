@@ -3,9 +3,6 @@ package com.spruhs.kick_app.common
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
-import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
@@ -13,18 +10,30 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
+import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder
+import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.context.SecurityContextImpl
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.cors.CorsConfigurationSource
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import org.springframework.web.cors.reactive.CorsConfigurationSource
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 import org.springframework.web.filter.OncePerRequestFilter
+import org.springframework.web.server.ServerWebExchange
+import org.springframework.web.server.WebFilter
+import org.springframework.web.server.WebFilterChain
+import reactor.core.publisher.Mono
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -37,7 +46,7 @@ class OAuth2SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors { it.configurationSource(corsConfigurationSource) }
+            //.cors { it.configurationSource(corsConfigurationSource) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                 auth.anyRequest().authenticated()
@@ -65,69 +74,71 @@ class OAuth2SecurityConfig(
 
 @Profile("jwtSecurity")
 @Configuration
-@EnableWebSecurity
 class JwtSecurityConfig(
     private val corsConfigurationSource: CorsConfigurationSource
 ) {
     @Bean
     fun securityFilterChain(
-        http: HttpSecurity,
+        http: ServerHttpSecurity,
         jwtUtil: JwtUtil,
-        requestLoggingFilter: RequestLoggingFilter
-    ): SecurityFilterChain {
-        http
-            .cors { it.configurationSource(corsConfigurationSource) }
+        //requestLoggingFilter: RequestLoggingFilter
+    ): SecurityWebFilterChain {
+        return http
             .csrf { it.disable() }
-            .authorizeHttpRequests { auth ->
-                auth.requestMatchers("/v3/api-docs*/**", "/swagger-ui/**").permitAll()
-                auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
-                auth.requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                auth.anyRequest().authenticated()
+            .cors { it.configurationSource(corsConfigurationSource) }
+            .authorizeExchange { exchanges ->
+                exchanges
+                    .pathMatchers("/v3/api-docs*/**", "/swagger-ui/**").permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                    .anyExchange().authenticated()
             }
-            .addFilterBefore(JwtAuthFilter(jwtUtil), UsernamePasswordAuthenticationFilter::class.java)
-            .addFilterBefore(requestLoggingFilter, JwtAuthFilter::class.java)
-        return http.build()
+
+            .addFilterAt(JwtAuthenticationWebFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
+            .build()
     }
 
     @Bean
     fun jwtUtil(@Value("\${jwt.secret}") secret: String) = JwtUtil(secret)
 
-    @Bean
-    fun requestLoggingFilter() = RequestLoggingFilter()
 }
 
 @Configuration
 class CorsConfiguration {
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("*")
-        configuration.allowedMethods = listOf("*")
-        configuration.allowedHeaders = listOf("*")
+        val config = CorsConfiguration()
+        config.allowedOrigins = listOf("*")
+        config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        config.allowedHeaders = listOf("*")
 
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
+        source.registerCorsConfiguration("/**", config)
         return source
     }
 }
 
-class JwtAuthFilter(private val jwtUtil: JwtUtil) : OncePerRequestFilter() {
 
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain
-    ) {
-        val authHeader = request.getHeader("Authorization")
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            val token = authHeader.substring(7)
-            if (jwtUtil.isTokenValid(token)) {
-                val userId = jwtUtil.getUserId(token)
-                val auth = UsernamePasswordAuthenticationToken(userId.value, null, emptyList())
-                SecurityContextHolder.getContext().authentication = auth
-            }
+class JwtAuthenticationWebFilter(
+    private val jwtUtil: JwtUtil
+) : WebFilter {
+
+    override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
+        val token = extractToken(exchange.request)
+        return if (token != null && jwtUtil.isTokenValid(token)) {
+            val jwt = jwtUtil.toJwt(token)
+            val auth = UsernamePasswordAuthenticationToken(jwt, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
+            val context = SecurityContextImpl(auth)
+
+            chain.filter(exchange).contextWrite(ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)))
+        } else {
+            chain.filter(exchange)
         }
-        filterChain.doFilter(request, response)
+    }
+
+    private fun extractToken(request: ServerHttpRequest): String? {
+        val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return null
+        return if (authHeader.startsWith("Bearer ")) authHeader.substring(7) else null
     }
 }
 
@@ -155,19 +166,16 @@ class JwtUtil(secret: String) {
         log.error(e.message)
         false
     }
-}
 
-class RequestLoggingFilter : OncePerRequestFilter() {
-
-    private val log = getLogger(this::class.java)
-
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        filterChain: FilterChain
-    ) {
-        log.info("Incoming Request: ${request.method} ${request.requestURI}")
-        filterChain.doFilter(request, response)
+    fun toJwt(token: String): Jwt {
+        val claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body
+        return Jwt.withTokenValue(token)
+            .header("alg", "HS256")
+            .header("typ", "JWT")
+            .subject(claims.subject)
+            .issuedAt(claims.issuedAt.toInstant())
+            .expiresAt(claims.expiration.toInstant())
+            .build()
     }
 }
 

@@ -35,7 +35,7 @@ class UserImporter(
         val user = UserAggregate(userId.value)
         user.createUser(RegisterUserCommand(nickName, email))
         aggregateStore.save(user)
-        userIdentityProviderPort.save(email, nickName, Password.fromPlaintext("Password123"))
+        userIdentityProviderPort.save(email, nickName, Password.fromPlaintext("Password123"), userId)
     }
 }
 

@@ -69,13 +69,12 @@ private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage = GroupNameEnt
     name = name,
 )
 
-private fun GroupProjection.toMessage(): GroupMessage {
-    return GroupMessage(
-        groupId = id.value,
-        name = name,
-        players = players.map { player -> player.toMessage() }
-    )
-}
+private fun GroupProjection.toMessage(): GroupMessage = GroupMessage(
+    groupId = id.value,
+    name = name,
+    players = players.map { player -> player.toMessage() }
+)
+
 
 private fun PlayerProjection.toMessage(): GroupPlayerMessage = GroupPlayerMessage(
     userId = id.value,

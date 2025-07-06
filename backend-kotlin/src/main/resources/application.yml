@@ -2,6 +2,7 @@ spring:
   application:
     name: kick-app
 
+
   r2dbc:
     name: kick_app
     password: password123
@@ -39,3 +40,8 @@ minio:
 
 server:
   port: 8085
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+

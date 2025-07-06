@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
 import com.spruhs.kick_app.common.BaseEvent
+import com.spruhs.kick_app.common.EventExecutionStrategy
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Component
 
 @Component("ViewGroupListener")
 class GroupListener(
-    private val applicationScope: CoroutineScope,
+    private val eventExecutionStrategy: EventExecutionStrategy,
     private val userService: UserService,
     private val groupService: GroupService,
     private val statisticService: StatisticService
@@ -39,7 +40,7 @@ class GroupListener(
         PlayerDowngradedEvent::class
     )
     fun onGroupRelevantEvent(event: BaseEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             groupService.whenEvent(event)
         }
     }
@@ -56,7 +57,7 @@ class GroupListener(
         PlayerDowngradedEvent::class
     )
     fun onUserRelevantEvent(event: BaseEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             userService.whenEvent(event)
         }
     }
@@ -66,7 +67,7 @@ class GroupListener(
         PlayerEnteredGroupEvent::class
     )
     fun onStatisticRelevantEvent(event: BaseEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             statisticService.whenEvent(event)
         }
     }

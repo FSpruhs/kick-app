@@ -16,7 +16,7 @@ data class MatchPlannedEvent(
     override val aggregateId: String,
     val groupId: GroupId,
     val start: LocalDateTime,
-    val playground: String?,
+    val playground: String? = null,
     val maxPlayer: Int,
     val minPlayer: Int
 ) : BaseEvent(aggregateId)

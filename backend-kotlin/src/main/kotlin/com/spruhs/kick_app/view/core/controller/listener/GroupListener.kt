@@ -14,8 +14,6 @@ import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.view.core.service.GroupService
 import com.spruhs.kick_app.view.core.service.StatisticService
 import com.spruhs.kick_app.view.core.service.UserService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 

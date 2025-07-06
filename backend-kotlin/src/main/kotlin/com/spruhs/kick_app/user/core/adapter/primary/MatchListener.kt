@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.EventExecutionStrategy
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
@@ -9,20 +10,18 @@ import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.user.core.application.MessageParams
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.MessageType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component("UserMatchListener")
 class MatchListener(
     private val messageUseCases: MessageUseCases,
-    private val applicationScope: CoroutineScope
+    private val eventExecutionStrategy: EventExecutionStrategy
 ) {
 
     @EventListener(MatchPlannedEvent::class)
     fun onEvent(event: MatchPlannedEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CREATED,
                 params = event.toMessageParams(),
@@ -33,7 +32,7 @@ class MatchListener(
 
     @EventListener(MatchCanceledEvent::class)
     fun onEvent(event: MatchCanceledEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CANCELED,
                 params = event.toMessageParams(),
@@ -44,7 +43,7 @@ class MatchListener(
 
     @EventListener(PlaygroundChangedEvent::class)
     fun onEvent(event: PlaygroundChangedEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.PLAYGROUND_CHANGED,
                 params = event.toMessageParams(),
@@ -55,7 +54,7 @@ class MatchListener(
 
     @EventListener(PlayerAddedToCadreEvent::class)
     fun onEvent(event: PlayerAddedToCadreEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             messageUseCases.send(
                 messageType = MessageType.PLAYER_ADDED_TO_CADRE,
                 params = event.toMessageParams(),
@@ -65,7 +64,7 @@ class MatchListener(
 
     @EventListener(PlayerPlacedOnWaitingBenchEvent::class)
     fun onEvent(event: PlayerPlacedOnWaitingBenchEvent) {
-        applicationScope.launch {
+        eventExecutionStrategy.execute {
             messageUseCases.send(
                 messageType = MessageType.PLAYER_PLACED_ON_WAITING_BENCH,
                 params = event.toMessageParams(),

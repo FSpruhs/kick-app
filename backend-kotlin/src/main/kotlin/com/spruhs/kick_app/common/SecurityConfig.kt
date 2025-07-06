@@ -16,12 +16,10 @@ import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.web.SecurityFilterChain
@@ -29,7 +27,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
-import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
@@ -81,7 +78,6 @@ class JwtSecurityConfig(
     fun securityFilterChain(
         http: ServerHttpSecurity,
         jwtUtil: JwtUtil,
-        //requestLoggingFilter: RequestLoggingFilter
     ): SecurityWebFilterChain {
         return http
             .csrf { it.disable() }
@@ -117,7 +113,6 @@ class CorsConfiguration {
         return source
     }
 }
-
 
 class JwtAuthenticationWebFilter(
     private val jwtUtil: JwtUtil

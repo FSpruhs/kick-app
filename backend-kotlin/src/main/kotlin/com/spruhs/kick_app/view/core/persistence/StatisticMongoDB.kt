@@ -27,7 +27,7 @@ data class PlayerStatisticDocument(
 )
 
 @Service
-class StatisticProjectionMongoAdapter(
+class StatisticProjectionMongoDB(
     private val repository: StatisticsRepository
 ) : StatisticProjectionRepository {
     override suspend fun findByPlayer(

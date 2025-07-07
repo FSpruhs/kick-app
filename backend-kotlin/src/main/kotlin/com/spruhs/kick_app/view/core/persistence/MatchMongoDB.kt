@@ -129,5 +129,7 @@ private fun MatchProjection.toDocument() = MatchDocument(
     cadrePlayers = cadrePlayers.map { it.value }.toSet(),
     deregisteredPlayers = deregisteredPlayers.map { it.value }.toSet(),
     waitingBenchPlayers = waitingBenchPlayers.map { it.value }.toSet(),
-    result = result.map { MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name) }
+    result = result.map {
+        MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name)
+    }
 )

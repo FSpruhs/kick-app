@@ -30,7 +30,7 @@ data class PlayerResultDocument(
 )
 
 @Service
-class ResultProjectionMongoAdapter(
+class ResultProjectionMongoDB(
     private val repository: ResultRepository
 ) : ResultProjectionRepository {
     override suspend fun findByMatchId(matchId: MatchId): ResultProjection? =

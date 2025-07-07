@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class ResultProjectionMongoDBTest : AbstractMongoTest() {
 
     @Autowired
-    private lateinit var adapter: ResultProjectionMongoAdapter
+    private lateinit var adapter: ResultProjectionMongoDB
 
     @Autowired
     private lateinit var resultRepository: ResultRepository

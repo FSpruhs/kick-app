@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class StatisticProjectionMongoAdapterTest : AbstractMongoTest() {
 
     @Autowired
-    private lateinit var adapter: StatisticProjectionMongoAdapter
+    private lateinit var adapter: StatisticProjectionMongoDB
 
     @Autowired
     private lateinit var statisticsRepository: StatisticsRepository

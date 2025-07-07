@@ -40,7 +40,7 @@ data class UserGroupDocument(
 )
 
 @Service
-class UserProjectionMongoAdapter(
+class UserProjectionMongoDB(
     private val repository: UserRepository,
 ) : UserProjectionRepository {
 

@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.aop.OwnerOnly
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.Message
@@ -24,11 +24,15 @@ class MessageRestController(
 ) {
 
     @GetMapping("/user/{userId}")
-    @OwnerOnly
     suspend fun getMessagesByUser(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable userId: String
-    ): List<MessageResponse> = messageUseCases.getByUser(UserId(userId)).map { it.toResponse() }
+    ): List<MessageResponse> {
+        require(userId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(userId))
+        }
+        return messageUseCases.getByUser(UserId(userId)).map { it.toResponse() }
+    }
 
     @PutMapping("/{messageId}/read")
     suspend fun markMessageAsRead(

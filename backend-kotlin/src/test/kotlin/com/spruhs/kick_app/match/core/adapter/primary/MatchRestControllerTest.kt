@@ -61,7 +61,7 @@ class MatchRestControllerTest {
         coEvery { matchCommandPort.plan(builder.toPlanMatchCommand(userId)) }.returns(match)
 
         webTestClient.post()
-            .uri("api/v1/match")
+            .uri("/api/v1/match")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .bodyValue(planMatchRequest)
             .exchange()
@@ -81,7 +81,7 @@ class MatchRestControllerTest {
         coEvery { matchCommandPort.cancelMatch(CancelMatchCommand(userId, matchId)) }.returns(Unit)
 
         webTestClient.delete()
-            .uri("api/v1/match/$matchId")
+            .uri("/api/v1/match/${matchId.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
             .expectStatus().isOk
@@ -107,7 +107,7 @@ class MatchRestControllerTest {
             )
         }.returns(Unit)
         webTestClient.put()
-            .uri("api/v1/match/$matchId/playground?playground=${playground.value}")
+            .uri("/api/v1/match/${matchId.value}/playground?playground=${playground.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
             .expectStatus().isOk
@@ -136,7 +136,7 @@ class MatchRestControllerTest {
         }.returns(Unit)
 
         webTestClient.put()
-            .uri("api/v1/match/$matchId/players/${updatedUser.value}?status=${status.name}")
+            .uri("/api/v1/match/${matchId.value}/players/${updatedUser.value}?status=${status.name}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
             .expectStatus().isOk
@@ -155,7 +155,7 @@ class MatchRestControllerTest {
         }.returns(Unit)
 
         webTestClient.post()
-            .uri("api/v1/match/${builder.matchId}/result")
+            .uri("/api/v1/match/${builder.matchId}/result")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .bodyValue(builder.toEnterResultRequest())
             .exchange()

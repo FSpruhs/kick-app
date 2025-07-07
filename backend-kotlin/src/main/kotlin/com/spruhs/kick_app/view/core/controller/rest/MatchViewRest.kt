@@ -3,8 +3,8 @@ package com.spruhs.kick_app.view.core.controller.rest
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MatchId
-import com.spruhs.kick_app.common.aop.OwnerOnly
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchService
@@ -49,13 +49,17 @@ class MatchViewRestController(
         ).map { it.toMessage() }
 
     @GetMapping("player/{playerId}")
-    @OwnerOnly(pathParam = "playerId")
     suspend fun getPlayerMatches(
         @PathVariable playerId: String,
         @RequestParam after: LocalDateTime? = null,
         @AuthenticationPrincipal jwt: Jwt
-    ): List<MatchMessage> = matchService.getPlayerMatches(UserId(playerId), after)
+    ): List<MatchMessage> {
+        require(playerId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(playerId))
+        }
+        return matchService.getPlayerMatches(UserId(playerId), after)
         .map { it.toMessage() }
+    }
 }
 
 private fun MatchProjection.toMessage() = MatchMessage(

@@ -1,6 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.aop.OwnerOnly
+import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.UserNotFoundException
@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/v1/user")
 class UserRestController(
     private val userCommandsPort: UserCommandsPort,
+    private val jwtParser: JWTParser
 ) {
 
     @PostMapping
@@ -34,22 +35,26 @@ class UserRestController(
         .registerUser(request.toCommand()).aggregateId
 
     @PutMapping("/{userId}/nickName")
-    @OwnerOnly
     suspend fun changeNickName(
         @PathVariable userId: String,
         @RequestParam nickName: String,
         @AuthenticationPrincipal jwt: Jwt
     ) {
+        require(userId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(userId))
+        }
         userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(userId), NickName(nickName)))
     }
 
     @PutMapping("/{userId}/user-image")
-    @OwnerOnly
     suspend fun changeUserImage(
         @RequestParam file: MultipartFile,
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): String {
+        require(userId == jwtParser.getUserId(jwt).value) {
+            throw UserNotAuthorizedException(UserId(userId))
+        }
         return userCommandsPort.updateUserImage(UserId(userId), file).value
     }
 }

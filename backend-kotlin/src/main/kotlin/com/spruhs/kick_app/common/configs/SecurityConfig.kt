@@ -86,7 +86,13 @@ class JwtSecurityConfig(
             .cors { it.configurationSource(corsConfigurationSource) }
             .authorizeExchange { exchanges ->
                 exchanges
-                    .pathMatchers("/v3/api-docs*/**", "/swagger-ui/**").permitAll()
+                    .pathMatchers(
+                "/v3/api-docs/**",
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/swagger-resources/**",
+                "/webjars/**"
+            ).permitAll()
                     .pathMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                     .pathMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                     .anyExchange().authenticated()

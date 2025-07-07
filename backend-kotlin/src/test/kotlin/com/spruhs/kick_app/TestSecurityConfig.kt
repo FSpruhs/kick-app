@@ -7,8 +7,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.jwt.JwtDecoder
-import java.nio.charset.StandardCharsets
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder
+import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.Base64
 import java.util.Date
@@ -17,17 +17,19 @@ import java.util.Date
 class TestSecurityConfig {
 
     @Bean
-    fun jwtDecoder(): JwtDecoder = JwtDecoder { token ->
+    fun reactiveJwtDecoder(): ReactiveJwtDecoder = ReactiveJwtDecoder { token ->
         val parts = token.split(".")
-        val payloadJson = String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8)
+        val payloadJson = String(Base64.getDecoder().decode(parts[1]), Charsets.UTF_8)
         val claims: Map<String, Any> = jacksonObjectMapper().readValue(payloadJson)
 
-        Jwt.withTokenValue(token)
-            .header("alg", "none")
-            .claims { it.putAll(claims) }
-            .issuedAt(Instant.now())
-            .expiresAt(Instant.now().plusSeconds(3600))
-            .build()
+        Mono.just(
+            Jwt.withTokenValue(token)
+                .header("alg", "none")
+                .claims { it.putAll(claims) }
+                .issuedAt(Instant.now())
+                .expiresAt(Instant.now().plusSeconds(3600))
+                .build()
+        )
     }
 }
 

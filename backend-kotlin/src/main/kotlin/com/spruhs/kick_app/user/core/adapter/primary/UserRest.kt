@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.aop.OwnerOnly
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserNotAuthorizedException
@@ -27,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/api/v1/user")
 class UserRestController(
     private val userCommandsPort: UserCommandsPort,
-    private val jwtParser: JWTParser
 ) {
 
     @PostMapping

@@ -2,6 +2,8 @@ package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.GroupNotFoundException
+import com.spruhs.kick_app.common.PlayerNotFoundException
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UnknownEventTypeException
@@ -16,8 +18,6 @@ import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
-import com.spruhs.kick_app.group.core.domain.GroupNotFoundException
-import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.view.api.GroupApi

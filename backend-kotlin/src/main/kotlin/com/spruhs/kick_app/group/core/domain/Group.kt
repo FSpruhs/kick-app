@@ -277,8 +277,7 @@ value class Name(val value: String) {
     }
 }
 
-data class PlayerNotFoundException(val userId: UserId) : RuntimeException("Player not found with id: ${userId.value}")
-data class GroupNotFoundException(val groupId: GroupId) : RuntimeException("Group not found with id: ${groupId.value}")
+
 data class PlayerAlreadyInGroupException(val userId: UserId) :
     RuntimeException("User already in group: ${userId.value}")
 

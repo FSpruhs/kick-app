@@ -1,7 +1,9 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
 import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.GroupNotFoundException
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.PlayerNotFoundException
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId

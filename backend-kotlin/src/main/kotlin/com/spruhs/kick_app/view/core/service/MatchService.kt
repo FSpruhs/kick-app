@@ -3,6 +3,7 @@ package com.spruhs.kick_app.view.core.service
 import com.spruhs.kick_app.common.BaseEvent
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.MatchNotFoundException
 import com.spruhs.kick_app.common.UnknownEventTypeException
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
@@ -15,7 +16,6 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.match.core.domain.MatchNotFoundException
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime

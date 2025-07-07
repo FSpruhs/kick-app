@@ -64,7 +64,6 @@ value class MinPlayer(val value: Int) {
     }
 }
 
-class MatchNotFoundException(matchId: MatchId) : RuntimeException("Match not found with id: ${matchId.value}")
 class MatchStartTimeException(matchId: MatchId) :
     RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
 

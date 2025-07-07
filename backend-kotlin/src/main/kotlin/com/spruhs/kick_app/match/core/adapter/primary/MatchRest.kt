@@ -86,13 +86,7 @@ class MatchRestController(
             EnterResultCommand(
                 userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
-                players = request.players.map { player ->
-                    ParticipatingPlayer(
-                        userId = UserId(player.userId),
-                        team = MatchTeam.valueOf(player.team),
-                        playerResult = PlayerResult.valueOf(player.result),
-                    )
-                },
+                players = request.players.map { it.toParticipatingPlayer() },
             )
         )
     }
@@ -122,4 +116,10 @@ private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchComm
     start = start,
     playground = Playground(playground),
     playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer))
+)
+
+private fun PlayerMatchResult.toParticipatingPlayer() = ParticipatingPlayer(
+    userId = UserId(userId),
+    team = MatchTeam.valueOf(team),
+    playerResult = PlayerResult.valueOf(result)
 )

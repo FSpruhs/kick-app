@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerNotFoundException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId

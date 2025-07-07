@@ -173,7 +173,32 @@ class MatchAggregate(
         apply(PlaygroundChangedEvent(aggregateId, newPlayground.value, this.groupId))
     }
 
-    fun enterResult(participatingPlayers: List<ParticipatingPlayer>) {
+    private fun validateDrawPlayers(results: Set<PlayerResult>) {
+        if (results.size != 1) {
+            throw IllegalArgumentException("If one player has a draw, all players must have a draw result.")
+        }
+    }
+
+    private fun validatePlayers(
+        results: Set<PlayerResult>,
+        participatingPlayers: List<ParticipatingPlayer>,
+        result: PlayerResult
+    ) {
+        if (PlayerResult.DRAW in results) {
+            throw IllegalArgumentException("If one player has a win, no player can have a draw result.")
+        }
+
+        val winningTeams = participatingPlayers
+            .filter { it.playerResult == result }
+            .map { it.team }
+            .toSet()
+
+        if (winningTeams.size != 1) {
+            throw IllegalArgumentException("If one player has a win, all winning players must be in the same team.")
+        }
+    }
+
+    private fun validateParticipatingPlayersInput(participatingPlayers: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         require(participatingPlayers.size >= 2) {
@@ -185,44 +210,15 @@ class MatchAggregate(
         }
 
         val results = participatingPlayers.map { it.playerResult }.toSet()
-
         when {
-            PlayerResult.DRAW in results -> {
-                if (results.size != 1) {
-                    throw IllegalArgumentException("If one player has a draw, all players must have a draw result.")
-                }
-            }
-
-            PlayerResult.WIN in results -> {
-                if (PlayerResult.DRAW in results) {
-                    throw IllegalArgumentException("If one player has a win, no player can have a draw result.")
-                }
-
-                val winningTeams = participatingPlayers
-                    .filter { it.playerResult == PlayerResult.WIN }
-                    .map { it.team }
-                    .toSet()
-
-                if (winningTeams.size != 1) {
-                    throw IllegalArgumentException("If one player has a win, all winning players must be in the same team.")
-                }
-            }
-
-            PlayerResult.LOSS in results -> {
-                if (PlayerResult.DRAW in results) {
-                    throw IllegalArgumentException("If one player has a loss, no player can have a draw result.")
-                }
-
-                val losingTeams = participatingPlayers
-                    .filter { it.playerResult == PlayerResult.LOSS }
-                    .map { it.team }
-                    .toSet()
-
-                if (losingTeams.size != 1) {
-                    throw IllegalArgumentException("If one player has a loss, all losing players must be in the same team.")
-                }
-            }
+            PlayerResult.DRAW in results -> validateDrawPlayers(results)
+            PlayerResult.WIN in results -> validatePlayers(results, participatingPlayers, PlayerResult.WIN)
+            PlayerResult.LOSS in results -> validatePlayers(results, participatingPlayers, PlayerResult.LOSS)
         }
+    }
+
+    fun enterResult(participatingPlayers: List<ParticipatingPlayer>) {
+        validateParticipatingPlayersInput(participatingPlayers)
 
         apply(
             MatchResultEnteredEvent(
@@ -233,33 +229,22 @@ class MatchAggregate(
             ))
     }
 
-    fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
-        require(this.start.isBefore(LocalDateTime.now())) {
-            throw MatchStartTimeException(MatchId(this.aggregateId))
+    private fun handleFirstRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
+        when (registrationStatusType) {
+            RegistrationStatusType.DEREGISTERED -> handlePlayerDeregistration(
+                userId,
+                RegistrationStatusType.DEREGISTERED
+            )
+
+            RegistrationStatusType.REGISTERED ->
+                handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+
+            RegistrationStatusType.CANCELLED -> return
+            RegistrationStatusType.ADDED -> return
         }
+    }
 
-        val currentPlayer = findPlayerRegistration(userId)
-        if (currentPlayer == null) {
-            when (registrationStatusType) {
-                RegistrationStatusType.DEREGISTERED -> handlePlayerDeregistration(
-                    userId,
-                    RegistrationStatusType.DEREGISTERED
-                )
-
-                RegistrationStatusType.REGISTERED ->
-                    handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
-
-                RegistrationStatusType.CANCELLED -> return
-                RegistrationStatusType.ADDED -> return
-            }
-            return
-        }
-
-        val newStatus = currentPlayer.status.updateStatus(registrationStatusType)
-        if (newStatus == currentPlayer.status) {
-            return
-        }
-
+    private fun handleNewStatus(userId: UserId, newStatus: RegistrationStatus) {
         when (newStatus) {
             is RegistrationStatus.Registered -> handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
             is RegistrationStatus.Deregistered -> handlePlayerDeregistration(
@@ -270,20 +255,47 @@ class MatchAggregate(
             is RegistrationStatus.Cancelled -> handlePlayerCancelled(userId, RegistrationStatusType.CANCELLED)
             is RegistrationStatus.Added -> handlePlayerAdded(userId, RegistrationStatusType.ADDED)
         }
+    }
 
-        if ((newStatus.getType() == RegistrationStatusType.DEREGISTERED || newStatus.getType() == RegistrationStatusType.CANCELLED) && !isCadreFull() && isPlayerWaiting()) {
-            waitingBench.sortBy { it.registrationTime }
-            val openCadre = playerCount.maxPlayer.value - cadre.size
-            for (registration in waitingBench.filter { it.status.getType() == RegistrationStatusType.REGISTERED }
-                .take(openCadre)) {
-                apply(
-                    PlayerAddedToCadreEvent(
-                        aggregateId,
-                        registration.userId,
-                        registration.status.getType().name
-                    )
+    fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
+        require(this.start.isBefore(LocalDateTime.now())) {
+            throw MatchStartTimeException(MatchId(this.aggregateId))
+        }
+        val currentPlayer = findPlayerRegistration(userId)
+        if (currentPlayer == null) {
+            handleFirstRegistration(userId, registrationStatusType)
+            return
+        }
+
+        val newStatus = currentPlayer.status.updateStatus(registrationStatusType)
+        if (newStatus == currentPlayer.status) {
+            return
+        }
+
+        handleNewStatus(userId, newStatus)
+
+        if (shouldFillCadreFromWaitingBench(newStatus)) {
+            fillCadreFromWaitingBench()
+        }
+    }
+
+    private fun shouldFillCadreFromWaitingBench(newStatus: RegistrationStatus): Boolean =
+        newStatus.getType() in listOf(RegistrationStatusType.DEREGISTERED, RegistrationStatusType.CANCELLED) &&
+                !isCadreFull() &&
+                isPlayerWaiting()
+
+    private fun fillCadreFromWaitingBench() {
+        waitingBench.sortBy { it.registrationTime }
+        val openCadre = playerCount.maxPlayer.value - cadre.size
+        for (registration in waitingBench.filter { it.status.getType() == RegistrationStatusType.REGISTERED }
+            .take(openCadre)) {
+            apply(
+                PlayerAddedToCadreEvent(
+                    aggregateId,
+                    registration.userId,
+                    registration.status.getType().name
                 )
-            }
+            )
         }
     }
 

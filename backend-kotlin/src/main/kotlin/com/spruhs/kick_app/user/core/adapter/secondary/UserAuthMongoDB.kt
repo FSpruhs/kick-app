@@ -31,11 +31,13 @@ class UserAuthMongoDBAdapter(private val repository: UserAuthRepository) : UserI
     ): UserId {
         require(password != null) { "Password required" }
         val newId = userId?.value ?: generateId()
-        repository.save(UserAuthDocument(
-            userId = newId,
-            email = email.value,
-            passwordHash = password.value
-        )).awaitFirstOrNull()
+        repository.save(
+            UserAuthDocument(
+                userId = newId,
+                email = email.value,
+                passwordHash = password.value
+            )
+        ).awaitFirstOrNull()
         return UserId(newId)
     }
 
@@ -46,16 +48,10 @@ class UserAuthMongoDBAdapter(private val repository: UserAuthRepository) : UserI
         log.info("Changing nickname for user {}", nickName)
     }
 
-    override suspend fun getAuthUser(email: Email): AuthUser? {
-        return repository.findByEmail(email.value)
+    override suspend fun getAuthUser(email: Email): AuthUser? =
+        repository.findByEmail(email.value)
             .awaitFirstOrNull()
-            ?.let { AuthUser(
-                email = Email(it.email),
-                userId = UserId(it.userId),
-                password = Password.fromHash(it.passwordHash)
-            ) }
-    }
-
+            ?.toAuthUser()
 }
 
 @Document(collection = "usersAuth")
@@ -70,3 +66,9 @@ data class UserAuthDocument(
 interface UserAuthRepository : ReactiveMongoRepository<UserAuthDocument, String> {
     fun findByEmail(email: String): Flux<UserAuthDocument>
 }
+
+private fun UserAuthDocument.toAuthUser(): AuthUser = AuthUser(
+    email = Email(this.email),
+    userId = UserId(this.userId),
+    password = Password.fromHash(this.passwordHash)
+)

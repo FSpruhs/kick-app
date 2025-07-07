@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.MatchNotFoundException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.match.TestMatchBuilder
@@ -11,7 +12,6 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.match.core.domain.MatchNotFoundException
 import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.view.api.UserApi
 import io.mockk.coEvery

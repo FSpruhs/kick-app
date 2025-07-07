@@ -2,6 +2,7 @@ package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerNotFoundException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
@@ -20,7 +21,6 @@ import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.Inactive
 import com.spruhs.kick_app.group.core.domain.Player
-import com.spruhs.kick_app.group.core.domain.PlayerNotFoundException
 import com.spruhs.kick_app.group.core.domain.Removed
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent

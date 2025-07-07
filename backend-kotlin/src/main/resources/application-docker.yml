@@ -8,3 +8,7 @@ spring:
     password: ${SPRING_FLYWAY_PASSWORD:password123}
     user: ${SPRING_FLYWAY_USER:admin}
     url: ${SPRING_FLYWAY_URL:jdbc:postgresql://postgres:5432/kick_app}
+
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb://admin:password123@mongo:27017/kick_app?authSource=admin}

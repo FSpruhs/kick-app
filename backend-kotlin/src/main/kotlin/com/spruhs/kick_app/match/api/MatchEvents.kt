@@ -1,13 +1,13 @@
 package com.spruhs.kick_app.match.api
 
-import com.spruhs.kick_app.common.AggregateRoot
-import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.Event
-import com.spruhs.kick_app.common.EventSourcingUtils
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.Serializer
-import com.spruhs.kick_app.common.UnknownEventTypeException
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.es.AggregateRoot
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.Event
+import com.spruhs.kick_app.common.es.EventSourcingUtils
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.es.Serializer
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime

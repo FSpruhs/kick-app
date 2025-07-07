@@ -1,5 +1,6 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.es
 
+import com.spruhs.kick_app.common.helper.getLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 

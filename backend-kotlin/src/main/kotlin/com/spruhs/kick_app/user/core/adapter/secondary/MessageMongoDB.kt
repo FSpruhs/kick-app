@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
-import com.spruhs.kick_app.common.MessageId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.MessageId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.domain.Message
 import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.user.core.domain.MessageType

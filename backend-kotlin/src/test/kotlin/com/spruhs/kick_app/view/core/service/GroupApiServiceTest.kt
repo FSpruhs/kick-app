@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.service
 
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.Inactive

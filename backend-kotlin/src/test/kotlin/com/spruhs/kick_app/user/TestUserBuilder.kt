@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.user
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.view.api.UserData
 import com.spruhs.kick_app.user.core.adapter.primary.RegisterUserRequest
 import com.spruhs.kick_app.user.core.domain.Email

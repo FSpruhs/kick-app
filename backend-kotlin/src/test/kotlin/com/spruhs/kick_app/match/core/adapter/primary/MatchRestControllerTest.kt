@@ -2,9 +2,9 @@ package com.spruhs.kick_app.match.core.adapter.primary
 
 import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
 import com.spruhs.kick_app.match.core.application.CancelMatchCommand

@@ -1,10 +1,9 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.OwnerOnly
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.aop.OwnerOnly
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.UserProjection
 import com.spruhs.kick_app.view.core.service.UserService
 import org.springframework.security.core.annotation.AuthenticationPrincipal

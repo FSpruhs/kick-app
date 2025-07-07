@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.configs
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

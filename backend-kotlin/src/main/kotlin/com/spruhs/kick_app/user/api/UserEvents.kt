@@ -1,6 +1,12 @@
 package com.spruhs.kick_app.user.api
 
-import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.common.es.AggregateRoot
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.Event
+import com.spruhs.kick_app.common.es.EventSourcingUtils
+import com.spruhs.kick_app.common.es.Serializer
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.springframework.stereotype.Component
 

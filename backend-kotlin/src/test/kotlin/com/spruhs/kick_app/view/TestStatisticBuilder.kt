@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.PlayerStatisticProjection
 
 class TestStatisticBuilder {

@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.user.core.domain
 
-import com.spruhs.kick_app.common.MessageId
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.MessageId
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import java.time.LocalDateTime
 
 data class Message(

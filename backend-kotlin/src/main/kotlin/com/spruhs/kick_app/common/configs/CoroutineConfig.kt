@@ -1,5 +1,6 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.configs
 
+import com.spruhs.kick_app.common.helper.getLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

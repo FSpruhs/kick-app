@@ -1,13 +1,13 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.GroupNotFoundException
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.PlayerNotFoundException
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.GroupNotFoundException
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.PlayerNotFoundException
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.application.*
 import com.spruhs.kick_app.group.core.domain.*
 import org.springframework.http.HttpStatus

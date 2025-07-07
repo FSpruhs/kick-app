@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.match
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult

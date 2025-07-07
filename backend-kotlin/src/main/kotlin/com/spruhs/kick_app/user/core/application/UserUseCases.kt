@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.user.core.application
 
-import com.spruhs.kick_app.common.AggregateStore
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service

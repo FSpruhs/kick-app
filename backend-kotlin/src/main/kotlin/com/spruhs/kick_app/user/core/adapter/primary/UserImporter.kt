@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.AggregateStore
+import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.SampleDataImporter
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.getLogger
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName

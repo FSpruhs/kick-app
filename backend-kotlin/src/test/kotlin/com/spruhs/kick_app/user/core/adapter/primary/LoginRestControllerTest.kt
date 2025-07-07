@@ -2,7 +2,7 @@ package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
-import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
 import com.spruhs.kick_app.user.core.application.LoginCommand
 import com.spruhs.kick_app.user.core.application.LoginException

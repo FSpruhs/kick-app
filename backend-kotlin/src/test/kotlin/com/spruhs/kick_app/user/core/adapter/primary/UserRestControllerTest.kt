@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import io.mockk.coEvery
 import io.mockk.mockk

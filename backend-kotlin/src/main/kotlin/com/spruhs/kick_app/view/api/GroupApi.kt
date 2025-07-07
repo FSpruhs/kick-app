@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.api
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.UserId
 
 interface GroupApi {
     suspend fun isActiveMember(groupId: GroupId, userId: UserId): Boolean

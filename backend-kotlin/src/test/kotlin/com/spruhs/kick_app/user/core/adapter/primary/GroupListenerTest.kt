@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.EventExecutionStrategy
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
 import com.spruhs.kick_app.group.api.PlayerInvitedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent

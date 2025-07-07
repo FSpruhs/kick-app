@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.EventExecutionStrategy
-import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent

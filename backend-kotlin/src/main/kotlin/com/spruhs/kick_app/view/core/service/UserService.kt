@@ -1,13 +1,13 @@
 package com.spruhs.kick_app.view.core.service
 
-import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UnknownEventTypeException
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserImageId
-import com.spruhs.kick_app.common.UserNotFoundException
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
+import com.spruhs.kick_app.common.types.UserNotFoundException
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent

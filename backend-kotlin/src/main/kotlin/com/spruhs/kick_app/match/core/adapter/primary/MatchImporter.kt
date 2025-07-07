@@ -1,11 +1,11 @@
 package com.spruhs.kick_app.match.core.adapter.primary
 
-import com.spruhs.kick_app.common.AggregateStore
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.SampleDataImporter
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.getLogger
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent

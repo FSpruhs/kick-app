@@ -1,6 +1,13 @@
 package com.spruhs.kick_app.group.core.domain
 
-import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.common.es.AggregateRoot
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.PlayerNotFoundException
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.group.core.application.*
 

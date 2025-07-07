@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.types
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

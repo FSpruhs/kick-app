@@ -1,6 +1,6 @@
 package com.spruhs.kick_app
 
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password

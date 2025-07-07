@@ -1,5 +1,7 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.configs
 
+import com.spruhs.kick_app.common.types.UserImageId
+import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import io.minio.MinioClient
 import io.minio.PutObjectArgs

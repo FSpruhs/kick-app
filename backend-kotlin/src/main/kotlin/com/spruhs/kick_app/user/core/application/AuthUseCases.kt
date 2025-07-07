@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.application
 
-import com.spruhs.kick_app.common.JwtUtil
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.configs.JwtUtil
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.adapter.primary.AuthResponse
 import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.Password

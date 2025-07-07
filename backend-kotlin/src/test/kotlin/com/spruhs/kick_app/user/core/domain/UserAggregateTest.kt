@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.domain
 
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import org.assertj.core.api.Assertions.assertThat

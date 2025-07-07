@@ -1,6 +1,10 @@
 package com.spruhs.kick_app.user.core.domain
 
-import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.common.es.AggregateRoot
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent

@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.application
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MessageId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.MessageId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.user.core.TestMessageBuilder
 import com.spruhs.kick_app.user.core.domain.Message

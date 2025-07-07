@@ -1,6 +1,11 @@
 package com.spruhs.kick_app.match.core.domain
 
-import com.spruhs.kick_app.common.*
+import com.spruhs.kick_app.common.es.AggregateRoot
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent

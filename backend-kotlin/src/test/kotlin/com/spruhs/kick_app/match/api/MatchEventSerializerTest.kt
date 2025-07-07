@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.match.api
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest

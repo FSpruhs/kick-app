@@ -1,11 +1,11 @@
 package com.spruhs.kick_app.common
 
+import com.spruhs.kick_app.common.helper.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Component
 

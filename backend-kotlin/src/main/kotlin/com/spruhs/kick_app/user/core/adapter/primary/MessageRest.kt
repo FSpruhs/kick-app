@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.MessageId
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.MessageId
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.user.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.Message

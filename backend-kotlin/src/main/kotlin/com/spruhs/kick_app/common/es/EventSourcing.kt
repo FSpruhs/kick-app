@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.es
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinFeature
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule
+import com.spruhs.kick_app.common.types.generateId
 import io.r2dbc.spi.Row
 import io.r2dbc.spi.RowMetadata
 import kotlinx.coroutines.Dispatchers

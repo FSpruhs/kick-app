@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.GroupNameListEntry
 import com.spruhs.kick_app.view.core.service.GroupProjection
 import com.spruhs.kick_app.view.core.service.GroupService

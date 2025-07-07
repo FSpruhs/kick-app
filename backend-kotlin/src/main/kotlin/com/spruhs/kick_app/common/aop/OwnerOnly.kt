@@ -1,5 +1,8 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.aop
 
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
@@ -21,7 +24,7 @@ class OwnerOnlyAspect(
     private val jwtParser: JWTParser
 ) {
 
-    @Around("@annotation(OwnerOnly)")
+    @Around("@annotation(com.spruhs.kick_app.common.aop.OwnerOnly)")
     fun checkOwnership(joinPoint: ProceedingJoinPoint, ownerOnly: OwnerOnly): Any? {
         val method = (joinPoint.signature as MethodSignature).method
         val args = joinPoint.args

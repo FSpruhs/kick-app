@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
-import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.EventExecutionStrategy
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.configs.EventExecutionStrategy
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent

@@ -1,6 +1,6 @@
 package com.spruhs.kick_app.user.api
 
-import com.spruhs.kick_app.common.UserImageId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest

@@ -2,10 +2,10 @@ package com.spruhs.kick_app.group.core.adapter.primary
 
 import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
-import com.spruhs.kick_app.common.JWTParser
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.core.application.GroupCommandPort
 import com.spruhs.kick_app.group.core.domain.Active

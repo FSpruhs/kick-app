@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.group.core.application
 
-import com.spruhs.kick_app.common.AggregateStore
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.group.core.domain.Name

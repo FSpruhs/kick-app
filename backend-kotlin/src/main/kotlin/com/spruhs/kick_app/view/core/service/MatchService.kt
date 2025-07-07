@@ -1,12 +1,12 @@
 package com.spruhs.kick_app.view.core.service
 
-import com.spruhs.kick_app.common.BaseEvent
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
-import com.spruhs.kick_app.common.MatchNotFoundException
-import com.spruhs.kick_app.common.UnknownEventTypeException
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.MatchNotFoundException
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotAuthorizedException
 import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent

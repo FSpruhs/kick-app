@@ -1,12 +1,12 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
-import com.spruhs.kick_app.common.AggregateStore
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
+import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.SampleDataImporter
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.getLogger
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.PlayerDeactivatedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
@@ -14,7 +14,6 @@ import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
-import jakarta.annotation.PostConstruct
 import org.springframework.context.annotation.Profile
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component

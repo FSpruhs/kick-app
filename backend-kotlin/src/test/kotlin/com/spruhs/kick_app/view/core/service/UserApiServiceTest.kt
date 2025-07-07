@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.service
 
-import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotFoundException
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserNotFoundException
 import com.spruhs.kick_app.user.TestUserBuilder
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs

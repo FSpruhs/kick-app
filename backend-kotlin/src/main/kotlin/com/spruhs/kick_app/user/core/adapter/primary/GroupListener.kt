@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.EventExecutionStrategy
-import com.spruhs.kick_app.common.GroupId
+import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.group.api.*
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.MessageType

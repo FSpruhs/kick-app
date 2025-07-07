@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection

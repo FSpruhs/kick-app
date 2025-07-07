@@ -1,5 +1,7 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.configs
 
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.helper.getLogger
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys

@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.group
 
-import com.spruhs.kick_app.common.GroupId
-import com.spruhs.kick_app.common.PlayerRole
-import com.spruhs.kick_app.common.PlayerStatusType
-import com.spruhs.kick_app.common.UserId
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.PlayerRole
+import com.spruhs.kick_app.common.types.PlayerStatusType
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.core.adapter.primary.CreateGroupRequest
 import com.spruhs.kick_app.group.core.adapter.primary.InviteUserResponse
 import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand

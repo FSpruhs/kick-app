@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.EventExecutionStrategy
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
@@ -14,8 +15,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -34,10 +33,13 @@ class GroupListenerTest {
         MockKAnnotations.init(this)
         listener = GroupListener(
             messageUseCases = messageUseCases,
-            applicationScope = CoroutineScope(Dispatchers.Default)
+            eventExecutionStrategy = object : EventExecutionStrategy {
+                override fun execute(block: suspend () -> Unit) {
+                    runBlocking { block() }
+                }
+            }
         )
     }
-
 
     @Test
     fun `onEvent should send message when player is invited`() = runBlocking {

@@ -5,7 +5,6 @@ import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
 import com.spruhs.kick_app.common.OwnerOnly
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchService

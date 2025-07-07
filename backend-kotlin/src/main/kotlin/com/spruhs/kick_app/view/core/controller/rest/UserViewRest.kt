@@ -18,7 +18,6 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/api/v1/user")
 class UserViewRestController(
-    private val jwtParser: JWTParser,
     private val userService: UserService,
 ) {
 

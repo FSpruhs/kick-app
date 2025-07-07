@@ -78,8 +78,8 @@ class MatchImporter(
             aggregateId = matchId.value,
             groupId = groupId,
             start = start,
-            maxPlayer = 8,
-            minPlayer = 14
+            maxPlayer = 14,
+            minPlayer = 8
         ))
         return match
     }
@@ -94,8 +94,8 @@ class MatchImporter(
             aggregateId = matchId.value,
             groupId = groupId,
             start = start,
-            maxPlayer = 8,
-            minPlayer = 14
+            maxPlayer = 14,
+            minPlayer = 8
         ))
         match.apply(MatchCanceledEvent(
             aggregateId = matchId.value,
@@ -126,8 +126,8 @@ class MatchImporter(
             aggregateId = matchId.value,
             groupId = groupId,
             start = start,
-            maxPlayer = 8,
-            minPlayer = 12
+            maxPlayer = 12,
+            minPlayer = 8
         ))
         match.apply(PlayerAddedToCadreEvent(
             aggregateId = matchId.value,
@@ -225,8 +225,8 @@ class MatchImporter(
             aggregateId = matchId.value,
             groupId = groupId,
             start = start,
-            maxPlayer = 8,
-            minPlayer = 14
+            maxPlayer = 14,
+            minPlayer = 8
         ))
         match.apply(PlaygroundChangedEvent(
             aggregateId = matchId.value,

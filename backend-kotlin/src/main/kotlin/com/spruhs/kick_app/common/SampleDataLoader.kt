@@ -20,6 +20,7 @@ class SampleDataLoader(
 
     @EventListener(ApplicationReadyEvent::class)
     suspend fun importAll() {
+        log.info("SampleDataLoader started with loadSampleData=$loadSampleData")
         if (!loadSampleData) return
         log.info("Cleaning databases...")
         databaseCleaner.forEach { it.clean() }

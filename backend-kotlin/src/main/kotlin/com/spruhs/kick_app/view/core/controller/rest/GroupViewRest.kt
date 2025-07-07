@@ -34,14 +34,16 @@ class GroupViewRestController(
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): GroupPlayerMessage =
-        groupService.getPlayer(GroupId(groupId), UserId(userId), jwtParser.getUserId(jwt)).toMessage()
+        groupService.getPlayer(GroupId(groupId), UserId(userId), jwtParser.getUserId(jwt))
+            .toMessage()
 
     @GetMapping("/{groupId}/name-list")
     suspend fun getGroupNameList(
         @PathVariable groupId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): List<GroupNameEntryMessage> =
-        groupService.getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt)).map { it.toMessage() }
+        groupService.getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt))
+            .map { it.toMessage() }
 
 }
 

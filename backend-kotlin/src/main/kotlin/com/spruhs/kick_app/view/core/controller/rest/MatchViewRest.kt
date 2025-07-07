@@ -3,6 +3,7 @@ package com.spruhs.kick_app.view.core.controller.rest
 import com.spruhs.kick_app.common.GroupId
 import com.spruhs.kick_app.common.JWTParser
 import com.spruhs.kick_app.common.MatchId
+import com.spruhs.kick_app.common.OwnerOnly
 import com.spruhs.kick_app.common.UserId
 import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.MatchFilter
@@ -28,10 +29,7 @@ class MatchViewRestController(
     suspend fun getMatch(
         @PathVariable matchId: String,
         @AuthenticationPrincipal jwt: Jwt
-    ): MatchMessage {
-        val match = matchService.getMatch(MatchId(matchId), jwtParser.getUserId(jwt))
-        return match.toMessage()
-    }
+    ): MatchMessage = matchService.getMatch(MatchId(matchId), jwtParser.getUserId(jwt)).toMessage()
 
     @GetMapping("/group/{groupId}")
     suspend fun getMatchesByGroup(
@@ -40,8 +38,8 @@ class MatchViewRestController(
         @RequestParam before: LocalDateTime? = null,
         @RequestParam limit: Int? = null,
         @AuthenticationPrincipal jwt: Jwt
-    ): List<MatchMessage> {
-        val matches = matchService.getMatchesByGroup(
+    ): List<MatchMessage> =
+        matchService.getMatchesByGroup(
             GroupId(groupId),
             jwtParser.getUserId(jwt),
             MatchFilter(
@@ -49,20 +47,16 @@ class MatchViewRestController(
                 before = before,
                 limit = limit
             )
-        )
-        return matches.map { it.toMessage() }
-    }
+        ).map { it.toMessage() }
 
     @GetMapping("player/{playerId}")
+    @OwnerOnly(pathParam = "playerId")
     suspend fun getPlayerMatches(
         @PathVariable playerId: String,
         @RequestParam after: LocalDateTime? = null,
         @AuthenticationPrincipal jwt: Jwt
-    ): List<MatchMessage> {
-        require(playerId == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(playerId)) }
-        val matches =  matchService.getPlayerMatches(UserId(playerId), after)
-        return matches.map { it.toMessage() }
-    }
+    ): List<MatchMessage> = matchService.getPlayerMatches(UserId(playerId), after)
+        .map { it.toMessage() }
 }
 
 private fun MatchProjection.toMessage() = MatchMessage(

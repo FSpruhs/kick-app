@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.JWTParser
+import com.spruhs.kick_app.common.OwnerOnly
 import com.spruhs.kick_app.common.PlayerRole
 import com.spruhs.kick_app.common.PlayerStatusType
 import com.spruhs.kick_app.common.UserId
-import com.spruhs.kick_app.common.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.UserProjection
 import com.spruhs.kick_app.view.core.service.UserService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -22,15 +22,12 @@ class UserViewRestController(
     private val userService: UserService,
 ) {
 
-    @GetMapping("/{id}")
+    @GetMapping("/{userId}")
+    @OwnerOnly
     suspend fun getUser(
-        @PathVariable id: String,
+        @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
-    ): UserMessage {
-        require(id == jwtParser.getUserId(jwt).value) { throw UserNotAuthorizedException(UserId(id)) }
-        return userService.getUser(UserId(id)).toMessage()
-    }
-
+    ): UserMessage = userService.getUser(UserId(userId)).toMessage()
 }
 
 data class UserMessage(

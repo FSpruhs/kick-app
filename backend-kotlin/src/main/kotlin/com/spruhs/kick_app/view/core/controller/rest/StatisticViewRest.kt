@@ -24,13 +24,11 @@ class StatisticViewRestController(
         @PathVariable groupId: String,
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
-    ): PlayerStatisticMessage {
-        return statisticService.getPlayerStatistics(
-            groupId = GroupId(groupId),
-            userId = UserId(userId),
-            requestingUserId = jwtParser.getUserId(jwt)
-        ).toMessage()
-    }
+    ): PlayerStatisticMessage = statisticService.getPlayerStatistics(
+        groupId = GroupId(groupId),
+        userId = UserId(userId),
+        requestingUserId = jwtParser.getUserId(jwt)
+    ).toMessage()
 }
 
 data class PlayerStatisticMessage(

@@ -201,7 +201,7 @@ class MessageFactory {
 
     fun createPlayerAddedToCadreMessage(params: MessageParams): Message {
         require(params.userId != null)
-        require(params.groupId != null)
+        require(params.matchId != null)
         return Message(
             id = MessageId(generateId()),
             text = "You have been added to the cadre.",
@@ -209,13 +209,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(MATCH_ID to params.matchId.value)
         )
     }
 
     fun createPlayerPlacedOnWaitingBenchMessage(params: MessageParams): Message {
         require(params.userId != null)
-        require(params.groupId != null)
+        require(params.matchId != null)
         return Message(
             id = MessageId(generateId()),
             text = "You have been placed on waiting bench.",
@@ -223,7 +223,7 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(MATCH_ID to params.matchId.value)
         )
     }
 }

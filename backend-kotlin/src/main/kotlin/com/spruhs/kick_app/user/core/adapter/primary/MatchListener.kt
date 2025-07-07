@@ -91,7 +91,7 @@ private fun PlayerPlacedOnWaitingBenchEvent.toMessageParams() = MessageParams(
 
 private fun PlayerAddedToCadreEvent.toMessageParams() = MessageParams(
     matchId = MatchId(this.aggregateId),
-    userId = this.userId
+    userId = this.userId,
 )
 
 private fun MatchPlannedEvent.toMessageParams() = MessageParams(

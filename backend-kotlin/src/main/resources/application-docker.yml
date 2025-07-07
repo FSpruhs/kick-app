@@ -1,0 +1,10 @@
+spring:
+  r2dbc:
+    password: ${SPRING_R2DBC_PASSWORD:password123}
+    username: ${SPRING_R2DBC_USERNAME:admin}
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://postgres:5432/kick_app}
+
+  flyway:
+    password: ${SPRING_FLYWAY_PASSWORD:password123}
+    user: ${SPRING_FLYWAY_USER:admin}
+    url: ${SPRING_FLYWAY_URL:jdbc:postgresql://postgres:5432/kick_app}

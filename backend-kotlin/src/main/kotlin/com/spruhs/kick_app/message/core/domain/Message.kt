@@ -2,7 +2,7 @@ package com.spruhs.kick_app.message.core.domain
 
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.UserNotAuthorizedException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import java.time.LocalDateTime
 
 data class Message(

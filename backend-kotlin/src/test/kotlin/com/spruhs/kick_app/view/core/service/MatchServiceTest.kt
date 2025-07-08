@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.types.MatchId
-import com.spruhs.kick_app.common.types.MatchNotFoundException
+import com.spruhs.kick_app.common.exceptions.MatchNotFoundException
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.UserNotAuthorizedException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent

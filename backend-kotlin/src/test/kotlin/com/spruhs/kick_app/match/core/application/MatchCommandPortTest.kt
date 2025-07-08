@@ -2,7 +2,7 @@ package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.UserNotAuthorizedException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.Playground

@@ -3,7 +3,7 @@ package com.spruhs.kick_app.match.core.adapter.primary
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MatchId
-import com.spruhs.kick_app.common.types.MatchNotFoundException
+import com.spruhs.kick_app.common.exceptions.MatchNotFoundException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer

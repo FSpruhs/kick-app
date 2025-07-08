@@ -1,11 +1,11 @@
 package com.spruhs.kick_app.group.core.domain
 
 import com.spruhs.kick_app.common.types.GroupId
-import com.spruhs.kick_app.common.types.PlayerNotFoundException
+import com.spruhs.kick_app.common.exceptions.PlayerNotFoundException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.UserNotAuthorizedException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand
 import com.spruhs.kick_app.group.core.application.CreateGroupCommand
 import com.spruhs.kick_app.group.core.application.InviteUserCommand

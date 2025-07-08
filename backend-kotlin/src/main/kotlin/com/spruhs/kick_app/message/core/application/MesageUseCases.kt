@@ -3,7 +3,7 @@ package com.spruhs.kick_app.message.core.application
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.MessageId
-import com.spruhs.kick_app.common.types.MessageNotFoundException
+import com.spruhs.kick_app.common.exceptions.MessageNotFoundException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.message.core.domain.Message

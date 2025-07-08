@@ -4,7 +4,7 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.UserNotAuthorizedException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchService

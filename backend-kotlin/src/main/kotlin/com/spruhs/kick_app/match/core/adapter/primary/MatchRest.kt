@@ -3,6 +3,7 @@ package com.spruhs.kick_app.match.core.adapter.primary
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.common.types.MatchNotFoundException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
@@ -10,6 +11,7 @@ import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.core.application.*
 import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.*
@@ -90,6 +92,22 @@ class MatchRestController(
             )
         )
     }
+}
+
+@ControllerAdvice
+class MatchExceptionHandler {
+
+    @ExceptionHandler
+    fun handleMatchNotFoundException(ex: MatchNotFoundException) =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
+
+    @ExceptionHandler
+    fun handleMatchStartTimeException(ex: MatchStartTimeException) =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
+
+    @ExceptionHandler
+    fun handleMatchCanceledException(ex: MatchCanceledException) =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
 }
 
 data class EnterResultRequest(

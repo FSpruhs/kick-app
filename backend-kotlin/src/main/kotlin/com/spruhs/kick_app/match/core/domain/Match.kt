@@ -69,10 +69,10 @@ value class MinPlayer(val value: Int) {
     }
 }
 
-class MatchStartTimeException(matchId: MatchId) :
+data class MatchStartTimeException(val matchId: MatchId) :
     RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
 
-class MatchCanceledException(matchId: MatchId) :
+data class MatchCanceledException(val matchId: MatchId) :
     RuntimeException("Match with id: ${matchId.value} is cancelled")
 
 class MatchAggregate(

@@ -134,4 +134,5 @@ value class Email(val value: String) {
 
 data class UserWithEmailAlreadyExistsException(val email: Email) :
     RuntimeException("User with email already exists: $email")
-class CreateUserIdentityProviderException(message: String) : Exception(message)
+
+class CreateUserIdentityProviderException(message: String) : RuntimeException(message)

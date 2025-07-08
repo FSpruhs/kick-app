@@ -115,7 +115,7 @@ class MessageUseCasesTest {
 
             TestMessageBuilder()
                 .withType(MessageType.PLAYER_ADDED_TO_CADRE)
-                .withVariables(mapOf("groupId" to "groupId"))
+                .withVariables(mapOf("matchId" to "matchId"))
                 .buildMessage(),
 
             TestMessageBuilder()
@@ -165,7 +165,7 @@ class MessageUseCasesTest {
 
             TestMessageBuilder()
                 .withType(MessageType.PLAYER_PLACED_ON_WAITING_BENCH)
-                .withVariables(mapOf("groupId" to "groupId"))
+                .withVariables(mapOf("matchId" to "matchId"))
                 .buildMessage(),
         )
     }

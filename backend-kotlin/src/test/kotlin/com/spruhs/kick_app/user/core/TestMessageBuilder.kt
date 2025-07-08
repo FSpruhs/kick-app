@@ -2,8 +2,8 @@ package com.spruhs.kick_app.user.core
 
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.user.core.domain.Message
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.domain.Message
+import com.spruhs.kick_app.message.core.domain.MessageType
 import java.time.LocalDateTime
 
 class TestMessageBuilder {

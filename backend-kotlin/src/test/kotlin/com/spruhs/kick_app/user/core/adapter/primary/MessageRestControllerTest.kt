@@ -5,11 +5,12 @@ import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
-import com.spruhs.kick_app.user.core.application.MessageUseCases
+import com.spruhs.kick_app.message.core.adapter.primary.MessageResponse
+import com.spruhs.kick_app.message.core.application.MarkAsReadCommand
+import com.spruhs.kick_app.message.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
-import com.spruhs.kick_app.user.core.domain.Message
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.domain.Message
+import com.spruhs.kick_app.message.core.domain.MessageType
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat

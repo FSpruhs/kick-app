@@ -1,10 +1,10 @@
-package com.spruhs.kick_app.user.core.adapter.secondary
+package com.spruhs.kick_app.message.core.adapter.secondary
 
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.user.core.domain.Message
-import com.spruhs.kick_app.user.core.domain.MessagePersistencePort
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.domain.Message
+import com.spruhs.kick_app.message.core.domain.MessagePersistencePort
+import com.spruhs.kick_app.message.core.domain.MessageType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.mongodb.core.mapping.Document

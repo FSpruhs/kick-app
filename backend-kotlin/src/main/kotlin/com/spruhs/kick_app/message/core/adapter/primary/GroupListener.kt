@@ -1,14 +1,15 @@
-package com.spruhs.kick_app.user.core.adapter.primary
+package com.spruhs.kick_app.message.core.adapter.primary
 
 import com.spruhs.kick_app.common.configs.EventExecutionStrategy
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.group.api.*
-import com.spruhs.kick_app.user.core.application.*
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.application.MessageParams
+import com.spruhs.kick_app.message.core.application.MessageUseCases
+import com.spruhs.kick_app.message.core.domain.MessageType
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
-@Component("UserGroupListener")
+@Component("MessageGroupListener")
 class GroupListener(
     private val messageUseCases: MessageUseCases,
     private val eventExecutionStrategy: EventExecutionStrategy,

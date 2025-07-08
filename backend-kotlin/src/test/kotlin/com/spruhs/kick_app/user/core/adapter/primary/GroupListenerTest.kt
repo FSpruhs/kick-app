@@ -7,9 +7,10 @@ import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
 import com.spruhs.kick_app.group.api.PlayerInvitedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
-import com.spruhs.kick_app.user.core.application.MessageParams
-import com.spruhs.kick_app.user.core.application.MessageUseCases
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.adapter.primary.GroupListener
+import com.spruhs.kick_app.message.core.application.MessageParams
+import com.spruhs.kick_app.message.core.application.MessageUseCases
+import com.spruhs.kick_app.message.core.domain.MessageType
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify

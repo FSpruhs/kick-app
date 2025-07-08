@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.user.core.domain
+package com.spruhs.kick_app.message.core.domain
 
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId

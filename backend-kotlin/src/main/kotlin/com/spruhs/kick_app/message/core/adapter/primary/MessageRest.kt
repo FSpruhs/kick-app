@@ -1,13 +1,13 @@
-package com.spruhs.kick_app.user.core.adapter.primary
+package com.spruhs.kick_app.message.core.adapter.primary
 
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserNotAuthorizedException
-import com.spruhs.kick_app.user.core.application.MarkAsReadCommand
-import com.spruhs.kick_app.user.core.application.MessageUseCases
-import com.spruhs.kick_app.user.core.domain.Message
-import com.spruhs.kick_app.user.core.domain.MessageType
+import com.spruhs.kick_app.message.core.application.MarkAsReadCommand
+import com.spruhs.kick_app.message.core.application.MessageUseCases
+import com.spruhs.kick_app.message.core.domain.Message
+import com.spruhs.kick_app.message.core.domain.MessageType
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping

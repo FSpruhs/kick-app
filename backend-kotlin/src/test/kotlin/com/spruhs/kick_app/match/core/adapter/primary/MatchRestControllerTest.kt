@@ -12,7 +12,7 @@ import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
 import com.spruhs.kick_app.match.core.application.MatchCommandPort
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.user.core.application.MessageUseCases
+import com.spruhs.kick_app.message.core.application.MessageUseCases
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import io.mockk.coEvery
 import io.mockk.mockk

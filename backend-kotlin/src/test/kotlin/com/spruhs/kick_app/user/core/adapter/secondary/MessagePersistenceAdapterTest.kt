@@ -3,6 +3,8 @@ package com.spruhs.kick_app.user.core.adapter.secondary
 import com.spruhs.kick_app.AbstractMongoTest
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.message.core.adapter.secondary.MessagePersistenceAdapter
+import com.spruhs.kick_app.message.core.adapter.secondary.MessageRepository
 import com.spruhs.kick_app.user.TestMessageBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

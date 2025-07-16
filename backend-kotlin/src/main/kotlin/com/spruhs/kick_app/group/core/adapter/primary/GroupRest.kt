@@ -53,6 +53,26 @@ class GroupRest(
         }
     }
 
+    @DeleteMapping("/{groupId}/players/{userId}")
+    suspend fun removePlayer(
+        @PathVariable groupId: String,
+        @PathVariable userId: String,
+        @AuthenticationPrincipal jwt: Jwt
+    ) {
+        groupCommandPort.updatePlayerStatus(
+            UpdatePlayerStatusCommand(
+                userId = UserId(userId),
+                updatingUserId = jwtParser.getUserId(jwt),
+                groupId = GroupId(groupId),
+                newStatus = if (UserId(userId) == jwtParser.getUserId(jwt)) {
+                    PlayerStatusType.LEAVED
+                } else {
+                    PlayerStatusType.REMOVED
+                },
+            )
+        )
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun createGroup(

@@ -84,6 +84,9 @@ class MatchRepositoryImpl(
             add(Criteria.where(MatchDocument::canceled.name).`is`(false))
             filter.after?.let { add(Criteria.where(MatchDocument::start.name).gte(it)) }
             filter.before?.let { add(Criteria.where(MatchDocument::start.name).lte(it)) }
+            filter.userId?.let {
+                add(Criteria.where("${MatchDocument::result.name}.${MatchResultDocument::userId.name}").`is`(it.value))
+            }
         }
 
         val query = Query().apply {

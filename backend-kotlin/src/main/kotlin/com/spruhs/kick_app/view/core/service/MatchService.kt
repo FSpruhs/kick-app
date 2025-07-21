@@ -142,6 +142,7 @@ data class MatchProjection(
 data class MatchFilter(
     val after: LocalDateTime? = null,
     val before: LocalDateTime? = null,
+    val userId: UserId? = null,
     val limit: Int? = null
 ) {
     init {

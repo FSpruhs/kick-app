@@ -35,6 +35,7 @@ class MatchViewRestController(
         @PathVariable groupId: String,
         @RequestParam after: LocalDateTime? = null,
         @RequestParam before: LocalDateTime? = null,
+        @RequestParam userId: String? = null,
         @RequestParam limit: Int? = null,
         @AuthenticationPrincipal jwt: Jwt
     ): List<MatchMessage> =
@@ -44,6 +45,7 @@ class MatchViewRestController(
             MatchFilter(
                 after = after,
                 before = before,
+                userId = userId?.let { UserId(it) },
                 limit = limit
             )
         ).map { it.toMessage() }

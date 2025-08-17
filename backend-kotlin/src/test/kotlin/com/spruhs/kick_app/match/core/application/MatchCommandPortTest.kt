@@ -128,7 +128,7 @@ class MatchCommandPortTest {
     fun `addRegistration should add registered to match`(registrationStatus: RegistrationStatusType): Unit = runBlocking {
         val updatingUser = UserId("updatingUser")
         val updatedUser = UserId("updatingUser")
-        val builder = TestMatchBuilder()
+        val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
         val match = builder.build()
 
         val command = builder.toAddRegistrationCommand(updatingUser, updatedUser, registrationStatus)
@@ -163,7 +163,7 @@ class MatchCommandPortTest {
     fun `addRegistration should add registration to match`(registrationStatus: RegistrationStatusType): Unit = runBlocking {
         val updatingUser = UserId("updatingUser")
         val updatedUser = UserId("updatedUser")
-        val builder = TestMatchBuilder()
+        val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
         val match = builder.build()
         val command = builder.toAddRegistrationCommand(updatingUser, updatedUser, registrationStatus)
 

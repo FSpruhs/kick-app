@@ -258,7 +258,7 @@ class MatchAggregate(
     }
 
     fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
-        require(this.start.isBefore(LocalDateTime.now())) {
+        require(this.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(this.aggregateId))
         }
         val currentPlayer = findPlayerRegistration(userId)

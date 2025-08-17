@@ -119,7 +119,7 @@ class MatchAggregateTest {
     fun `addRegistration should throw exception if already started`() {
         // Given
         val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now().plusDays(1)
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
 
         assertThatThrownBy {
             // When
@@ -134,7 +134,7 @@ class MatchAggregateTest {
     fun `addRegistration should add unregistered player`(testData: UnregisteredPlayerTestData) {
         // Given
         val matchAggregate = MatchAggregate("matchId")
-        matchAggregate.start = LocalDateTime.now().minusDays(1)
+        matchAggregate.start = LocalDateTime.now().plusDays(1)
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
         testData.cadre.forEach { matchAggregate.cadre.add(it) }
         val newPlayerId = UserId("new player")
@@ -168,7 +168,7 @@ class MatchAggregateTest {
         // Given
         val matchAggregate = MatchAggregate("matchId")
         val newPlayerId = UserId("new player")
-        matchAggregate.start = LocalDateTime.now().minusDays(1)
+        matchAggregate.start = LocalDateTime.now().plusDays(1)
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
         testData.cadre.forEach { matchAggregate.cadre.add(it) }
         when (testData.oldRegistrationStatus) {
@@ -227,7 +227,7 @@ class MatchAggregateTest {
         // Given
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
-        matchAggregate.start = LocalDateTime.now().minusDays(1)
+        matchAggregate.start = LocalDateTime.now().plusDays(1)
 
         testData.cadre.forEach { matchAggregate.cadre.add(it) }
         testData.waitingPlayers.forEach { matchAggregate.waitingBench.add(it) }

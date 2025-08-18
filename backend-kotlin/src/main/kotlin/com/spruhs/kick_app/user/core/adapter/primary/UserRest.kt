@@ -7,7 +7,9 @@ import com.spruhs.kick_app.common.exceptions.UserNotFoundException
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.ControllerAdvice
@@ -18,9 +20,9 @@ import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/v1/user")
@@ -46,15 +48,16 @@ class UserRestController(
         userCommandsPort.changeNickName(ChangeUserNickNameCommand(UserId(userId), NickName(nickName)))
     }
 
-    @PutMapping("/{userId}/user-image")
+    @PostMapping("/{userId}/user-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     suspend fun changeUserImage(
-        @RequestParam file: MultipartFile,
+        @RequestPart("file") file: FilePart,
         @PathVariable userId: String,
         @AuthenticationPrincipal jwt: Jwt
     ): String {
         require(userId == jwtParser.getUserId(jwt).value) {
             throw UserNotAuthorizedException(UserId(userId))
         }
+
         return userCommandsPort.updateUserImage(UserId(userId), file).value
     }
 }

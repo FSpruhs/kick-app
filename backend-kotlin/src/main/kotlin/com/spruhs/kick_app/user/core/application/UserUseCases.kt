@@ -5,8 +5,15 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
 import com.spruhs.kick_app.view.api.UserApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.withContext
+import org.checkerframework.checker.units.qual.t
+import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import reactor.core.scheduler.Schedulers
+import java.io.SequenceInputStream
 
 @Service
 class UserCommandsPort(
@@ -36,17 +43,23 @@ class UserCommandsPort(
         }
     }
 
-    suspend fun updateUserImage(userId: UserId, image: MultipartFile): UserImageId {
-        val allowedTypes = listOf("image/jpeg", "image/png", "image/webp", "image/gif")
-        if (image.contentType !in allowedTypes) {
-            throw IllegalArgumentException("Dateityp nicht erlaubt")
-        }
-        val imageId = userImagePort.save(image.inputStream, image.contentType ?: "image/jpeg")
+    suspend fun updateUserImage(userId: UserId, image: FilePart): UserImageId {
+        val allowedTypes = setOf("image/jpeg", "image/png", "image/webp", "image/svg")
+        val type = "${image.headers().contentType?.type}/${image.headers().contentType?.subtype}"
 
-        aggregateStore.load(userId.value, UserAggregate::class.java).let {
-            it.updateUserImage(imageId)
-            aggregateStore.save(it)
+        require(type in allowedTypes) { "Dateityp nicht erlaubt" }
+
+        val stream = image.content()
+            .map { it.asInputStream() }
+            .awaitSingle()
+
+        val imageId = userImagePort.save(stream, type)
+
+        aggregateStore.load(userId.value, UserAggregate::class.java).apply {
+            updateUserImage(imageId)
+            aggregateStore.save(this)
         }
+
         return imageId
     }
 }

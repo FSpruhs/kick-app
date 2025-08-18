@@ -8,7 +8,6 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.es.Serializer
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -149,7 +148,7 @@ class MatchEventSerializer : Serializer {
     }
 
     override fun aggregateTypeName(): String {
-        return MatchAggregate::class.simpleName ?: "MatchAggregate"
+        return "MatchAggregate"
     }
 }
 

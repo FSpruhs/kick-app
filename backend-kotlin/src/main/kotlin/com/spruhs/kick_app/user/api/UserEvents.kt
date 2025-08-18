@@ -7,7 +7,6 @@ import com.spruhs.kick_app.common.es.EventSourcingUtils
 import com.spruhs.kick_app.common.es.Serializer
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserImageId
-import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.springframework.stereotype.Component
 
 data class UserCreatedEvent(
@@ -82,6 +81,6 @@ class UserEventSerializer : Serializer {
     }
 
     override fun aggregateTypeName(): String {
-        return UserAggregate::class.simpleName ?: "UserAggregate"
+        return "UserAggregate"
     }
 }

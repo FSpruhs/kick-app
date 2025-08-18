@@ -9,6 +9,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.modulith.ApplicationModule
 import org.springframework.stereotype.Service
 import java.io.InputStream
 
@@ -23,7 +24,6 @@ data class MinIOProperties(
 @Configuration
 @EnableConfigurationProperties(MinIOProperties::class)
 class MinIOConfig {
-
     @Bean
     fun minIOClient(properties: MinIOProperties): MinioClient {
         return MinioClient.builder()
@@ -31,25 +31,4 @@ class MinIOConfig {
             .credentials(properties.accessKey, properties.secretKey)
             .build()
     }
-}
-
-@Service
-class MinIOImageStorage(
-    private val minioClient: MinioClient,
-    private val properties: MinIOProperties,
-): UserImagePort {
-    override fun save(inputStream: InputStream, contentType: String): UserImageId {
-        val newId = generateId()
-
-        minioClient.putObject(
-            PutObjectArgs.builder()
-                .bucket(properties.bucket)
-                .`object`(newId)
-                .stream(inputStream, -1, 10485760)
-                .contentType(contentType)
-                .build()
-        )
-        return UserImageId(newId)
-    }
-
 }

@@ -9,7 +9,6 @@ import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import org.springframework.stereotype.Component
 
 data class GroupCreatedEvent(
@@ -227,6 +226,6 @@ class GroupEventSerializer : Serializer {
     }
 
     override fun aggregateTypeName(): String {
-        return GroupAggregate::class.simpleName ?: "GroupAggregate"
+        return "GroupAggregate"
     }
 }

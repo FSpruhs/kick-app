@@ -421,9 +421,19 @@ class MatchAggregate(
 
     private fun isCadreFull(): Boolean = cadre.size >= playerCount.maxPlayer.value
 
+    private fun matchContainsGuests(): Boolean =
+        cadre.any { it is RegisteredPlayer.GuestPlayer }
+
     private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType, guests: Int) {
         val totalPlayers = 1 + guests
-        val matchCapacity = playerCount.maxPlayer.value - cadre.size
+        var matchCapacity = playerCount.maxPlayer.value - cadre.size
+
+        if (matchCapacity == 0 && matchContainsGuests()) {
+            cadre.sortBy { it.registrationTime }
+            val lastGuest = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().last()
+            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(lastGuest.guestId), status.name, 0, lastGuest.guestOf))
+            matchCapacity += 1
+        }
 
         val cadreSlots = totalPlayers.coerceAtMost(matchCapacity).coerceAtLeast(0)
         var benchSlots = totalPlayers - cadreSlots

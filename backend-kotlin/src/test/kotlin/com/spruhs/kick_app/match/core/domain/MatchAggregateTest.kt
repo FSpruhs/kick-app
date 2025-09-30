@@ -254,6 +254,26 @@ class MatchAggregateTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("registeredGuestPlayers")
+    fun `addRegistration with guest should add registration with guests`(testData: RegisteredPlayerWithGuestTestData) {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
+        matchAggregate.start = LocalDateTime.now().plusDays(1)
+
+        testData.cadre.forEach { matchAggregate.cadre.add(it) }
+
+        // When
+        matchAggregate.addRegistration(testData.userId, testData.registrationStatusType, testData.guests)
+
+        // Then
+        assertThat(matchAggregate.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>()).hasSize(testData.expectedCadreMainPlayers)
+        assertThat(matchAggregate.cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>()).hasSize(testData.expectedCadreGuestPlayers)
+        assertThat(matchAggregate.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>()).hasSize(testData.expectedWaitingBenchMainPlayers)
+        assertThat(matchAggregate.waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>()).hasSize(testData.expectedWaitingBenchGuestPlayers)
+    }
+
     companion object {
         data class AddWaitingPlayerTestData(
             val userId: UserId,
@@ -284,6 +304,56 @@ class MatchAggregateTest {
             val canceledPlayer: Int = 0,
             val exceptedStatus: RegistrationStatus,
             val expectedEventType: Class<out BaseEvent>? = null
+        )
+
+        data class RegisteredPlayerWithGuestTestData(
+            val userId: UserId,
+            val registrationStatusType: RegistrationStatusType,
+            val guests: Int,
+            val cadre: List<RegisteredPlayer>,
+            val expectedCadreMainPlayers: Int = 0,
+            val expectedCadreGuestPlayers: Int = 0,
+            val expectedWaitingBenchMainPlayers: Int = 0,
+            val expectedWaitingBenchGuestPlayers: Int = 0
+        )
+
+        val fullCadreWithGuests = listOf(
+            RegisteredPlayer.MainPlayer(
+                userId = UserId("player 1"),
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
+            ),
+            RegisteredPlayer.MainPlayer(
+                userId = UserId("player 2"),
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
+            ),
+            RegisteredPlayer.MainPlayer(
+                userId = UserId("player 3"),
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
+            ),
+            RegisteredPlayer.GuestPlayer(
+                guestId = "guest 1",
+                guestOf = UserId("player 3"),
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
+            ),
+            RegisteredPlayer.GuestPlayer(
+                guestId = "guest 2",
+                guestOf = UserId("player 3"),
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
+            ),
+            RegisteredPlayer.MainPlayer(
+                userId = UserId("player 6"),
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Added
+            )
         )
 
         val fullCadre = listOf(
@@ -354,6 +424,53 @@ class MatchAggregateTest {
                 guests = 0,
                 registeredAt = LocalDateTime.now(),
                 registrationStatus = RegistrationStatus.Registered
+            ),
+        )
+
+        @JvmStatic
+        fun registeredGuestPlayers() = listOf(
+            RegisteredPlayerWithGuestTestData(
+                userId = UserId("new player"),
+                registrationStatusType = RegistrationStatusType.REGISTERED,
+                guests = 2,
+                cadre = nonFullCadre,
+                expectedCadreMainPlayers = 6,
+                expectedWaitingBenchGuestPlayers = 2
+            ),
+            RegisteredPlayerWithGuestTestData(
+                userId = UserId("new player"),
+                registrationStatusType = RegistrationStatusType.REGISTERED,
+                guests = 2,
+                cadre = emptyList(),
+                expectedCadreMainPlayers = 1,
+                expectedCadreGuestPlayers = 2
+            ),
+            RegisteredPlayerWithGuestTestData(
+                userId = UserId("new player"),
+                registrationStatusType = RegistrationStatusType.REGISTERED,
+                guests = 2,
+                cadre = fullCadreWithGuests,
+                expectedCadreMainPlayers = 5,
+                expectedCadreGuestPlayers = 1,
+                expectedWaitingBenchGuestPlayers = 3
+            ),
+            RegisteredPlayerWithGuestTestData(
+                userId = UserId("new player"),
+                registrationStatusType = RegistrationStatusType.REGISTERED,
+                guests = 2,
+                cadre = fullCadre,
+                expectedCadreMainPlayers = 6,
+                expectedWaitingBenchMainPlayers = 1,
+                expectedWaitingBenchGuestPlayers = 2
+            ),
+            RegisteredPlayerWithGuestTestData(
+                userId = UserId("new player"),
+                registrationStatusType = RegistrationStatusType.REGISTERED,
+                guests = 2,
+                cadre = fullCadre.subList(0, 4),
+                expectedCadreMainPlayers = 5,
+                expectedCadreGuestPlayers = 1,
+                expectedWaitingBenchGuestPlayers = 1
             ),
         )
 

@@ -72,9 +72,9 @@ private fun MatchProjection.toMessage() = MatchMessage(
     maxPlayer = this.maxPlayer,
     minPlayer = this.minPlayer,
     isCanceled = this.isCanceled,
-    cadrePlayers = this.cadrePlayers.map { it.value }.toSet(),
-    deregisteredPlayers = this.deregisteredPlayers.map { it.value }.toSet(),
-    waitingBenchPlayers = this.waitingBenchPlayers.map { it.value }.toSet(),
+    cadrePlayers = this.cadrePlayers.map { RegisteredPlayerInfoMessage(it.userId.value, it.guestOf?.value) }.toSet(),
+    deregisteredPlayers = this.deregisteredPlayers.map { RegisteredPlayerInfoMessage(it.userId.value, it.guestOf?.value) }.toSet(),
+    waitingBenchPlayers = this.waitingBenchPlayers.map { RegisteredPlayerInfoMessage(it.userId.value, it.guestOf?.value) }.toSet(),
     result = this.result.map { PlayerResultMessage(
         userId = it.userId.value,
         result = it.playerResult.name,
@@ -90,11 +90,13 @@ data class MatchMessage(
     val maxPlayer: Int,
     val minPlayer: Int,
     val isCanceled: Boolean,
-    val cadrePlayers: Set<String>,
-    val deregisteredPlayers: Set<String>,
-    val waitingBenchPlayers: Set<String>,
+    val cadrePlayers: Set<RegisteredPlayerInfoMessage>,
+    val deregisteredPlayers: Set<RegisteredPlayerInfoMessage>,
+    val waitingBenchPlayers: Set<RegisteredPlayerInfoMessage>,
     val result: List<PlayerResultMessage>,
 )
+
+data class RegisteredPlayerInfoMessage(val userId: String, val guestOf: String?)
 
 data class PlayerResultMessage(
     val userId: String,

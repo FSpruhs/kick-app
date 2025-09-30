@@ -164,14 +164,14 @@ class MatchServiceTest {
         val match = TestMatchBuilder().toProjection()
         val event = PlayerAddedToCadreEvent(
             aggregateId = match.id.value,
-            userId = match.deregisteredPlayers.first(),
+            userId = match.deregisteredPlayers.first().userId,
             status = "ADDED",
         )
 
         coEvery { repository.findById(match.id) } returns match
         coEvery { repository.save(match.copy(
-            cadrePlayers = match.cadrePlayers + event.userId,
-            deregisteredPlayers = match.deregisteredPlayers - event.userId,
+            cadrePlayers = match.cadrePlayers + RegisteredPlayerInfo(event.userId),
+            deregisteredPlayers = match.deregisteredPlayers - RegisteredPlayerInfo(event.userId),
         )) } returns Unit
 
         // When
@@ -184,14 +184,14 @@ class MatchServiceTest {
         val match = TestMatchBuilder().toProjection()
         val event = PlayerDeregisteredEvent(
             aggregateId = match.id.value,
-            userId = match.cadrePlayers.first(),
+            userId = match.cadrePlayers.first().userId,
             status = "ADDED"
         )
 
         coEvery { repository.findById(match.id) } returns match
         coEvery { repository.save(match.copy(
-            cadrePlayers = match.cadrePlayers - event.userId,
-            deregisteredPlayers = match.deregisteredPlayers + event.userId
+            cadrePlayers = match.cadrePlayers - RegisteredPlayerInfo(event.userId),
+            deregisteredPlayers = match.deregisteredPlayers + RegisteredPlayerInfo(event.userId)
         )) } returns Unit
 
         // When
@@ -204,14 +204,14 @@ class MatchServiceTest {
         val match = TestMatchBuilder().toProjection()
         val event = PlayerPlacedOnWaitingBenchEvent(
             aggregateId = match.id.value,
-            userId = match.cadrePlayers.first(),
+            userId = match.cadrePlayers.first().userId,
             status = "ADDED"
         )
 
         coEvery { repository.findById(match.id) } returns match
         coEvery { repository.save(match.copy(
-            cadrePlayers = match.cadrePlayers - event.userId,
-            waitingBenchPlayers = match.waitingBenchPlayers + event.userId
+            cadrePlayers = match.cadrePlayers - RegisteredPlayerInfo(event.userId),
+            waitingBenchPlayers = match.waitingBenchPlayers + RegisteredPlayerInfo(event.userId)
         )) } returns Unit
 
         // When

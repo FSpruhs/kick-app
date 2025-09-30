@@ -23,6 +23,7 @@ import com.spruhs.kick_app.match.core.domain.RegisteredPlayer
 import com.spruhs.kick_app.match.core.domain.RegistrationStatus
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.view.core.service.MatchProjection
+import com.spruhs.kick_app.view.core.service.RegisteredPlayerInfo
 import java.time.LocalDateTime
 
 class TestMatchBuilder {
@@ -35,16 +36,16 @@ class TestMatchBuilder {
     val maxPlayers = 8
     val minPlayers = 4
     val cadre = listOf(
-        RegisteredPlayer(UserId("player 1"), LocalDateTime.now(), RegistrationStatus.Registered),
-        RegisteredPlayer(UserId("player 2"), LocalDateTime.now(), RegistrationStatus.Registered),
+        RegisteredPlayer.MainPlayer(UserId("player 1"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
+        RegisteredPlayer.MainPlayer(UserId("player 2"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
         )
     val waitingBench = listOf(
-        RegisteredPlayer(UserId("player 3"), LocalDateTime.now(), RegistrationStatus.Registered),
-        RegisteredPlayer(UserId("player 4"), LocalDateTime.now(), RegistrationStatus.Registered),
+        RegisteredPlayer.MainPlayer(UserId("player 3"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
+        RegisteredPlayer.MainPlayer(UserId("player 4"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
     )
     val deregistered = listOf(
-        RegisteredPlayer(UserId("player 5"), LocalDateTime.now(), RegistrationStatus.Deregistered),
-        RegisteredPlayer(UserId("player 6"), LocalDateTime.now(), RegistrationStatus.Deregistered),
+        RegisteredPlayer.MainPlayer(UserId("player 5"), 0,LocalDateTime.now(), RegistrationStatus.Deregistered),
+        RegisteredPlayer.MainPlayer(UserId("player 6"), 0,LocalDateTime.now(), RegistrationStatus.Deregistered),
     )
     val participatingPlayers = listOf(
         ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN, MatchTeam.A),
@@ -150,9 +151,9 @@ class TestMatchBuilder {
         isCanceled = isCanceled,
         maxPlayer = maxPlayers,
         minPlayer = minPlayers,
-        cadrePlayers = cadre.map { it.userId }.toSet(),
-        waitingBenchPlayers = waitingBench.map { it.userId }.toSet(),
-        deregisteredPlayers = deregistered.map { it.userId }.toSet(),
+        cadrePlayers = cadre.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
+        waitingBenchPlayers = waitingBench.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
+        deregisteredPlayers = deregistered.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
         result = participatingPlayers
     )
 }

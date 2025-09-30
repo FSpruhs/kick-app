@@ -24,18 +24,24 @@ data class PlayerAddedToCadreEvent(
     override val aggregateId: String,
     val userId: UserId,
     val status: String,
+    val guests: Int = 0,
+    val guestOf: UserId? = null,
 ) : BaseEvent(aggregateId)
 
 data class PlayerDeregisteredEvent(
     override val aggregateId: String,
     val userId: UserId,
     val status: String,
+    val guests: Int = 0,
+    val guestOf: UserId? = null,
 ) : BaseEvent(aggregateId)
 
 data class PlayerPlacedOnWaitingBenchEvent(
     override val aggregateId: String,
     val userId: UserId,
     val status: String,
+    val guests: Int = 0,
+    val guestOf: UserId? = null,
 ) : BaseEvent(aggregateId)
 
 data class MatchCanceledEvent(

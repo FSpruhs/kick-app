@@ -6,6 +6,7 @@ import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -18,11 +19,25 @@ import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
-data class RegisteredPlayer(
-    val userId: UserId,
+sealed class RegisteredPlayer(
     val registrationTime: LocalDateTime,
     val status: RegistrationStatus
-)
+) {
+    data class MainPlayer(
+        val userId: UserId,
+        val guests: Int,
+        val registeredAt: LocalDateTime,
+        val registrationStatus: RegistrationStatus
+    ) : RegisteredPlayer(registeredAt, registrationStatus)
+
+    data class GuestPlayer(
+        val guestId: String,
+        val guestOf: UserId,
+        val registeredAt: LocalDateTime,
+        val registrationStatus: RegistrationStatus
+    ) : RegisteredPlayer(registeredAt, registrationStatus)
+}
+
 
 data class PlayerCount(
     val minPlayer: MinPlayer,
@@ -94,24 +109,30 @@ class MatchAggregate(
             is PlayerAddedToCadreEvent -> handlePlayerStatusChange(
                 event.userId,
                 RegistrationStatusType.valueOf(event.status),
-                cadre
+                cadre,
+                event.guests,
+                event.guestOf
             )
 
             is PlayerDeregisteredEvent -> handlePlayerStatusChange(
                 event.userId,
                 RegistrationStatusType.valueOf(event.status),
-                deregistered
+                deregistered,
+                event.guests,
+                event.guestOf
             )
 
             is PlayerPlacedOnWaitingBenchEvent -> handlePlayerStatusChange(
                 event.userId,
                 RegistrationStatusType.valueOf(event.status),
-                waitingBench
+                waitingBench,
+                event.guests,
+                event.guestOf
             )
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
-            is MatchResultEnteredEvent -> {println()}
+            is MatchResultEnteredEvent -> {}
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -123,23 +144,43 @@ class MatchAggregate(
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
     }
 
-    private fun findPlayerRegistration(userId: UserId): RegisteredPlayer? =
-        (cadre + waitingBench + deregistered).find { it.userId == userId }
+    private fun findPlayerRegistration(userId: UserId): RegisteredPlayer.MainPlayer? =
+        (cadre + waitingBench + deregistered)
+            .filterIsInstance<RegisteredPlayer.MainPlayer>()
+            .find { it.userId == userId }
 
+    private fun findGuestRegistration(userId: UserId): RegisteredPlayer.GuestPlayer? =
+        (cadre + waitingBench + deregistered)
+            .filterIsInstance<RegisteredPlayer.GuestPlayer>()
+            .find { it.guestId == userId.value }
 
     private fun handlePlayerStatusChange(
         userId: UserId,
         status: RegistrationStatusType,
-        targetList: MutableList<RegisteredPlayer>
+        targetList: MutableList<RegisteredPlayer>,
+        guests: Int,
+        guestOf: UserId? = null
     ) {
-        val playerRegistration = findPlayerRegistration(userId)
-        if (playerRegistration == null) {
-            targetList.add(RegisteredPlayer(userId, LocalDateTime.now(), status.toRegistrationStatus()))
+        if (guestOf == null) {
+            val playerRegistration = findPlayerRegistration(userId)
+            if (playerRegistration == null) {
+                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus()))
+            } else {
+                cadre.remove(playerRegistration)
+                waitingBench.remove(playerRegistration)
+                deregistered.remove(playerRegistration)
+                targetList.add(playerRegistration.copy(registrationStatus = status.toRegistrationStatus()))
+            }
         } else {
-            cadre.remove(playerRegistration)
-            waitingBench.remove(playerRegistration)
-            deregistered.remove(playerRegistration)
-            targetList.add(playerRegistration.copy(status = status.toRegistrationStatus()))
+            val playerRegistration = findGuestRegistration(userId)
+            if (playerRegistration == null) {
+                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(), status.toRegistrationStatus()))
+            } else {
+                cadre.remove(playerRegistration)
+                waitingBench.remove(playerRegistration)
+                deregistered.remove(playerRegistration)
+                targetList.add(playerRegistration.copy(registrationStatus = status.toRegistrationStatus()))
+            }
         }
     }
 
@@ -226,10 +267,11 @@ class MatchAggregate(
                 groupId = groupId,
                 start = start,
                 players = participatingPlayers
-            ))
+            )
+        )
     }
 
-    private fun handleFirstRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
+    private fun handleFirstRegistration(userId: UserId, registrationStatusType: RegistrationStatusType, guests: Int) {
         when (registrationStatusType) {
             RegistrationStatusType.DEREGISTERED -> handlePlayerDeregistration(
                 userId,
@@ -237,45 +279,103 @@ class MatchAggregate(
             )
 
             RegistrationStatusType.REGISTERED ->
-                handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
+                handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED, guests)
 
             RegistrationStatusType.CANCELLED -> return
             RegistrationStatusType.ADDED -> return
         }
     }
 
-    private fun handleNewStatus(userId: UserId, newStatus: RegistrationStatus) {
+    private fun handleNewStatus(currentPlayer: RegisteredPlayer.MainPlayer, newStatus: RegistrationStatus, guests: Int) {
         when (newStatus) {
-            is RegistrationStatus.Registered -> handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED)
-            is RegistrationStatus.Deregistered -> handlePlayerDeregistration(
-                userId,
-                RegistrationStatusType.DEREGISTERED
+            is RegistrationStatus.Registered -> handlePlayerRegistration(
+                currentPlayer.userId,
+                RegistrationStatusType.REGISTERED,
+                guests
             )
 
-            is RegistrationStatus.Cancelled -> handlePlayerCancelled(userId, RegistrationStatusType.CANCELLED)
-            is RegistrationStatus.Added -> handlePlayerAdded(userId, RegistrationStatusType.ADDED)
+            is RegistrationStatus.Deregistered -> handlePlayerDeregistration(
+                currentPlayer.userId,
+                RegistrationStatusType.DEREGISTERED,
+            )
+
+            is RegistrationStatus.Cancelled -> handlePlayerCancelled(currentPlayer.userId, RegistrationStatusType.CANCELLED)
+            is RegistrationStatus.Added -> handlePlayerAdded(currentPlayer.userId, RegistrationStatusType.ADDED, guests)
         }
     }
 
-    fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType) {
+    fun addRegistration(userId: UserId, registrationStatusType: RegistrationStatusType, guests: Int = 0) {
         require(this.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(this.aggregateId))
         }
+        require(guests >= 0 && guests <= playerCount.maxPlayer.value / 2) {
+            "Guest must be between 0 and ${playerCount.maxPlayer.value / 2}"
+        }
         val currentPlayer = findPlayerRegistration(userId)
         if (currentPlayer == null) {
-            handleFirstRegistration(userId, registrationStatusType)
+            handleFirstRegistration(userId, registrationStatusType, guests)
             return
         }
 
         val newStatus = currentPlayer.status.updateStatus(registrationStatusType)
         if (newStatus == currentPlayer.status) {
+            if (currentPlayer.guests != guests) {
+                updateJustGuests(userId, guests, newStatus)
+            }
             return
         }
 
-        handleNewStatus(userId, newStatus)
+        handleNewStatus(currentPlayer, newStatus, guests)
 
         if (shouldFillCadreFromWaitingBench(newStatus)) {
             fillCadreFromWaitingBench()
+        }
+    }
+
+    private fun updateJustGuests(userId: UserId, guests: Int, status: RegistrationStatus) {
+        if (status != RegistrationStatus.Registered) return
+
+        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+        val waitingBenchGuests =
+            waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+
+        val totalGuests = cadreGuests.size + waitingBenchGuests.size
+        if (guests < totalGuests) {
+            val guestsToRemove = totalGuests - guests
+            repeat(guestsToRemove) {
+                if (waitingBenchGuests.isNotEmpty()) {
+                    val guestToRemove = waitingBenchGuests.first()
+                    apply { PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId) }
+                } else if (cadreGuests.isNotEmpty()) {
+                    val guestToRemove = cadreGuests.first()
+                    apply { PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId) }
+                }
+            }
+        } else if (guests > totalGuests) {
+            val guestsToAdd = guests - totalGuests
+            repeat(guestsToAdd) {
+                if (!isCadreFull()) {
+                    apply(
+                        PlayerAddedToCadreEvent(
+                            aggregateId,
+                            UserId(generateId()),
+                            RegistrationStatusType.REGISTERED.name,
+                            0,
+                            userId
+                        )
+                    )
+                } else {
+                    apply(
+                        PlayerPlacedOnWaitingBenchEvent(
+                            aggregateId,
+                            UserId(generateId()),
+                            RegistrationStatusType.REGISTERED.name,
+                            0,
+                            userId
+                        )
+                    )
+                }
+            }
         }
     }
 
@@ -288,12 +388,29 @@ class MatchAggregate(
         waitingBench.sortBy { it.registrationTime }
         val openCadre = playerCount.maxPlayer.value - cadre.size
         for (registration in waitingBench.filter { it.status.getType() == RegistrationStatusType.REGISTERED }
+            .filterIsInstance<RegisteredPlayer.MainPlayer>()
             .take(openCadre)) {
             apply(
                 PlayerAddedToCadreEvent(
                     aggregateId,
                     registration.userId,
-                    registration.status.getType().name
+                    registration.status.getType().name,
+                    registration.guests
+                )
+            )
+        }
+
+        val newOpenCadre = playerCount.maxPlayer.value - cadre.size
+        for (registration in waitingBench.filter { it.status.getType() == RegistrationStatusType.REGISTERED }
+            .filterIsInstance<RegisteredPlayer.GuestPlayer>()
+            .take(newOpenCadre)) {
+            apply(
+                PlayerAddedToCadreEvent(
+                    aggregateId,
+                    UserId(registration.guestId),
+                    registration.status.getType().name,
+                    0,
+                    registration.guestOf
                 )
             )
         }
@@ -304,24 +421,58 @@ class MatchAggregate(
 
     private fun isCadreFull(): Boolean = cadre.size >= playerCount.maxPlayer.value
 
-    private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType) {
-        if (isCadreFull()) {
-            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name))
+    private fun handlePlayerRegistration(userId: UserId, status: RegistrationStatusType, guests: Int) {
+        val totalPlayers = 1 + guests
+        val matchCapacity = playerCount.maxPlayer.value - cadre.size
+
+        val cadreSlots = totalPlayers.coerceAtMost(matchCapacity).coerceAtLeast(0)
+        var benchSlots = totalPlayers - cadreSlots
+
+        if (cadreSlots > 0) {
+            apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name, guests))
         } else {
-            apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name))
+            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name, guests))
+            benchSlots -= 1
+        }
+
+        repeat(cadreSlots - 1) {
+            apply(PlayerAddedToCadreEvent(aggregateId, UserId(generateId()), status.name, 0, userId))
+        }
+        repeat(benchSlots) {
+            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(generateId()), status.name, 0,userId))
         }
     }
 
     private fun handlePlayerDeregistration(userId: UserId, status: RegistrationStatusType) {
         apply(PlayerDeregisteredEvent(aggregateId, userId, status.name))
+
+        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+
+        (cadreGuests + waitingBenchGuests).forEach { guest ->
+            apply(PlayerDeregisteredEvent(aggregateId, UserId(guest.guestId), status.name, 0,userId))
+        }
     }
 
-    private fun handlePlayerAdded(userId: UserId, status: RegistrationStatusType) {
-        apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name))
+    private fun handlePlayerAdded(userId: UserId, status: RegistrationStatusType, guests: Int) {
+        apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name, guests))
+
+        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+
+        (cadreGuests + waitingBenchGuests).forEach { guest ->
+            apply(PlayerAddedToCadreEvent(aggregateId, UserId(guest.guestId), status.name, 0,userId))
+        }
     }
 
     private fun handlePlayerCancelled(userId: UserId, status: RegistrationStatusType) {
         apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name))
+        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
+
+        (cadreGuests + waitingBenchGuests).forEach { guest ->
+            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(guest.guestId), status.name, 0,userId))
+        }
     }
 
     companion object {

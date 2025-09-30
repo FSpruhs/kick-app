@@ -149,13 +149,13 @@ class MatchAggregateTest {
             assertThat(matchAggregate.changes.first()).isInstanceOf(testData.expectedEventType)
         }
         if (testData.addedPlayers == 1) {
-            matchAggregate.cadre.find { it.userId == newPlayerId }.let { player ->
+            matchAggregate.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                 assertThat(player).isNotNull()
                 assertThat(player?.status).isEqualTo(testData.exceptedStatus)
             }
         }
         if (testData.waitingPlayers == 1) {
-            matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
+            matchAggregate.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                 assertThat(player).isNotNull()
                 assertThat(player?.status).isEqualTo(testData.exceptedStatus)
             }
@@ -172,12 +172,11 @@ class MatchAggregateTest {
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
         testData.cadre.forEach { matchAggregate.cadre.add(it) }
         when (testData.oldRegistrationStatus) {
-            RegistrationStatus.Added -> matchAggregate.cadre.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Cancelled -> matchAggregate.waitingBench.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Deregistered -> matchAggregate.deregistered.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Registered -> matchAggregate.cadre.add(RegisteredPlayer(newPlayerId, LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Added -> matchAggregate.cadre.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Cancelled -> matchAggregate.waitingBench.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Deregistered -> matchAggregate.deregistered.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Registered -> matchAggregate.cadre.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
         }
-
 
         // When
         matchAggregate.addRegistration(newPlayerId, testData.newRegistrationStatusType)
@@ -186,28 +185,28 @@ class MatchAggregateTest {
         assertThat(matchAggregate.cadre.size).isEqualTo(testData.cadre.size + 1 - testData.deregisteredPlayers - testData.placedOnWaitingBench - testData.canceledPlayer)
         when {
             testData.deregisteredPlayers == 1 -> {
-                matchAggregate.deregistered.find { it.userId == newPlayerId }.let { player ->
+                matchAggregate.deregistered.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                     assertThat(player).isNotNull()
                     assertThat(player?.status).isEqualTo(testData.exceptedStatus)
                 }
             }
 
             testData.placedOnWaitingBench == 1 -> {
-                matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
+                matchAggregate.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                     assertThat(player).isNotNull()
                     assertThat(player?.status).isEqualTo(testData.exceptedStatus)
                 }
             }
 
             testData.canceledPlayer == 1 -> {
-                matchAggregate.waitingBench.find { it.userId == newPlayerId }.let { player ->
+                matchAggregate.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                     assertThat(player).isNotNull()
                     assertThat(player?.status).isEqualTo(testData.exceptedStatus)
                 }
             }
 
             else -> {
-                matchAggregate.cadre.find { it.userId == newPlayerId }.let { player ->
+                matchAggregate.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
                     assertThat(player).isNotNull()
                     assertThat(player?.status).isEqualTo(testData.exceptedStatus)
                 }
@@ -240,7 +239,7 @@ class MatchAggregateTest {
         assertThat(matchAggregate.cadre.size).isEqualTo(testData.expectedCadrePlayers)
 
         for (player in testData.expectedUserIds) {
-            matchAggregate.cadre.find { it.userId == player }.let { player ->
+            matchAggregate.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == player }.let { player ->
                 assertThat(player).isNotNull()
             }
         }
@@ -288,62 +287,73 @@ class MatchAggregateTest {
         )
 
         val fullCadre = listOf(
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 1"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 2"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 3"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 4"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 5"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 6"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Added
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Added
             )
         )
         val nonFullCadre = listOf(
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 1"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 2"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 3"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 4"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
-            RegisteredPlayer(
+            RegisteredPlayer.MainPlayer(
                 userId = UserId("player 5"),
-                registrationTime = LocalDateTime.now(),
-                status = RegistrationStatus.Registered
+                guests = 0,
+                registeredAt = LocalDateTime.now(),
+                registrationStatus = RegistrationStatus.Registered
             ),
         )
 
@@ -477,18 +487,21 @@ class MatchAggregateTest {
                 userId = UserId("player 1"),
                 registrationStatusType = RegistrationStatusType.DEREGISTERED,
                 cadre = fullCadre,
-                waitingPlayers = listOf(RegisteredPlayer(
+                waitingPlayers = listOf(RegisteredPlayer.MainPlayer(
                     userId = UserId("cancelledPlayer"),
-                    registrationTime = LocalDateTime.now().minusHours(2),
-                    status = RegistrationStatus.Cancelled
-                ),RegisteredPlayer(
+                    guests = 0,
+                    registeredAt = LocalDateTime.now().minusHours(2),
+                    registrationStatus = RegistrationStatus.Cancelled
+                ),RegisteredPlayer.MainPlayer(
                     userId = UserId("notSoLongWaitingPlayer"),
-                    registrationTime = LocalDateTime.now(),
-                    status = RegistrationStatus.Registered
-                ),RegisteredPlayer(
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered
+                ),RegisteredPlayer.MainPlayer(
                     userId = UserId("waitingPlayer"),
-                    registrationTime = LocalDateTime.now().minusHours(1),
-                    status = RegistrationStatus.Registered
+                    guests = 0,
+                    registeredAt = LocalDateTime.now().minusHours(1),
+                    registrationStatus = RegistrationStatus.Registered
                 )),
                 expectedWaitingPlayers = 2,
                 expectedCadrePlayers = fullCadre.size,
@@ -499,18 +512,21 @@ class MatchAggregateTest {
                 userId = UserId("player 1"),
                 registrationStatusType = RegistrationStatusType.CANCELLED,
                 cadre = fullCadre,
-                waitingPlayers = listOf(RegisteredPlayer(
+                waitingPlayers = listOf(RegisteredPlayer.MainPlayer(
                     userId = UserId("cancelledPlayer"),
-                    registrationTime = LocalDateTime.now().minusHours(2),
-                    status = RegistrationStatus.Cancelled
-                ),RegisteredPlayer(
+                    guests = 0,
+                    registeredAt = LocalDateTime.now().minusHours(2),
+                    registrationStatus = RegistrationStatus.Cancelled
+                ),RegisteredPlayer.MainPlayer(
                     userId = UserId("notSoLongWaitingPlayer"),
-                    registrationTime = LocalDateTime.now(),
-                    status = RegistrationStatus.Registered
-                ),RegisteredPlayer(
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered
+                ),RegisteredPlayer.MainPlayer(
                     userId = UserId("waitingPlayer"),
-                    registrationTime = LocalDateTime.now().minusHours(1),
-                    status = RegistrationStatus.Registered
+                    guests = 0,
+                    registeredAt = LocalDateTime.now().minusHours(1),
+                    registrationStatus = RegistrationStatus.Registered
                 )),
                 expectedWaitingPlayers = 3,
                 expectedCadrePlayers = fullCadre.size,

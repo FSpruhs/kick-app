@@ -49,27 +49,39 @@ class MatchService(
 
     private suspend fun handlePlayerAddedToCadreEvent(event: PlayerAddedToCadreEvent) {
         findMatch(MatchId(event.aggregateId)).also {
-            it.cadrePlayers += event.userId
-            it.deregisteredPlayers -= event.userId
-            it.waitingBenchPlayers -= event.userId
+            it.cadrePlayers += RegisteredPlayerInfo(event.userId, event.guestOf)
+            it.deregisteredPlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.deregisteredPlayers -= player
+            }
+            it.waitingBenchPlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.waitingBenchPlayers -= player
+            }
             repository.save(it)
         }
     }
 
     private suspend fun handlePlayerDeregisteredEvent(event: PlayerDeregisteredEvent) {
         findMatch(MatchId(event.aggregateId)).also {
-            it.cadrePlayers -= event.userId
-            it.deregisteredPlayers += event.userId
-            it.waitingBenchPlayers -= event.userId
+            it.cadrePlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.cadrePlayers -= player
+            }
+            it.deregisteredPlayers += RegisteredPlayerInfo(event.userId, event.guestOf)
+            it.waitingBenchPlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.waitingBenchPlayers -= player
+            }
             repository.save(it)
         }
     }
 
     private suspend fun handlePlayerPlacedOnWaitingBenchEvent(event: PlayerPlacedOnWaitingBenchEvent) {
         findMatch(MatchId(event.aggregateId)).also {
-            it.cadrePlayers -= event.userId
-            it.deregisteredPlayers -= event.userId
-            it.waitingBenchPlayers += event.userId
+            it.cadrePlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.cadrePlayers -= player
+            }
+            it.deregisteredPlayers.find { player -> player.userId == event.userId }?.also { player ->
+                it.deregisteredPlayers -= player
+            }
+            it.waitingBenchPlayers += RegisteredPlayerInfo(event.userId, event.guestOf)
             repository.save(it)
         }
     }
@@ -133,10 +145,15 @@ data class MatchProjection(
     var isCanceled: Boolean,
     val maxPlayer: Int,
     val minPlayer: Int,
-    var cadrePlayers: Set<UserId>,
-    var waitingBenchPlayers: Set<UserId>,
-    var deregisteredPlayers: Set<UserId>,
+    var cadrePlayers: Set<RegisteredPlayerInfo>,
+    var waitingBenchPlayers: Set<RegisteredPlayerInfo>,
+    var deregisteredPlayers: Set<RegisteredPlayerInfo>,
     var result: List<ParticipatingPlayer>,
+)
+
+data class RegisteredPlayerInfo(
+    val userId: UserId,
+    val guestOf: UserId? = null,
 )
 
 data class MatchFilter(

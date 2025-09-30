@@ -9,6 +9,7 @@ import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.core.service.MatchFilter
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.MatchProjectionRepository
+import com.spruhs.kick_app.view.core.service.RegisteredPlayerInfo
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.annotation.Id
@@ -33,10 +34,15 @@ data class MatchDocument(
     val maxPlayer: Int,
     val minPlayer: Int,
     var canceled: Boolean,
-    var cadrePlayers: Set<String>,
-    var deregisteredPlayers: Set<String>,
-    var waitingBenchPlayers: Set<String>,
+    var cadrePlayers: Set<RegisteredPlayerInfoDocument>,
+    var deregisteredPlayers: Set<RegisteredPlayerInfoDocument>,
+    var waitingBenchPlayers: Set<RegisteredPlayerInfoDocument>,
     var result: List<MatchResultDocument>
+)
+
+data class RegisteredPlayerInfoDocument(
+    val userId: String,
+    val guestOf: String?
 )
 
 data class MatchResultDocument(
@@ -116,9 +122,9 @@ private fun MatchDocument.toProjection() = MatchProjection(
             team = MatchTeam.valueOf(it.team)
         )
     },
-    cadrePlayers = cadrePlayers.map { UserId(it) }.toSet(),
-    waitingBenchPlayers = waitingBenchPlayers.map { UserId(it) }.toSet(),
-    deregisteredPlayers = deregisteredPlayers.map { UserId(it) }.toSet(),
+    cadrePlayers = cadrePlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
+    waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
+    deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
 )
 
 private fun MatchProjection.toDocument() = MatchDocument(
@@ -129,9 +135,9 @@ private fun MatchProjection.toDocument() = MatchDocument(
     maxPlayer = maxPlayer,
     minPlayer = minPlayer,
     canceled = isCanceled,
-    cadrePlayers = cadrePlayers.map { it.value }.toSet(),
-    deregisteredPlayers = deregisteredPlayers.map { it.value }.toSet(),
-    waitingBenchPlayers = waitingBenchPlayers.map { it.value }.toSet(),
+    cadrePlayers = cadrePlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
+    deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
+    waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
     result = result.map {
         MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name)
     }

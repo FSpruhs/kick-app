@@ -25,6 +25,7 @@ import (
 	"github.com/FSpruhs/kick-app/backend/internal/monolith"
 	"github.com/FSpruhs/kick-app/backend/internal/rpc"
 	"github.com/FSpruhs/kick-app/backend/internal/waiter"
+	"github.com/FSpruhs/kick-app/backend/match"
 	"github.com/FSpruhs/kick-app/backend/player"
 	"github.com/FSpruhs/kick-app/backend/user"
 )
@@ -155,6 +156,7 @@ func run() error {
 		&player.Module{},
 		&user.Module{},
 		&group.Module{},
+		&match.Module{},
 	}
 
 	application := app{

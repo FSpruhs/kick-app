@@ -20,14 +20,14 @@ This file covers everything needed to work efficiently in the `backend-kotlin/` 
 
 Packages under `com.spruhs.kick_app`:
 
-| Module | Purpose |
-|---|---|
-| `group` | Group management (create, invite, player roles/status) |
-| `match` | Match scheduling and results |
-| `user` | User registration, authentication, profile images (MinIO) |
-| `message` | Internal messaging/notifications |
-| `view` | Read-side projections (MongoDB) consumed by REST views |
-| `common` | Shared infrastructure: event sourcing base classes, exceptions, security configs, value objects |
+| Module    | Purpose                                                                                         |
+|-----------|-------------------------------------------------------------------------------------------------|
+| `group`   | Group management (create, invite, player roles/status)                                          |
+| `match`   | Match scheduling and results                                                                    |
+| `user`    | User registration, authentication, profile images (MinIO)                                       |
+| `message` | Internal messaging/notifications                                                                |
+| `view`    | Read-side projections (MongoDB) consumed by REST views                                          |
+| `common`  | Shared infrastructure: event sourcing base classes, exceptions, security configs, value objects |
 
 **Inter-module communication**: Spring application events (Spring Modulith event bus). Each module exposes its public API events in an `api` sub-package (e.g. `group/api/GroupEvents.kt`). Cross-module dependencies must only go through these `api` packages.
 

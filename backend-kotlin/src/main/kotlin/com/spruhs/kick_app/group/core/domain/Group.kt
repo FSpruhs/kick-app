@@ -1,5 +1,7 @@
 package com.spruhs.kick_app.group.core.domain
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.spruhs.kick_app.common.es.AggregateRoot
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
@@ -170,6 +172,13 @@ data class Player(
     val role: PlayerRole
 )
 
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+    JsonSubTypes.Type(value = Active::class, name = "ACTIVE"),
+    JsonSubTypes.Type(value = Inactive::class, name = "INACTIVE"),
+    JsonSubTypes.Type(value = Leaved::class, name = "LEAVED"),
+    JsonSubTypes.Type(value = Removed::class, name = "REMOVED")
+)
 interface PlayerStatus {
     fun activate(player: Player, requestingPlayer: Player): PlayerStatus
     fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus

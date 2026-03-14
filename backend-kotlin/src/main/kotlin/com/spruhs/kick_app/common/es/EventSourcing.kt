@@ -325,9 +325,8 @@ object EventSourcingUtils {
         try {
             return mapper.readValue(snapshot.data, valueType)
         } catch (e: Exception) {
-            throw SerializationException(valueType.name, snapshot.data)
+            throw SerializationException(valueType.name, snapshot.data, e)
         }
-
     }
 }
 
@@ -345,7 +344,7 @@ abstract class BaseEvent(open val aggregateId: String, var metadata: ByteArray =
 data class AggregateNotFoundException(val aggregateId: String, val aggregateType: String) :
     Exception("Aggregate with id $aggregateId and type $aggregateType not found")
 
-data class SerializationException(val valueType: String, val data: ByteArray) :
-    Exception("Data: ${String(data)}, valueType: $valueType")
+data class SerializationException(val valueType: String, val data: ByteArray, override val cause: Throwable? = null) :
+    Exception("Data: ${String(data)}, valueType: $valueType", cause)
 
 data class UnknownEventTypeException(val event: Any) : Exception("Unknown event type: $event")

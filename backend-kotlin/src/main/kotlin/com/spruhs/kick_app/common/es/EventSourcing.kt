@@ -166,10 +166,10 @@ class AggregateStoreImpl(
 
             saveEvents(events)
 
-            if (aggregate.version % SNAPSHOT_FREQUENCY == 0) saveSnapshot(aggregate)
-
             eventPublisher.publish(aggregate.changes)
             aggregate.clearChanges()
+
+            if (aggregate.version % SNAPSHOT_FREQUENCY == 0) saveSnapshot(aggregate)
         }
     }
 

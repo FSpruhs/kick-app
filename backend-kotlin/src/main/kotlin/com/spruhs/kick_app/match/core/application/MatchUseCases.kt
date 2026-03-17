@@ -11,7 +11,7 @@ import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.view.api.GroupApi
+import com.spruhs.kick_app.group.api.GroupApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

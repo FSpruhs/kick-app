@@ -1,4 +1,4 @@
-package com.spruhs.kick_app.message.core
+package com.spruhs.kick_app.match
 
 import org.springframework.modulith.ApplicationModule
 import org.springframework.modulith.PackageInfo
@@ -11,7 +11,6 @@ import org.springframework.modulith.PackageInfo
         "common :: common-types",
         "common :: common-exceptions",
         "common :: common-helper",
-        "common :: common-configs"
     ],
 )
 class ModuleMetaData

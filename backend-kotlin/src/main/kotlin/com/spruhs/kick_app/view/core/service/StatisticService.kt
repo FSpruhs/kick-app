@@ -14,7 +14,7 @@ import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
-import com.spruhs.kick_app.view.api.GroupApi
+import com.spruhs.kick_app.group.api.GroupApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Service
@@ -30,7 +30,7 @@ class StatisticService(
             is GroupCreatedEvent -> handleNewPlayer(GroupId(event.aggregateId), event.userId)
             is PlayerEnteredGroupEvent -> handleNewPlayer(GroupId(event.aggregateId), event.userId)
             is MatchResultEnteredEvent -> handleResultEntered(event)
-            else -> UnknownEventTypeException(event)
+            else -> throw UnknownEventTypeException(event)
         }
     }
 

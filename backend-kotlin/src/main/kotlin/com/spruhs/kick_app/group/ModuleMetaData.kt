@@ -1,17 +1,15 @@
-package com.spruhs.kick_app.message.core
+package com.spruhs.kick_app.group
 
 import org.springframework.modulith.ApplicationModule
-import org.springframework.modulith.PackageInfo
 
 @ApplicationModule(
     allowedDependencies = [
         "group :: group-api",
-        "match :: match-api",
+        "user :: user-api",
         "common :: common-es",
         "common :: common-types",
         "common :: common-exceptions",
         "common :: common-helper",
-        "common :: common-configs"
     ],
 )
-class ModuleMetaData
+class ModuleMetadata

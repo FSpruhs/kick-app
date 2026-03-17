@@ -10,7 +10,7 @@ import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
-import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.user.api.UserApi
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service

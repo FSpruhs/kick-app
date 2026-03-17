@@ -7,7 +7,7 @@ import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.view.api.GroupApi
+import com.spruhs.kick_app.group.api.GroupApi
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs

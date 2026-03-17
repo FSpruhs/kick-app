@@ -20,9 +20,9 @@ import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
-import com.spruhs.kick_app.view.api.GroupApi
-import com.spruhs.kick_app.view.api.UserApi
-import com.spruhs.kick_app.view.api.UserData
+import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.user.api.UserApi
+import com.spruhs.kick_app.user.api.UserData
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service

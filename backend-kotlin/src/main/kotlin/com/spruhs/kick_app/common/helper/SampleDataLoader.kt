@@ -1,6 +1,5 @@
-package com.spruhs.kick_app.common
+package com.spruhs.kick_app.common.helper
 
-import com.spruhs.kick_app.common.helper.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile

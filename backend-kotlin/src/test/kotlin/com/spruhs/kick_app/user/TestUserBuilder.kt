@@ -9,7 +9,7 @@ import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.adapter.primary.RegisterUserRequest
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import com.spruhs.kick_app.view.api.UserData
+import com.spruhs.kick_app.user.api.UserData
 import com.spruhs.kick_app.view.core.controller.rest.UserMessage
 import com.spruhs.kick_app.view.core.service.UserGroupProjection
 import com.spruhs.kick_app.view.core.service.UserProjection

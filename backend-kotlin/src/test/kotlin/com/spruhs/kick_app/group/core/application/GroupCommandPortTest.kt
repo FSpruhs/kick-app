@@ -11,7 +11,7 @@ import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.user.TestUserBuilder
-import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.user.api.UserApi
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

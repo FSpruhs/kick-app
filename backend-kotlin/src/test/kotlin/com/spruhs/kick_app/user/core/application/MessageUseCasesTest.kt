@@ -11,7 +11,7 @@ import com.spruhs.kick_app.message.core.domain.Message
 import com.spruhs.kick_app.message.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.message.core.domain.MessageType
 import com.spruhs.kick_app.user.core.TestMessageBuilder
-import com.spruhs.kick_app.view.api.GroupApi
+import com.spruhs.kick_app.group.api.GroupApi
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify

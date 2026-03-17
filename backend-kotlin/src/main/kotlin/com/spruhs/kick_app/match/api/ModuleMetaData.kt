@@ -4,6 +4,5 @@ import org.springframework.modulith.NamedInterface
 import org.springframework.modulith.PackageInfo
 
 @PackageInfo
-@NamedInterface
-@ApplicationModule(type = ApplicationModule.Type.OPEN)
+@NamedInterface(name = ["match-api"])
 class ModuleMetaData

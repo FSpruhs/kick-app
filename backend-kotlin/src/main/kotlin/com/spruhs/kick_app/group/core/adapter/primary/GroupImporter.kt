@@ -1,6 +1,6 @@
 package com.spruhs.kick_app.group.core.adapter.primary
 
-import com.spruhs.kick_app.common.SampleDataImporter
+import com.spruhs.kick_app.common.helper.SampleDataImporter
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.common.types.GroupId

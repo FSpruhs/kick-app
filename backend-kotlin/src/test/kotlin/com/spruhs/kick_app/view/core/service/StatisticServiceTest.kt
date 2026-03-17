@@ -14,7 +14,7 @@ import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.TestStatisticBuilder
-import com.spruhs.kick_app.view.api.GroupApi
+import com.spruhs.kick_app.group.api.GroupApi
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

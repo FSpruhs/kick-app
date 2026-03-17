@@ -9,7 +9,7 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.group.core.domain.Name
-import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.user.api.UserApi
 import org.springframework.stereotype.Service
 
 data class InviteUserCommand(

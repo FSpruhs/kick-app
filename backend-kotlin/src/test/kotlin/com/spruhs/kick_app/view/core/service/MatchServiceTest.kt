@@ -12,8 +12,8 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.view.api.GroupApi
-import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.user.api.UserApi
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

@@ -8,7 +8,7 @@ import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
-import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.user.api.UserApi
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs

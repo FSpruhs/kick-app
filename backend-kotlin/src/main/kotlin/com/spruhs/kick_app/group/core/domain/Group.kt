@@ -93,15 +93,15 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         apply(GroupNameChangedEvent(aggregateId, command.newName.value))
     }
 
-    fun inviteUser(command: InviteUserCommand) {
-        this.players.find { it.id == command.inviterId && it.status.type() == PlayerStatusType.ACTIVE }
-            ?: throw UserNotAuthorizedException(command.inviterId)
+    fun inviteUser(inviterId: UserId, inviteeId: UserId) {
+        this.players.find { it.id == inviterId && it.status.type() == PlayerStatusType.ACTIVE }
+            ?: throw UserNotAuthorizedException(inviterId)
 
-        if (command.inviteeId in this.players.map { it.id }) {
-            throw PlayerAlreadyInGroupException(command.inviteeId)
+        if (inviteeId in this.players.map { it.id }) {
+            throw PlayerAlreadyInGroupException(inviteeId)
         }
 
-        apply(PlayerInvitedEvent(aggregateId, command.inviteeId, name.value))
+        apply(PlayerInvitedEvent(aggregateId, inviteeId, name.value))
     }
 
     fun inviteUserResponse(command: InviteUserResponseCommand) {

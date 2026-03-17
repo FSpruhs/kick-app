@@ -1,17 +1,19 @@
 package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.core.domain.*
+import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 
 data class InviteUserCommand(
     val inviterId: UserId,
-    val inviteeId: UserId,
+    val email: Email,
     val groupId: GroupId,
 )
 
@@ -48,7 +50,8 @@ data class UpdatePlayerStatusCommand(
 
 @Service
 class GroupCommandPort(
-    private val aggregateStore: AggregateStore
+    private val aggregateStore: AggregateStore,
+    private val userApi: UserApi,
 ) {
     suspend fun createGroup(command: CreateGroupCommand): GroupAggregate =
         GroupAggregate(generateId()).also {
@@ -64,8 +67,12 @@ class GroupCommandPort(
     }
 
     suspend fun inviteUser(command: InviteUserCommand) {
+        val user = userApi.findUserByEmail(command.email) ?: throw IllegalStateException("User not found")
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.inviteUser(command)
+            it.inviteUser(
+                inviterId = command.inviterId,
+                inviteeId = user.id
+            )
             aggregateStore.save(it)
         }
     }

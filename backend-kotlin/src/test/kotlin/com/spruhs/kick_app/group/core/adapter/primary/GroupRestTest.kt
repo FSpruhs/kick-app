@@ -3,6 +3,7 @@ package com.spruhs.kick_app.group.core.adapter.primary
 import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
@@ -107,7 +108,7 @@ class GroupRestTest {
         val requestingUser = UserId("testUserId")
         val builder = TestGroupBuilder()
         val group = builder.build()
-        val userIdToInvite = UserId("userToInvite")
+        val userIdToInvite = Email("test@testen.com")
 
         coEvery { groupCommandPort.inviteUser(builder.toInviteUserCommand(requestingUser, userIdToInvite)) } returns Unit
 

@@ -3,6 +3,7 @@ package com.spruhs.kick_app.user.core.domain
 import com.spruhs.kick_app.common.es.AggregateRoot
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserCreatedEvent
@@ -69,7 +70,7 @@ interface UserIdentityProviderPort {
     suspend fun changeNickName(userId: UserId, nickName: NickName)
 }
 
-interface UserLoginPort {
+fun interface UserLoginPort {
     suspend fun getAuthUser(email: Email): AuthUser?
 }
 
@@ -108,28 +109,8 @@ value class Password private constructor(val value: String) {
 }
 
 
-interface UserImagePort {
+fun interface UserImagePort {
     fun save(inputStream: InputStream, contentType: String): UserImageId
-}
-
-@JvmInline
-value class Email(val value: String) {
-    init {
-        require(value.isNotBlank()) { "Email is not allowed to be blank" }
-        require(isValidEmail(value)) { "Invalid Email" }
-    }
-
-    companion object {
-        private fun isValidEmail(email: String): Boolean {
-            return try {
-                val emailAddr = InternetAddress(email)
-                emailAddr.validate()
-                true
-            } catch (_: AddressException) {
-                false
-            }
-        }
-    }
 }
 
 data class UserWithEmailAlreadyExistsException(val email: Email) :

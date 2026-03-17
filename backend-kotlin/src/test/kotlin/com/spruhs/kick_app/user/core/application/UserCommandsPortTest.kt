@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
@@ -42,7 +42,7 @@ class UserCommandsPortTest {
     fun `registerUser should throw exception if email exists`(): Unit = runBlocking {
         // Given
         val command = RegisterUserCommand(NickName("Test"), Email("test@testen.com"))
-        coEvery { userApi.existsByEmail(command.email.value) } returns true
+        coEvery { userApi.existsByEmail(command.email) } returns true
 
         // When + Then
         assertFailsWith<UserWithEmailAlreadyExistsException> {

@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user.core.adapter.secondary
 
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.helper.getLogger
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.core.domain.*
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.UserRepresentation

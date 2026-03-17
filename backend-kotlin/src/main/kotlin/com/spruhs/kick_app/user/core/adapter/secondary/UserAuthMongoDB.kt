@@ -3,8 +3,8 @@ package com.spruhs.kick_app.user.core.adapter.secondary
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.common.helper.getLogger
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.core.application.AuthUser
-import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort

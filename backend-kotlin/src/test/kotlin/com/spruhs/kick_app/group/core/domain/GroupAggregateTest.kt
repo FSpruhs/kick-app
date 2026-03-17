@@ -6,6 +6,7 @@ import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand
 import com.spruhs.kick_app.group.core.application.CreateGroupCommand
 import com.spruhs.kick_app.group.core.application.InviteUserCommand
@@ -29,12 +30,12 @@ class GroupAggregateTest {
 
         val inviteUserCommand = InviteUserCommand(
             inviterId = UserId("userId"),
-            inviteeId = UserId("inviteeId"),
+            email = Email("test@testen.com"),
             groupId = GroupId(group.aggregateId)
         )
 
         // When
-        group.inviteUser(inviteUserCommand)
+        group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
 
         // Then
         assertThat(group.invitedUsers).containsExactly(UserId("inviteeId"))
@@ -47,13 +48,13 @@ class GroupAggregateTest {
 
         val inviteUserCommand = InviteUserCommand(
             inviterId = UserId("userId"),
-            inviteeId = UserId("inviteeId"),
+            email = Email("test@testen.com"),
             groupId = GroupId(group.aggregateId)
         )
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand)
+            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -70,13 +71,13 @@ class GroupAggregateTest {
 
         val inviteUserCommand = InviteUserCommand(
             inviterId = UserId("userId"),
-            inviteeId = UserId("inviteeId"),
+            email = Email("test@testen.com"),
             groupId = GroupId(group.aggregateId)
         )
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand)
+            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -98,13 +99,13 @@ class GroupAggregateTest {
 
         val inviteUserCommand = InviteUserCommand(
             inviterId = UserId("userId"),
-            inviteeId = UserId("inviteeId"),
+            email = Email("test@testen.com"),
             groupId = GroupId(group.aggregateId)
         )
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand)
+            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(PlayerAlreadyInGroupException::class.java)
     }

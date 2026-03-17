@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.view.core.persistence
 
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
@@ -64,8 +65,14 @@ class UserProjectionMongoDB(
             .map { it.toProjection() }
     }
 
-    override suspend fun existsByEmail(email: String): Boolean {
-        return repository.existsByEmail(email).awaitSingle()
+    override suspend fun findByEmail(email: Email): UserProjection? {
+        return repository.findByEmail(email.value)
+            .awaitFirstOrNull()
+            ?.toProjection()
+    }
+
+    override suspend fun existsByEmail(email: Email): Boolean {
+        return repository.existsByEmail(email.value).awaitSingle()
     }
 }
 
@@ -74,6 +81,8 @@ interface UserRepository : ReactiveMongoRepository<UserDocument, String> {
     fun existsByEmail(email: String): Mono<Boolean>
 
     fun findByGroupsId(groupId: String): Flux<UserDocument>
+
+    fun findByEmail(email: String): Mono<UserDocument>
 }
 
 private fun UserDocument.toProjection() = UserProjection(

@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
@@ -9,6 +10,10 @@ import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.group.core.domain.Player
+import com.spruhs.kick_app.user.TestUserBuilder
+import com.spruhs.kick_app.view.api.UserApi
+import com.spruhs.kick_app.view.api.UserData
+import com.structurizr.configuration.User
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -23,6 +28,9 @@ class GroupCommandPortTest {
 
     @MockK
     lateinit var aggregateStore: AggregateStore
+
+    @MockK
+    lateinit var userApi: UserApi
 
     @InjectMockKs
     lateinit var groupCommandPort: GroupCommandPort
@@ -79,9 +87,10 @@ class GroupCommandPortTest {
         // Given
         val command = InviteUserCommand(
             inviterId = UserId("inviterId"),
-            inviteeId = UserId("inviteeId"),
+            email = Email("test@testen.com"),
             groupId = GroupId("groupId")
         )
+        val invitedUser = TestUserBuilder().buildData()
         val group = GroupAggregate(command.inviterId.value)
         group.players = mutableListOf(Player(
             id = command.inviterId,
@@ -96,12 +105,13 @@ class GroupCommandPortTest {
             )
         } returns group
         coEvery { aggregateStore.save(any()) } returns Unit
+        coEvery { userApi.findUserByEmail(command.email) } returns TestUserBuilder().buildData()
 
         // When
         groupCommandPort.inviteUser(command)
 
         // Then
-        assertThat(group.invitedUsers).containsExactlyInAnyOrder(command.inviteeId)
+        assertThat(group.invitedUsers).containsExactlyInAnyOrder(invitedUser.id)
     }
 
     @Test

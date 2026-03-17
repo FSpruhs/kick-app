@@ -3,10 +3,10 @@ package com.spruhs.kick_app.user.core.adapter.primary
 import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
 import com.spruhs.kick_app.user.core.application.LoginCommand
 import com.spruhs.kick_app.user.core.application.LoginException
-import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import io.mockk.coEvery
 import io.mockk.mockk

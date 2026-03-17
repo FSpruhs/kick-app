@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.configs.JwtUtil
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.adapter.primary.AuthResponse
-import com.spruhs.kick_app.user.core.domain.Email
 import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserLoginPort
 import org.springframework.beans.factory.annotation.Value

@@ -1,5 +1,5 @@
 jwt:
   secret: "my-256-bit-secret-my-256-bit-secret"
   expiration:
-    accessInMinuets: 10
+    accessInMinuets: 30
     refreshInDays: 30

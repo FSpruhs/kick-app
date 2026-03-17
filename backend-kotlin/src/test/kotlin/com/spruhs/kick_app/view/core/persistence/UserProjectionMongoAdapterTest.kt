@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
@@ -104,16 +105,16 @@ class UserProjectionMongoAdapterTest : AbstractMongoTest() {
         // Given
         val user1 = TestUserBuilder()
             .withId("userId 1")
-            .withEmail("test mail 1")
+            .withEmail("test@mail.de")
             .buildProjection()
         val user2 = TestUserBuilder()
             .withId("userId 1")
-            .withEmail("test mail 1")
+            .withEmail("test@mail.de")
             .buildProjection()
         adapter.saveAll(listOf(user1, user2))
 
         // When
-        val exists = adapter.existsByEmail(user1.email)
+        val exists = adapter.existsByEmail(Email(user1.email))
 
         // Then
         assertThat(exists).isTrue()
@@ -129,7 +130,7 @@ class UserProjectionMongoAdapterTest : AbstractMongoTest() {
         adapter.save(user1)
 
         // When
-        val exists = adapter.existsByEmail("non-existing email")
+        val exists = adapter.existsByEmail(Email("non@existing.com"))
 
         // Then
         assertThat(exists).isFalse()

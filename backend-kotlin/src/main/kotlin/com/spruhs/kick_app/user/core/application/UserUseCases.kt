@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.domain.*
@@ -17,7 +18,7 @@ class UserCommandsPort(
     private val userApi: UserApi,
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
-        require(userApi.existsByEmail(command.email.value).not()) {
+        require(userApi.existsByEmail(command.email).not()) {
             throw UserWithEmailAlreadyExistsException(command.email)
         }
 

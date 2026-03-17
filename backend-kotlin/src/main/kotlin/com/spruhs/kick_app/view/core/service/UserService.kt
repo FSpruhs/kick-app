@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.common.exceptions.UserNotFoundException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent
@@ -170,15 +171,20 @@ class UserApiService(
         repository.getUser(userId)?.groups?.map { it.id }
             ?: throw UserNotFoundException(userId)
 
-    override suspend fun existsByEmail(email: String): Boolean = repository.existsByEmail(email)
+    override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email)
+
+    override suspend fun findUserByEmail(email: Email): UserData? {
+        return repository.findByEmail(email)?.toData()
+    }
 }
 
 interface UserProjectionRepository {
-    suspend fun existsByEmail(email: String): Boolean
+    suspend fun existsByEmail(email: Email): Boolean
     suspend fun getUser(userId: UserId): UserProjection?
     suspend fun save(userProjection: UserProjection)
     suspend fun saveAll(userProjection: List<UserProjection>)
     suspend fun findByGroupId(groupId: GroupId): List<UserProjection>
+    suspend fun findByEmail(email: Email): UserProjection?
 }
 
 data class UserProjection(

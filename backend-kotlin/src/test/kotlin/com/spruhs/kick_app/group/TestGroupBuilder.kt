@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.group
 
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
@@ -83,10 +84,10 @@ class TestGroupBuilder() {
             groupId = GroupId(this.groupId),
         )
 
-    fun toInviteUserCommand(requestingUser: UserId, invitedUser: UserId) =
+    fun toInviteUserCommand(requestingUser: UserId, email: Email) =
         InviteUserCommand(
             inviterId = requestingUser,
-            inviteeId = invitedUser,
+            email = email,
             groupId = GroupId(this.groupId)
         )
 

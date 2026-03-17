@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
 import com.spruhs.kick_app.user.core.application.LoginCommand
 import com.spruhs.kick_app.user.core.application.LoginException
-import com.spruhs.kick_app.user.core.domain.Email
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

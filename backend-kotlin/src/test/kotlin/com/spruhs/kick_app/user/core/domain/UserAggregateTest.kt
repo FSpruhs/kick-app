@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.user.core.domain
 
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand

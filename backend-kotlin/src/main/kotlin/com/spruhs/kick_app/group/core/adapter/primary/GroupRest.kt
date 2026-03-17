@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.group.core.application.*
 import com.spruhs.kick_app.group.core.domain.*
 import org.springframework.http.HttpStatus
@@ -96,16 +97,16 @@ class GroupRest(
         )
     }
 
-    @PostMapping("{groupId}/invited-users/{userId}")
+    @PostMapping("{groupId}/invited-users/{email}")
     suspend fun inviteUser(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable groupId: String,
-        @PathVariable userId: String
+        @PathVariable email: String
     ) {
         groupCommandPort.inviteUser(
             InviteUserCommand(
                 inviterId = jwtParser.getUserId(jwt),
-                inviteeId = UserId(userId),
+                email = Email(email),
                 groupId = GroupId(groupId)
             )
         )

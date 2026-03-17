@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.exceptions.UserNotFoundException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.core.application.*
 import com.spruhs.kick_app.user.core.domain.*
 import org.springframework.http.HttpStatus

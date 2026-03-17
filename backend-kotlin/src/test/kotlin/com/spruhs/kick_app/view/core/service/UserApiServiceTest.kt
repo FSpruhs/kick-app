@@ -2,6 +2,7 @@ package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotFoundException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.user.TestUserBuilder
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
@@ -51,7 +52,7 @@ class UserApiServiceTest {
     @Test
     fun `existsByEmail should return true when user exists with given email`(): Unit = runBlocking {
         // Given
-        val email = "test@testen.com"
+        val email = Email("test@testen.com")
 
         coEvery { repository.existsByEmail(email) } returns true
 

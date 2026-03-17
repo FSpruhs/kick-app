@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.user.core.application.AuthTokens
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
 import com.spruhs.kick_app.user.core.application.LoginCommand
 import com.spruhs.kick_app.user.core.application.LoginException
@@ -24,11 +25,11 @@ class LoginRestController(
 
     @PostMapping("/login")
     suspend fun login(@RequestBody request: LoginRequest): AuthResponse =
-        authUseCases.login(request.toCommand())
+        authUseCases.login(request.toCommand()).toResponse()
 
     @PostMapping("/refresh/{refreshToken}")
     suspend fun refresh(@PathVariable refreshToken: String): AuthResponse =
-        authUseCases.refresh(refreshToken)
+        authUseCases.refresh(refreshToken).toResponse()
 
 }
 
@@ -53,4 +54,9 @@ data class LoginRequest(
 data class AuthResponse(
     val accessToken: String,
     val refreshToken: String
+)
+
+private fun AuthTokens.toResponse() = AuthResponse(
+    accessToken = accessToken,
+    refreshToken = refreshToken
 )

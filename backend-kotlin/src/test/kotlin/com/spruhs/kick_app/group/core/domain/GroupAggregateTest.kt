@@ -28,14 +28,10 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val inviteUserCommand = InviteUserCommand(
-            inviterId = UserId("userId"),
-            email = Email("test@testen.com"),
-            groupId = GroupId(group.aggregateId)
-        )
+        val inviterId = UserId("userId")
 
         // When
-        group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
+        group.inviteUser(inviterId, UserId("inviteeId"))
 
         // Then
         assertThat(group.invitedUsers).containsExactly(UserId("inviteeId"))
@@ -46,15 +42,11 @@ class GroupAggregateTest {
         // Given
         val group = GroupAggregate("groupId")
 
-        val inviteUserCommand = InviteUserCommand(
-            inviterId = UserId("userId"),
-            email = Email("test@testen.com"),
-            groupId = GroupId(group.aggregateId)
-        )
+        val inviterId = UserId("userId")
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
+            group.inviteUser(inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -69,15 +61,11 @@ class GroupAggregateTest {
             status = Inactive(),
         ))
 
-        val inviteUserCommand = InviteUserCommand(
-            inviterId = UserId("userId"),
-            email = Email("test@testen.com"),
-            groupId = GroupId(group.aggregateId)
-        )
+        val inviterId = UserId("userId")
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
+            group.inviteUser(inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -97,15 +85,11 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val inviteUserCommand = InviteUserCommand(
-            inviterId = UserId("userId"),
-            email = Email("test@testen.com"),
-            groupId = GroupId(group.aggregateId)
-        )
+        val inviterId = UserId("userId")
 
         assertThatThrownBy {
             // When
-            group.inviteUser(inviteUserCommand.inviterId, UserId("inviteeId"))
+            group.inviteUser(inviterId, UserId("inviteeId"))
             // Then
         }.isInstanceOf(PlayerAlreadyInGroupException::class.java)
     }
@@ -114,14 +98,13 @@ class GroupAggregateTest {
     fun `createGroup should create a new group`() {
         // Given
         val group = GroupAggregate("groupId")
-
-        val command = CreateGroupCommand(
-            userId = UserId("ownerId"),
-            name = Name("Test Group")
-        )
+        
+        val userId = UserId("ownerId")
+        val name = Name("Test Group")
+        
 
         // When
-        group.createGroup(command)
+        group.createGroup(userId, name)
 
         // Then
         assertThat(group.aggregateId).isEqualTo("groupId")
@@ -144,14 +127,11 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = ChangeGroupNameCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            newName = Name("New Group Name")
-        )
+        val userId = UserId("userId")
+        val newName = Name("New Group Name")
 
         // When
-        group.changeGroupName(command)
+        group.changeGroupName(userId, newName)
 
         // Then
         assertThat(group.name).isEqualTo(Name("New Group Name"))
@@ -168,15 +148,12 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = ChangeGroupNameCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            newName = Name("New Group Name")
-        )
+        val userId = UserId("userId")
+        val newName = Name("New Group Name")
 
         assertThatThrownBy {
             // When
-            group.changeGroupName(command)
+            group.changeGroupName(userId, newName)
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -187,14 +164,11 @@ class GroupAggregateTest {
         val group = GroupAggregate("groupId")
         group.invitedUsers.add(UserId("userId"))
 
-        val command = InviteUserResponseCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            response = true
-        )
+        val userId = UserId("userId")
+        val response = true
 
         // When
-        group.inviteUserResponse(command)
+        group.inviteUserResponse(userId, response)
 
         // Then
         assertThat(group.players).hasSize(1)
@@ -210,14 +184,11 @@ class GroupAggregateTest {
         val group = GroupAggregate("groupId")
         group.invitedUsers.add(UserId("userId"))
 
-        val command = InviteUserResponseCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            response = false
-        )
+        val userId = UserId("userId")
+        val response = false
 
         // When
-        group.inviteUserResponse(command)
+        group.inviteUserResponse(userId, response)
 
         // Then
         assertThat(group.players).isEmpty()
@@ -229,15 +200,12 @@ class GroupAggregateTest {
         // Given
         val group = GroupAggregate("groupId")
 
-        val command = InviteUserResponseCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            response = true
-        )
+        val userId = UserId("userId")
+        val response = true
 
         assertThatThrownBy {
             // When
-            group.inviteUserResponse(command)
+            group.inviteUserResponse(userId, response)
             // Then
         }.isInstanceOf(PlayerNotInvitedInGroupException::class.java)
     }
@@ -252,16 +220,13 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = UpdatePlayerRoleCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.COACH,
-        )
+        val userId = UserId("userId")
+        val updatingUserId = UserId("updatingUserId")
+        val newRole = PlayerRole.COACH
 
         assertThatThrownBy {
             // When
-            group.updatePlayerRole(command)
+            group.updatePlayerRole(userId, updatingUserId, newRole)
             // Then
         }.isInstanceOf(UserNotAuthorizedException::class.java)
     }
@@ -276,16 +241,13 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = UpdatePlayerRoleCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.COACH,
-        )
+        val userId = UserId("userId")
+        val updatingUserId = UserId("updatingUserId")
+        val newRole = PlayerRole.COACH
 
         assertThatThrownBy {
             // When
-            group.updatePlayerRole(command)
+            group.updatePlayerRole(userId, updatingUserId, newRole)
             // Then
         }.isInstanceOf(PlayerNotFoundException::class.java)
     }
@@ -305,18 +267,16 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = UpdatePlayerRoleCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.PLAYER,
-        )
+        val userId = UserId("userId")
+        val updatingUserId = UserId("updatingUserId")
+        val newRole = PlayerRole.PLAYER
+
 
         // When
-        group.updatePlayerRole(command)
+        group.updatePlayerRole(userId, updatingUserId, newRole)
 
         // Then
-        group.players.find { it.id == command.userId }.let {
+        group.players.find { it.id == userId }.let {
             assertThat(it).isNotNull
             assertThat(it?.role).isEqualTo(PlayerRole.PLAYER)
         }
@@ -337,21 +297,19 @@ class GroupAggregateTest {
             status = Active(),
         ))
 
-        val command = UpdatePlayerRoleCommand(
-            userId = UserId("userId"),
-            groupId = GroupId(group.aggregateId),
-            updatingUserId = UserId("updatingUserId"),
-            newRole = PlayerRole.COACH,
-        )
+
+        val userId = UserId("userId")
+        val updatingUserId = UserId("updatingUserId")
+        val newRole = PlayerRole.COACH
+
 
         // When
-        group.updatePlayerRole(command)
+        group.updatePlayerRole(userId, updatingUserId, newRole)
 
         // Then
-        group.players.find { it.id == command.userId }.let {
+        group.players.find { it.id == userId }.let {
             assertThat(it).isNotNull
             assertThat(it?.role).isEqualTo(PlayerRole.COACH)
         }
     }
-
 }

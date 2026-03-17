@@ -16,7 +16,6 @@ import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import java.time.LocalDateTime
 
 sealed class RegisteredPlayer(
@@ -192,15 +191,20 @@ class MatchAggregate(
         this.playground = Playground(event.newPlayground)
     }
 
-    fun planMatch(command: PlanMatchCommand) {
+    fun planMatch(
+        groupId: GroupId,
+        start: LocalDateTime,
+        playground: Playground,
+        playerCount: PlayerCount
+    ) {
         apply(
             MatchPlannedEvent(
                 aggregateId,
-                command.groupId,
-                command.start,
-                command.playground.value,
-                command.playerCount.maxPlayer.value,
-                command.playerCount.minPlayer.value
+                groupId,
+                start,
+                playground.value,
+                playerCount.maxPlayer.value,
+                playerCount.minPlayer.value
             )
         )
     }
@@ -215,7 +219,7 @@ class MatchAggregate(
     }
 
     private fun validateDrawPlayers(results: Set<PlayerResult>) {
-        if (results.size != 1) {
+        require(results.size == 1) {
             throw IllegalArgumentException("If one player has a draw, all players must have a draw result.")
         }
     }
@@ -225,7 +229,7 @@ class MatchAggregate(
         participatingPlayers: List<ParticipatingPlayer>,
         result: PlayerResult
     ) {
-        if (PlayerResult.DRAW in results) {
+        require(PlayerResult.DRAW !in results) {
             throw IllegalArgumentException("If one player has a win, no player can have a draw result.")
         }
 
@@ -234,7 +238,7 @@ class MatchAggregate(
             .map { it.team }
             .toSet()
 
-        if (winningTeams.size != 1) {
+        require(winningTeams.size == 1) {
             throw IllegalArgumentException("If one player has a win, all winning players must be in the same team.")
         }
     }

@@ -23,7 +23,12 @@ class MatchCommandPort(
         }
 
         return MatchAggregate(generateId()).also {
-            it.planMatch(command)
+            it.planMatch(
+                groupId = command.groupId,
+                start = command.start,
+                playground = command.playground,
+                playerCount = command.playerCount
+            )
             aggregateStore.save(it)
         }
     }
@@ -51,25 +56,13 @@ class MatchCommandPort(
             throw UserNotAuthorizedException(command.updatingUser)
         }
         when (command.status) {
-            RegistrationStatusType.REGISTERED -> {
+            RegistrationStatusType.REGISTERED, RegistrationStatusType.DEREGISTERED -> {
                 require(command.updatedUser == command.updatingUser) {
                     throw UserNotAuthorizedException(command.updatingUser)
                 }
             }
 
-            RegistrationStatusType.DEREGISTERED -> {
-                require(command.updatedUser == command.updatingUser) {
-                    throw UserNotAuthorizedException(command.updatingUser)
-                }
-            }
-
-            RegistrationStatusType.CANCELLED -> {
-                require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {
-                    throw UserNotAuthorizedException(command.updatingUser)
-                }
-            }
-
-            RegistrationStatusType.ADDED -> {
+            RegistrationStatusType.CANCELLED, RegistrationStatusType.ADDED -> {
                 require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {
                     throw UserNotAuthorizedException(command.updatingUser)
                 }

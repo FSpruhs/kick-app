@@ -9,13 +9,8 @@ import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
-import com.spruhs.kick_app.user.core.application.AuthUser
-import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
-import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.io.InputStream
-import javax.mail.internet.AddressException
-import javax.mail.internet.InternetAddress
 
 class UserAggregate(
     override val aggregateId: String
@@ -48,12 +43,12 @@ class UserAggregate(
         userImageId = event.imageId
     }
 
-    fun createUser(command: RegisterUserCommand) {
-        apply(UserCreatedEvent(aggregateId, command.email.value, command.nickName.value))
+    fun createUser(email: Email, nickName: NickName) {
+        apply(UserCreatedEvent(aggregateId, email.value, nickName.value))
     }
 
-    fun changeNickName(command: ChangeUserNickNameCommand) {
-        apply(UserNickNameChangedEvent(aggregateId, command.nickName.value))
+    fun changeNickName(nickName: NickName) {
+        apply(UserNickNameChangedEvent(aggregateId, nickName.value))
     }
 
     fun updateUserImage(imageId: UserImageId) {
@@ -108,6 +103,11 @@ value class Password private constructor(val value: String) {
     }
 }
 
+data class AuthUser(
+    val email: Email,
+    val userId: UserId,
+    val password: Password,
+)
 
 fun interface UserImagePort {
     fun save(inputStream: InputStream, contentType: String): UserImageId

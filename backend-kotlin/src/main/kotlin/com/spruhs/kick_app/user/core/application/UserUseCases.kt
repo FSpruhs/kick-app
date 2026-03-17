@@ -25,7 +25,10 @@ class UserCommandsPort(
         val newId = userIdentityProviderPort.save(command.email, command.nickName, command.password)
 
         return UserAggregate(newId.value).also {
-            it.createUser(command)
+            it.createUser(
+                email = command.email,
+                nickName = command.nickName
+            )
             aggregateStore.save(it)
         }
     }
@@ -33,7 +36,9 @@ class UserCommandsPort(
     suspend fun changeNickName(command: ChangeUserNickNameCommand) {
         aggregateStore.load(command.userId.value, UserAggregate::class.java).let {
             userIdentityProviderPort.changeNickName(command.userId, command.nickName)
-            it.changeNickName(command)
+            it.changeNickName(
+                nickName = command.nickName
+            )
             aggregateStore.save(it)
         }
     }

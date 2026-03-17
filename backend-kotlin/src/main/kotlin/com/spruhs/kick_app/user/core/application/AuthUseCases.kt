@@ -2,9 +2,7 @@ package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.configs.JwtUtil
 import com.spruhs.kick_app.common.types.Email
-import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.user.core.adapter.primary.AuthResponse
-import com.spruhs.kick_app.user.core.domain.Password
+import com.spruhs.kick_app.user.core.domain.AuthUser
 import com.spruhs.kick_app.user.core.domain.UserLoginPort
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -22,7 +20,7 @@ class AuthUseCasesPort(
 ) {
 
 
-    suspend fun login(command: LoginCommand): AuthResponse {
+    suspend fun login(command: LoginCommand): AuthTokens {
         val authUser = fetchAuthUser(command.email)
         if (!authUser.password.matches(command.password)) {
             throw LoginException("Invalid email or password")
@@ -37,14 +35,14 @@ class AuthUseCasesPort(
             refreshExpiration.days.inWholeMilliseconds
         )
 
-        return AuthResponse(accessToken, refreshToken)
+        return AuthTokens(accessToken, refreshToken)
     }
 
     private suspend fun fetchAuthUser(email: Email): AuthUser =
         userLoginPort.getAuthUser(email)
             ?: throw LoginException("Invalid email or password")
 
-    suspend fun refresh(refreshToken: String): AuthResponse {
+    suspend fun refresh(refreshToken: String): AuthTokens {
         if (!jwtUtil.isTokenValid(refreshToken)) {
             throw LoginException("Invalid refresh token")
         }
@@ -53,7 +51,7 @@ class AuthUseCasesPort(
         val accessToken = jwtUtil.generateToken(userId, accessExpiration.minutes.inWholeMilliseconds)
         val refreshToken = jwtUtil.generateToken(userId, refreshExpiration.days.inWholeMilliseconds)
 
-        return AuthResponse(accessToken, refreshToken)
+        return AuthTokens(accessToken, refreshToken)
     }
 }
 
@@ -62,10 +60,9 @@ data class LoginCommand(
     val password: String,
 )
 
-data class AuthUser(
-    val email: Email,
-    val userId: UserId,
-    val password: Password,
+data class AuthTokens(
+    val accessToken: String,
+    val refreshToken: String
 )
 
 data class LoginException(

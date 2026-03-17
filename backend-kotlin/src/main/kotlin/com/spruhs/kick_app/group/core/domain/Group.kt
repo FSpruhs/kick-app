@@ -11,7 +11,7 @@ import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.group.api.*
-import com.spruhs.kick_app.group.core.application.*
+import org.springframework.security.core.userdetails.User
 
 class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregateId, TYPE) {
 
@@ -73,24 +73,24 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
     }
 
-    fun createGroup(command: CreateGroupCommand) {
+    fun createGroup(userId: UserId, name: Name) {
         apply(
             GroupCreatedEvent(
                 aggregateId = aggregateId,
-                userId = command.userId,
-                name = command.name.value,
+                userId = userId,
+                name = name.value,
                 userStatus = PlayerStatusType.ACTIVE,
                 userRole = PlayerRole.COACH,
             )
         )
     }
 
-    fun changeGroupName(command: ChangeGroupNameCommand) {
-        require(this.players.find { it.id == command.userId }?.role == PlayerRole.COACH) {
-            throw UserNotAuthorizedException(command.userId)
+    fun changeGroupName(userId: UserId, newName: Name) {
+        require(this.players.find { it.id == userId }?.role == PlayerRole.COACH) {
+            throw UserNotAuthorizedException(userId)
         }
 
-        apply(GroupNameChangedEvent(aggregateId, command.newName.value))
+        apply(GroupNameChangedEvent(aggregateId, newName.value))
     }
 
     fun inviteUser(inviterId: UserId, inviteeId: UserId) {
@@ -104,49 +104,49 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         apply(PlayerInvitedEvent(aggregateId, inviteeId, name.value))
     }
 
-    fun inviteUserResponse(command: InviteUserResponseCommand) {
-        if (command.userId !in this.invitedUsers) {
-            throw PlayerNotInvitedInGroupException(command.userId)
+    fun inviteUserResponse(userId: UserId, response: Boolean) {
+        if (userId !in this.invitedUsers) {
+            throw PlayerNotInvitedInGroupException(userId)
         }
 
-        if (command.response) {
+        if (response) {
             apply(
                 PlayerEnteredGroupEvent(
                     aggregateId = aggregateId,
-                    userId = command.userId,
+                    userId = userId,
                     groupName = name.value,
                     userStatus = PlayerStatusType.ACTIVE,
                     userRole = PlayerRole.PLAYER
                 )
             )
         } else {
-            apply(PlayerRejectedGroupEvent(aggregateId, command.userId))
+            apply(PlayerRejectedGroupEvent(aggregateId, userId))
         }
     }
 
-    fun updatePlayerRole(command: UpdatePlayerRoleCommand) {
-        players.find { it.id == command.updatingUserId && it.role == PlayerRole.COACH }
-            ?: throw UserNotAuthorizedException(command.updatingUserId)
+    fun updatePlayerRole(userId: UserId, updatingUserId: UserId, newRole: PlayerRole) {
+        players.find { it.id == updatingUserId && it.role == PlayerRole.COACH }
+            ?: throw UserNotAuthorizedException(updatingUserId)
 
-        val player = players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
+        val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
 
-        if (command.newRole == PlayerRole.COACH && player.role != PlayerRole.COACH) {
-            apply(PlayerPromotedEvent(aggregateId, command.userId))
-        } else if (command.newRole == PlayerRole.PLAYER && player.role != PlayerRole.PLAYER) {
-            apply(PlayerDowngradedEvent(aggregateId, command.userId))
+        if (newRole == PlayerRole.COACH && player.role != PlayerRole.COACH) {
+            apply(PlayerPromotedEvent(aggregateId, userId))
+        } else if (newRole == PlayerRole.PLAYER && player.role != PlayerRole.PLAYER) {
+            apply(PlayerDowngradedEvent(aggregateId, userId))
         }
     }
 
-    fun updatePlayerStatus(command: UpdatePlayerStatusCommand) {
-        val player = players.find { it.id == command.userId } ?: throw PlayerNotFoundException(command.userId)
-        val requestingPlayer = if (command.userId == command.updatingUserId) {
+    fun updatePlayerStatus(userId: UserId, updatingUserId: UserId, newStatus: PlayerStatusType) {
+        val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
+        val requestingPlayer = if (userId == updatingUserId) {
             player
         } else {
-            players.find { it.id == command.updatingUserId }
-                ?: throw PlayerNotFoundException(command.updatingUserId)
+            players.find { it.id == updatingUserId }
+                ?: throw PlayerNotFoundException(updatingUserId)
         }
 
-        val updatedStatus = when (command.newStatus) {
+        val updatedStatus = when (newStatus) {
             PlayerStatusType.ACTIVE -> player.status.activate(player, requestingPlayer)
             PlayerStatusType.INACTIVE -> player.status.inactivate(player, requestingPlayer)
             PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
@@ -154,10 +154,10 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
 
         when (updatedStatus) {
-            is Active -> apply(PlayerActivatedEvent(aggregateId, command.userId))
-            is Inactive -> apply(PlayerDeactivatedEvent(aggregateId, command.userId))
-            is Leaved -> apply(PlayerLeavedEvent(aggregateId, command.userId))
-            is Removed -> apply(PlayerRemovedEvent(aggregateId, command.userId, name.value))
+            is Active -> apply(PlayerActivatedEvent(aggregateId, userId))
+            is Inactive -> apply(PlayerDeactivatedEvent(aggregateId, userId))
+            is Leaved -> apply(PlayerLeavedEvent(aggregateId, userId))
+            is Removed -> apply(PlayerRemovedEvent(aggregateId, userId, name.value))
         }
     }
 

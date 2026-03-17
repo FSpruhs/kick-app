@@ -1,10 +1,10 @@
-package com.spruhs.kick_app
+package com.spruhs.kick_app.architecture
 
+import com.spruhs.kick_app.KickAppApplication
 import org.junit.jupiter.api.Test
 import org.springframework.modulith.core.ApplicationModules
 import org.springframework.modulith.docs.Documenter
 import org.springframework.modulith.test.TestApplicationModules
-
 
 class SpringModulithApplicationTest {
 

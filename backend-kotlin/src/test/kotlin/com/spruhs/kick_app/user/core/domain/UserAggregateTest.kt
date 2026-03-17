@@ -15,18 +15,18 @@ class UserAggregateTest {
         // Given
         val userId = "user-123"
         val userAggregate = UserAggregate(userId)
-        val command = RegisterUserCommand(
-            nickName = NickName("testNickName"),
-            email = Email("test@testen.com"),
-        )
+
+        val nickName = NickName("testNickName")
+        val email = Email("test@testen.com")
+
 
         // When
-        userAggregate.createUser(command)
+        userAggregate.createUser(email, nickName)
 
         // Then
         assertThat(userAggregate.aggregateId).isEqualTo(userId)
-        assertThat(userAggregate.nickName).isEqualTo(command.nickName)
-        assertThat(userAggregate.email).isEqualTo(command.email)
+        assertThat(userAggregate.nickName).isEqualTo(nickName)
+        assertThat(userAggregate.email).isEqualTo(email)
         assertThat(userAggregate.userImageId).isNull()
     }
 
@@ -35,16 +35,14 @@ class UserAggregateTest {
         // Given
         val userId = "user-123"
         val userAggregate = UserAggregate(userId)
-        val command = ChangeUserNickNameCommand(
-            userId = UserId(userId),
-            nickName = NickName("newNickName")
-        )
+
+        val nickName = NickName("newNickName")
 
         // When
-        userAggregate.changeNickName(command)
+        userAggregate.changeNickName(nickName)
 
         // Then
-        assertThat(userAggregate.nickName).isEqualTo(command.nickName)
+        assertThat(userAggregate.nickName).isEqualTo(nickName)
     }
 
     @Test

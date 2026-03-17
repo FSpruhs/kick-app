@@ -7,7 +7,6 @@ import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
-import com.spruhs.kick_app.match.core.application.PlanMatchCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -23,22 +22,24 @@ class MatchAggregateTest {
         // Given
         val matchAggregate = MatchAggregate("matchId")
 
-        val command = PlanMatchCommand(
-            groupId = GroupId("groupId"),
-            start = LocalDateTime.now(),
-            playground = Playground("stadium"),
-            playerCount = PlayerCount(MinPlayer(8), MaxPlayer(16)),
-            requesterId = UserId("requesterId")
-        )
+        val groupId = GroupId("groupId")
+        val start = LocalDateTime.now()
+        val playground = Playground("stadium")
+        val playerCount = PlayerCount(MinPlayer(8), MaxPlayer(16))
 
         // When
-        matchAggregate.planMatch(command)
+        matchAggregate.planMatch(
+            groupId = groupId,
+            start = start,
+            playground = playground,
+            playerCount = playerCount
+        )
 
         // Then
-        assertThat(matchAggregate.groupId).isEqualTo(command.groupId)
-        assertThat(matchAggregate.start).isEqualTo(command.start)
-        assertThat(matchAggregate.playground).isEqualTo(command.playground)
-        assertThat(matchAggregate.playerCount).isEqualTo(command.playerCount)
+        assertThat(matchAggregate.groupId).isEqualTo(groupId)
+        assertThat(matchAggregate.start).isEqualTo(start)
+        assertThat(matchAggregate.playground).isEqualTo(playground)
+        assertThat(matchAggregate.playerCount).isEqualTo(playerCount)
     }
 
     @Test

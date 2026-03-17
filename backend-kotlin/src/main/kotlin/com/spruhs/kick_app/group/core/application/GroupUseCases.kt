@@ -55,13 +55,19 @@ class GroupCommandPort(
 ) {
     suspend fun createGroup(command: CreateGroupCommand): GroupAggregate =
         GroupAggregate(generateId()).also {
-            it.createGroup(command)
+            it.createGroup(
+                userId = command.userId,
+                name = command.name
+            )
             aggregateStore.save(it)
         }
 
     suspend fun changeGroupName(command: ChangeGroupNameCommand) {
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.changeGroupName(command)
+            it.changeGroupName(
+                userId = command.userId,
+                newName = command.newName
+            )
             aggregateStore.save(it)
         }
     }
@@ -79,21 +85,32 @@ class GroupCommandPort(
 
     suspend fun inviteUserResponse(command: InviteUserResponseCommand) {
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.inviteUserResponse(command)
+            it.inviteUserResponse(
+                userId = command.userId,
+                response = command.response
+            )
             aggregateStore.save(it)
         }
     }
 
     suspend fun updatePlayerStatus(command: UpdatePlayerStatusCommand) {
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.updatePlayerStatus(command)
+            it.updatePlayerStatus(
+                userId = command.userId,
+                updatingUserId = command.updatingUserId,
+                newStatus = command.newStatus
+            )
             aggregateStore.save(it)
         }
     }
 
     suspend fun updatePlayerRole(command: UpdatePlayerRoleCommand) {
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.updatePlayerRole(command)
+            it.updatePlayerRole(
+                userId = command.userId,
+                updatingUserId = command.updatingUserId,
+                newRole = command.newRole
+            )
             aggregateStore.save(it)
         }
     }

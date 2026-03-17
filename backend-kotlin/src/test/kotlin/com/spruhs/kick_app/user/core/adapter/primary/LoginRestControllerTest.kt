@@ -4,6 +4,7 @@ import com.spruhs.kick_app.TestHelpers.jwtWithUserId
 import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.user.core.application.AuthTokens
 import com.spruhs.kick_app.user.core.application.AuthUseCasesPort
 import com.spruhs.kick_app.user.core.application.LoginCommand
 import com.spruhs.kick_app.user.core.application.LoginException
@@ -51,7 +52,7 @@ class LoginRestControllerTest {
             password = "Testpassword123"
         )
 
-        val authResponse = AuthResponse(
+        val authResponse = AuthTokens(
             accessToken = "accessToken",
             refreshToken = "refreshToken",
         )
@@ -98,7 +99,7 @@ class LoginRestControllerTest {
     fun `refresh should return new tokens`() {
         val userId = "testUserId"
         val refreshToken = "refreshToken"
-        val authResponse = AuthResponse(
+        val authResponse = AuthTokens(
             accessToken = "accessToken",
             refreshToken = "newRefreshToken",
         )

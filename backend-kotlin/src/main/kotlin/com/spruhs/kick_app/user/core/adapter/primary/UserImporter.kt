@@ -33,7 +33,7 @@ class UserImporter(
     private suspend fun createTestUser(data: Triple<UserId, NickName, Email>) {
         val (userId, nickName, email) = data
         val user = UserAggregate(userId.value)
-        user.createUser(RegisterUserCommand(nickName, email))
+        user.createUser(email, nickName)
         aggregateStore.save(user)
         userIdentityProviderPort.save(email, nickName, Password.fromPlaintext("Password123"), userId)
     }

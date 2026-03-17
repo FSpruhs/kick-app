@@ -6,14 +6,14 @@ import kotlinx.coroutines.runBlocking
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
-interface EventExecutionStrategy {
+fun interface EventExecutionStrategy {
     fun execute(block: suspend () -> Unit)
 }
 
 @Component
 @Profile("!dev")
 class AsyncEventExecutionStrategy(
-    private val applicationScope: CoroutineScope
+    private val applicationScope: CoroutineScope,
 ) : EventExecutionStrategy {
     override fun execute(block: suspend () -> Unit) {
         applicationScope.launch { block() }

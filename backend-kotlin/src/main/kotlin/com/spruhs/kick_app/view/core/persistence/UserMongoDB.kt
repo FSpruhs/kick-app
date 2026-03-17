@@ -27,7 +27,7 @@ data class UserDocument(
     var nickName: String,
     val email: String,
     var userImageId: String? = null,
-    var groups: List<UserGroupDocument>
+    var groups: List<UserGroupDocument>,
 )
 
 @Document
@@ -44,9 +44,9 @@ data class UserGroupDocument(
 class UserProjectionMongoDB(
     private val repository: UserRepository,
 ) : UserProjectionRepository {
-
     override suspend fun getUser(userId: UserId): UserProjection? =
-        repository.findById(userId.value)
+        repository
+            .findById(userId.value)
             .awaitFirstOrNull()
             ?.toProjection()
 
@@ -58,22 +58,20 @@ class UserProjectionMongoDB(
         repository.saveAll(userProjection.map { it.toDocument() }).collectList().awaitSingle()
     }
 
-    override suspend fun findByGroupId(groupId: GroupId): List<UserProjection> {
-        return repository.findByGroupsId(groupId.value)
+    override suspend fun findByGroupId(groupId: GroupId): List<UserProjection> =
+        repository
+            .findByGroupsId(groupId.value)
             .collectList()
             .awaitSingle()
             .map { it.toProjection() }
-    }
 
-    override suspend fun findByEmail(email: Email): UserProjection? {
-        return repository.findByEmail(email.value)
+    override suspend fun findByEmail(email: Email): UserProjection? =
+        repository
+            .findByEmail(email.value)
             .awaitFirstOrNull()
             ?.toProjection()
-    }
 
-    override suspend fun existsByEmail(email: Email): Boolean {
-        return repository.existsByEmail(email.value).awaitSingle()
-    }
+    override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email.value).awaitSingle()
 }
 
 @Repository
@@ -85,34 +83,38 @@ interface UserRepository : ReactiveMongoRepository<UserDocument, String> {
     fun findByEmail(email: String): Mono<UserDocument>
 }
 
-private fun UserDocument.toProjection() = UserProjection(
-    id = UserId(this.id),
-    nickName = this.nickName,
-    email = this.email,
-    userImageId = this.userImageId?.let { UserImageId(it) },
-    groups = this.groups.map {
-        UserGroupProjection(
-            id = GroupId(it.id),
-            name = it.name,
-            userStatus = PlayerStatusType.valueOf(it.userStatus),
-            userRole = PlayerRole.valueOf(it.userRole),
-            lastMatch = it.lastMatch
-        )
-    }
-)
+private fun UserDocument.toProjection() =
+    UserProjection(
+        id = UserId(this.id),
+        nickName = this.nickName,
+        email = this.email,
+        userImageId = this.userImageId?.let { UserImageId(it) },
+        groups =
+            this.groups.map {
+                UserGroupProjection(
+                    id = GroupId(it.id),
+                    name = it.name,
+                    userStatus = PlayerStatusType.valueOf(it.userStatus),
+                    userRole = PlayerRole.valueOf(it.userRole),
+                    lastMatch = it.lastMatch,
+                )
+            },
+    )
 
-private fun UserProjection.toDocument() = UserDocument(
-    id = this.id.value,
-    nickName = this.nickName,
-    email = this.email,
-    userImageId = this.userImageId?.value,
-    groups = this.groups.map {
-        UserGroupDocument(
-            id = it.id.value,
-            name = it.name,
-            userRole = it.userRole.name,
-            userStatus = it.userStatus.name,
-            lastMatch = it.lastMatch
-        )
-    }
-)
+private fun UserProjection.toDocument() =
+    UserDocument(
+        id = this.id.value,
+        nickName = this.nickName,
+        email = this.email,
+        userImageId = this.userImageId?.value,
+        groups =
+            this.groups.map {
+                UserGroupDocument(
+                    id = it.id.value,
+                    name = it.name,
+                    userRole = it.userRole.name,
+                    userStatus = it.userStatus.name,
+                    lastMatch = it.lastMatch,
+                )
+            },
+    )

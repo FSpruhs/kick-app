@@ -1,12 +1,17 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.helper.JWTParser
-import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.exceptions.UserNotFoundException
+import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.Email
-import com.spruhs.kick_app.user.core.application.*
-import com.spruhs.kick_app.user.core.domain.*
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
+import com.spruhs.kick_app.user.core.application.RegisterUserCommand
+import com.spruhs.kick_app.user.core.application.UserCommandsPort
+import com.spruhs.kick_app.user.core.domain.CreateUserIdentityProviderException
+import com.spruhs.kick_app.user.core.domain.NickName
+import com.spruhs.kick_app.user.core.domain.Password
+import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -29,19 +34,22 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/user")
 class UserRestController(
     private val userCommandsPort: UserCommandsPort,
-    private val jwtParser: JWTParser
+    private val jwtParser: JWTParser,
 ) {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    suspend fun registerUser(@RequestBody request: RegisterUserRequest): String = userCommandsPort
-        .registerUser(request.toCommand()).aggregateId
+    suspend fun registerUser(
+        @RequestBody request: RegisterUserRequest,
+    ): String =
+        userCommandsPort
+            .registerUser(request.toCommand())
+            .aggregateId
 
     @PutMapping("/{userId}/nickName")
     suspend fun changeNickName(
         @PathVariable userId: String,
         @RequestParam nickName: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
         require(userId == jwtParser.getUserId(jwt).value) {
             throw UserNotAuthorizedException(UserId(userId))
@@ -53,7 +61,7 @@ class UserRestController(
     suspend fun changeUserImage(
         @RequestPart("file") file: FilePart,
         @PathVariable userId: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): String {
         require(userId == jwtParser.getUserId(jwt).value) {
             throw UserNotAuthorizedException(UserId(userId))
@@ -65,21 +73,17 @@ class UserRestController(
 
 @ControllerAdvice
 class UserExceptionHandler {
+    @ExceptionHandler
+    fun handleUserWithEmailAlreadyExistsException(e: UserWithEmailAlreadyExistsException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler
-    fun handleUserWithEmailAlreadyExistsException(e: UserWithEmailAlreadyExistsException) =
-        ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
-
-    @ExceptionHandler
-    fun handleUserNotAuthorizedException(e: UserNotAuthorizedException) =
-        ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
+    fun handleUserNotAuthorizedException(e: UserNotAuthorizedException) = ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
 
     @ExceptionHandler
     fun handleUserNotFoundException(e: UserNotFoundException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler
-    fun handleCreateUserIdentityProviderException(e: CreateUserIdentityProviderException) =
-        ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
+    fun handleCreateUserIdentityProviderException(e: CreateUserIdentityProviderException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 }
 
 data class RegisterUserRequest(
@@ -88,8 +92,9 @@ data class RegisterUserRequest(
     val password: String?,
 )
 
-private fun RegisterUserRequest.toCommand() = RegisterUserCommand(
-    nickName = NickName(this.nickName),
-    email = Email(this.email),
-    password = this.password?.let { Password.fromPlaintext(it) }
-)
+private fun RegisterUserRequest.toCommand() =
+    RegisterUserCommand(
+        nickName = NickName(this.nickName),
+        email = Email(this.email),
+        password = this.password?.let { Password.fromPlaintext(it) },
+    )

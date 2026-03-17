@@ -6,15 +6,25 @@ import com.spruhs.kick_app.common.es.AggregateRoot
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.exceptions.PlayerNotFoundException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
-import com.spruhs.kick_app.group.api.*
-import org.springframework.security.core.userdetails.User
+import com.spruhs.kick_app.group.api.GroupCreatedEvent
+import com.spruhs.kick_app.group.api.GroupNameChangedEvent
+import com.spruhs.kick_app.group.api.PlayerActivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDeactivatedEvent
+import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
+import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
+import com.spruhs.kick_app.group.api.PlayerInvitedEvent
+import com.spruhs.kick_app.group.api.PlayerLeavedEvent
+import com.spruhs.kick_app.group.api.PlayerPromotedEvent
+import com.spruhs.kick_app.group.api.PlayerRejectedGroupEvent
+import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 
-class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregateId, TYPE) {
-
+class GroupAggregate(
+    override val aggregateId: String,
+) : AggregateRoot(aggregateId, TYPE) {
     var name: Name = Name("Default")
     var players: MutableList<Player> = mutableListOf()
     var invitedUsers: MutableSet<UserId> = mutableSetOf()
@@ -59,21 +69,30 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         invitedUsers -= event.userId
     }
 
-    private fun handlePlayerRoleEvent(userId: UserId, playerRole: PlayerRole) {
+    private fun handlePlayerRoleEvent(
+        userId: UserId,
+        playerRole: PlayerRole,
+    ) {
         players.find { it.id == userId }?.let {
             players.remove(it)
             players.add(it.copy(role = playerRole))
         }
     }
 
-    private fun handlePlayerStatusEvent(userId: UserId, status: PlayerStatus) {
+    private fun handlePlayerStatusEvent(
+        userId: UserId,
+        status: PlayerStatus,
+    ) {
         players.find { it.id == userId }?.let {
             players.remove(it)
             players.add(it.copy(status = status))
         }
     }
 
-    fun createGroup(userId: UserId, name: Name) {
+    fun createGroup(
+        userId: UserId,
+        name: Name,
+    ) {
         apply(
             GroupCreatedEvent(
                 aggregateId = aggregateId,
@@ -81,11 +100,14 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
                 name = name.value,
                 userStatus = PlayerStatusType.ACTIVE,
                 userRole = PlayerRole.COACH,
-            )
+            ),
         )
     }
 
-    fun changeGroupName(userId: UserId, newName: Name) {
+    fun changeGroupName(
+        userId: UserId,
+        newName: Name,
+    ) {
         require(this.players.find { it.id == userId }?.role == PlayerRole.COACH) {
             throw UserNotAuthorizedException(userId)
         }
@@ -93,7 +115,10 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         apply(GroupNameChangedEvent(aggregateId, newName.value))
     }
 
-    fun inviteUser(inviterId: UserId, inviteeId: UserId) {
+    fun inviteUser(
+        inviterId: UserId,
+        inviteeId: UserId,
+    ) {
         this.players.find { it.id == inviterId && it.status.type() == PlayerStatusType.ACTIVE }
             ?: throw UserNotAuthorizedException(inviterId)
 
@@ -104,7 +129,10 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         apply(PlayerInvitedEvent(aggregateId, inviteeId, name.value))
     }
 
-    fun inviteUserResponse(userId: UserId, response: Boolean) {
+    fun inviteUserResponse(
+        userId: UserId,
+        response: Boolean,
+    ) {
         if (userId !in this.invitedUsers) {
             throw PlayerNotInvitedInGroupException(userId)
         }
@@ -116,15 +144,19 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
                     userId = userId,
                     groupName = name.value,
                     userStatus = PlayerStatusType.ACTIVE,
-                    userRole = PlayerRole.PLAYER
-                )
+                    userRole = PlayerRole.PLAYER,
+                ),
             )
         } else {
             apply(PlayerRejectedGroupEvent(aggregateId, userId))
         }
     }
 
-    fun updatePlayerRole(userId: UserId, updatingUserId: UserId, newRole: PlayerRole) {
+    fun updatePlayerRole(
+        userId: UserId,
+        updatingUserId: UserId,
+        newRole: PlayerRole,
+    ) {
         players.find { it.id == updatingUserId && it.role == PlayerRole.COACH }
             ?: throw UserNotAuthorizedException(updatingUserId)
 
@@ -137,21 +169,27 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
         }
     }
 
-    fun updatePlayerStatus(userId: UserId, updatingUserId: UserId, newStatus: PlayerStatusType) {
+    fun updatePlayerStatus(
+        userId: UserId,
+        updatingUserId: UserId,
+        newStatus: PlayerStatusType,
+    ) {
         val player = players.find { it.id == userId } ?: throw PlayerNotFoundException(userId)
-        val requestingPlayer = if (userId == updatingUserId) {
-            player
-        } else {
-            players.find { it.id == updatingUserId }
-                ?: throw PlayerNotFoundException(updatingUserId)
-        }
+        val requestingPlayer =
+            if (userId == updatingUserId) {
+                player
+            } else {
+                players.find { it.id == updatingUserId }
+                    ?: throw PlayerNotFoundException(updatingUserId)
+            }
 
-        val updatedStatus = when (newStatus) {
-            PlayerStatusType.ACTIVE -> player.status.activate(player, requestingPlayer)
-            PlayerStatusType.INACTIVE -> player.status.inactivate(player, requestingPlayer)
-            PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
-            PlayerStatusType.REMOVED -> player.status.remove(player, requestingPlayer)
-        }
+        val updatedStatus =
+            when (newStatus) {
+                PlayerStatusType.ACTIVE -> player.status.activate(player, requestingPlayer)
+                PlayerStatusType.INACTIVE -> player.status.inactivate(player, requestingPlayer)
+                PlayerStatusType.LEAVED -> player.status.leave(player, requestingPlayer)
+                PlayerStatusType.REMOVED -> player.status.remove(player, requestingPlayer)
+            }
 
         when (updatedStatus) {
             is Active -> apply(PlayerActivatedEvent(aggregateId, userId))
@@ -169,7 +207,7 @@ class GroupAggregate(override val aggregateId: String) : AggregateRoot(aggregate
 data class Player(
     val id: UserId,
     val status: PlayerStatus,
-    val role: PlayerRole
+    val role: PlayerRole,
 )
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -177,125 +215,166 @@ data class Player(
     JsonSubTypes.Type(value = Active::class, name = "ACTIVE"),
     JsonSubTypes.Type(value = Inactive::class, name = "INACTIVE"),
     JsonSubTypes.Type(value = Leaved::class, name = "LEAVED"),
-    JsonSubTypes.Type(value = Removed::class, name = "REMOVED")
+    JsonSubTypes.Type(value = Removed::class, name = "REMOVED"),
 )
 interface PlayerStatus {
-    fun activate(player: Player, requestingPlayer: Player): PlayerStatus
-    fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus
-    fun leave(player: Player, requestingPlayer: Player): PlayerStatus
-    fun remove(player: Player, requestingPlayer: Player): PlayerStatus
+    fun activate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus
+
+    fun inactivate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus
+
+    fun leave(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus
+
+    fun remove(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus
+
     fun type(): PlayerStatusType
 }
 
 class Active : PlayerStatus {
-    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun activate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return Inactive()
-    }
+    override fun inactivate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = Inactive()
 
-    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun leave(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player == requestingPlayer)
         return Leaved()
     }
 
-    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun remove(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player != requestingPlayer)
         require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
-    override fun type(): PlayerStatusType {
-        return PlayerStatusType.ACTIVE
-    }
+    override fun type(): PlayerStatusType = PlayerStatusType.ACTIVE
 }
 
 class Inactive : PlayerStatus {
-    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return Active()
-    }
+    override fun activate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = Active()
 
-    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun inactivate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun leave(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player == requestingPlayer)
         return Leaved()
     }
 
-    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun remove(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player != requestingPlayer)
         require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
-    override fun type(): PlayerStatusType {
-        return PlayerStatusType.INACTIVE
-    }
+    override fun type(): PlayerStatusType = PlayerStatusType.INACTIVE
 }
 
 class Leaved : PlayerStatus {
-    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player == requestingPlayer)
         return Active()
     }
 
-    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun inactivate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun leave(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun remove(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player != requestingPlayer)
         require(requestingPlayer.role == PlayerRole.COACH)
         return Removed()
     }
 
-    override fun type(): PlayerStatusType {
-        return PlayerStatusType.LEAVED
-    }
+    override fun type(): PlayerStatusType = PlayerStatusType.LEAVED
 }
 
 class Removed : PlayerStatus {
-    override fun activate(player: Player, requestingPlayer: Player): PlayerStatus {
+    override fun activate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus {
         require(player != requestingPlayer)
         require(requestingPlayer.role == PlayerRole.COACH)
         return Active()
     }
 
-    override fun inactivate(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun inactivate(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun leave(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun leave(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun remove(player: Player, requestingPlayer: Player): PlayerStatus {
-        return this
-    }
+    override fun remove(
+        player: Player,
+        requestingPlayer: Player,
+    ): PlayerStatus = this
 
-    override fun type(): PlayerStatusType {
-        return PlayerStatusType.REMOVED
-    }
+    override fun type(): PlayerStatusType = PlayerStatusType.REMOVED
 }
 
 @JvmInline
-value class Name(val value: String) {
+value class Name(
+    val value: String,
+) {
     init {
         require(value.length in 2..20)
     }
 }
 
+data class PlayerAlreadyInGroupException(
+    val userId: UserId,
+) : RuntimeException("User already in group: ${userId.value}")
 
-data class PlayerAlreadyInGroupException(val userId: UserId) :
-    RuntimeException("User already in group: ${userId.value}")
-
-data class PlayerNotInvitedInGroupException(val userId: UserId) :
-    RuntimeException("User not invited in group: ${userId.value}")
+data class PlayerNotInvitedInGroupException(
+    val userId: UserId,
+) : RuntimeException("User not invited in group: ${userId.value}")

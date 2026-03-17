@@ -4,13 +4,12 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.Around
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Pointcut
-import org.springframework.stereotype.Component
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 
 @Aspect
 @Component
-class EventListenerLoggingAspect {
-
+class EventListenerLogger {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     @Pointcut("@annotation(org.springframework.context.event.EventListener)")

@@ -1,34 +1,32 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
+import com.spruhs.kick_app.TestHelpers.jwtWithUserId
+import com.spruhs.kick_app.TestSecurityConfig
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.user.TestUserBuilder
+import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
+import com.spruhs.kick_app.user.core.domain.NickName
 import io.mockk.coEvery
 import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import com.spruhs.kick_app.TestHelpers.jwtWithUserId
-import com.spruhs.kick_app.TestSecurityConfig
-import com.spruhs.kick_app.user.TestUserBuilder
-import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
-import com.spruhs.kick_app.user.core.domain.NickName
-import org.assertj.core.api.Assertions.assertThat
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
-@Import(TestSecurityConfig::class, JWTParser::class, UserRestControllerIT.TestConfig::class)
-class UserRestControllerIT {
-
+@Import(TestSecurityConfig::class, JWTParser::class, UserRestControllerTest.TestConfig::class)
+class UserRestControllerTest {
     @TestConfiguration
     class TestConfig {
-
         @Bean
         fun userCommandsPort(): UserCommandsPort = mockk(relaxed = true)
     }
@@ -43,11 +41,13 @@ class UserRestControllerIT {
     fun `getUser should throw exception when different user requested`() {
         val userBuilder = TestUserBuilder()
 
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/api/v1/user/${userBuilder.id}")
             .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
             .exchange()
-            .expectStatus().isUnauthorized
+            .expectStatus()
+            .isUnauthorized
     }
 
     @Test
@@ -56,12 +56,14 @@ class UserRestControllerIT {
 
         coEvery { userCommandsPort.registerUser(any()) } returns userBuilder.buildAggregate()
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/user")
             .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
             .bodyValue(userBuilder.buildRegisterUserRequest())
             .exchange()
-            .expectStatus().isCreated
+            .expectStatus()
+            .isCreated
             .expectBody<String>()
             .consumeWith { response ->
                 assertThat(response.responseBody).isNotNull()
@@ -78,16 +80,18 @@ class UserRestControllerIT {
             userCommandsPort.changeNickName(
                 ChangeUserNickNameCommand(
                     UserId(userBuilder.id),
-                    newNickname
-                )
+                    newNickname,
+                ),
             )
         } returns Unit
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/user/${userBuilder.id}/nickName?nickName=${newNickname.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(userBuilder.id)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -95,10 +99,12 @@ class UserRestControllerIT {
         val userBuilder = TestUserBuilder()
         val newNickname = NickName("newNickName")
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/user/${userBuilder.id}/nickName?nickName=${newNickname.value}")
             .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
             .exchange()
-            .expectStatus().isUnauthorized
+            .expectStatus()
+            .isUnauthorized
     }
 }

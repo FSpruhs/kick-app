@@ -18,22 +18,22 @@ class AuthUseCasesPort(
     @Value("\${jwt.expiration.accessInMinuets}") private val accessExpiration: Long = 10,
     @Value("\${jwt.expiration.refreshInDays}") private val refreshExpiration: Long = 30,
 ) {
-
-
     suspend fun login(command: LoginCommand): AuthTokens {
         val authUser = fetchAuthUser(command.email)
         if (!authUser.password.matches(command.password)) {
             throw LoginException("Invalid email or password")
         }
 
-        val accessToken = jwtUtil.generateToken(
-            authUser.userId,
-            accessExpiration.minutes.inWholeMilliseconds
-        )
-        val refreshToken = jwtUtil.generateToken(
-            authUser.userId,
-            refreshExpiration.days.inWholeMilliseconds
-        )
+        val accessToken =
+            jwtUtil.generateToken(
+                authUser.userId,
+                accessExpiration.minutes.inWholeMilliseconds,
+            )
+        val refreshToken =
+            jwtUtil.generateToken(
+                authUser.userId,
+                refreshExpiration.days.inWholeMilliseconds,
+            )
 
         return AuthTokens(accessToken, refreshToken)
     }
@@ -62,7 +62,7 @@ data class LoginCommand(
 
 data class AuthTokens(
     val accessToken: String,
-    val refreshToken: String
+    val refreshToken: String,
 )
 
 data class LoginException(

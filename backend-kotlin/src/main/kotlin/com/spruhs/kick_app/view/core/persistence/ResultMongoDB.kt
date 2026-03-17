@@ -26,15 +26,16 @@ data class ResultDocument(
 
 data class PlayerResultDocument(
     val result: PlayerResult,
-    val team: MatchTeam
+    val team: MatchTeam,
 )
 
 @Service
 class ResultProjectionMongoDB(
-    private val repository: ResultRepository
+    private val repository: ResultRepository,
 ) : ResultProjectionRepository {
     override suspend fun findByMatchId(matchId: MatchId): ResultProjection? =
-        repository.findByMatchId(matchId.value)
+        repository
+            .findByMatchId(matchId.value)
             .map { it.toProjection() }
             .awaitFirstOrNull()
 
@@ -52,26 +53,30 @@ private fun ResultProjection.toDocument(): ResultDocument =
     ResultDocument(
         id = this.id,
         matchId = this.matchId.value,
-        players = this.players.mapKeys { (key, _) -> key.value }
-            .mapValues { (_, value) -> value.toDocument() }
+        players =
+            this.players
+                .mapKeys { (key, _) -> key.value }
+                .mapValues { (_, value) -> value.toDocument() },
     )
 
 private fun PlayerResultProjection.toDocument(): PlayerResultDocument =
     PlayerResultDocument(
         result = this.matchResult,
-        team = this.team
+        team = this.team,
     )
 
 private fun ResultDocument.toProjection(): ResultProjection =
     ResultProjection(
         id = this.id,
         matchId = MatchId(this.matchId),
-        players = this.players.mapKeys { (key, _) -> UserId(key) }
-            .mapValues { (_, value) -> value.toProjection() }
+        players =
+            this.players
+                .mapKeys { (key, _) -> UserId(key) }
+                .mapValues { (_, value) -> value.toProjection() },
     )
 
 private fun PlayerResultDocument.toProjection(): PlayerResultProjection =
     PlayerResultProjection(
         matchResult = this.result,
-        team = this.team
+        team = this.team,
     )

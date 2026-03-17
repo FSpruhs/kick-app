@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 class GroupProjectionMongoDBTest : AbstractMongoTest() {
-
     @Autowired
     private lateinit var adapter: GroupProjectionMongoDB
 
@@ -16,19 +15,20 @@ class GroupProjectionMongoDBTest : AbstractMongoTest() {
     private lateinit var groupRepository: GroupRepository
 
     @Test
-    fun `save should save group`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder().buildProjection()
+    fun `save should save group`(): Unit =
+        runBlocking {
+            // Given
+            val group = TestGroupBuilder().buildProjection()
 
-        // When
-        adapter.save(group)
+            // When
+            adapter.save(group)
 
-        // Then
-        adapter.findById(group.id).let { result ->
-            assertThat(result).isNotNull()
-            assertThat(result?.id).isEqualTo(group.id)
-            assertThat(result?.name).isEqualTo(group.name)
-            assertThat(result?.players).hasSize(group.players.size)
+            // Then
+            adapter.findById(group.id).let { result ->
+                assertThat(result).isNotNull()
+                assertThat(result?.id).isEqualTo(group.id)
+                assertThat(result?.name).isEqualTo(group.name)
+                assertThat(result?.players).hasSize(group.players.size)
+            }
         }
-    }
 }

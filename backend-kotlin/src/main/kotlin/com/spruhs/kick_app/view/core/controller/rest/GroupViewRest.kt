@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
-import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.GroupNameListEntry
 import com.spruhs.kick_app.view.core.service.GroupProjection
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/v1/group")
-
 class GroupViewRestController(
     private val jwtParser: JWTParser,
     private val groupService: GroupService,
@@ -24,33 +23,33 @@ class GroupViewRestController(
     @GetMapping("/{groupId}")
     suspend fun getGroup(
         @PathVariable groupId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): GroupMessage =
-        groupService.getGroup(GroupId(groupId), jwtParser.getUserId(jwt)).toMessage()
+        @AuthenticationPrincipal jwt: Jwt,
+    ): GroupMessage = groupService.getGroup(GroupId(groupId), jwtParser.getUserId(jwt)).toMessage()
 
     @GetMapping("{groupId}/player/{userId}")
     suspend fun getGroupPlayer(
         @PathVariable groupId: String,
         @PathVariable userId: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): GroupPlayerMessage =
-        groupService.getPlayer(GroupId(groupId), UserId(userId), jwtParser.getUserId(jwt))
+        groupService
+            .getPlayer(GroupId(groupId), UserId(userId), jwtParser.getUserId(jwt))
             .toMessage()
 
     @GetMapping("/{groupId}/name-list")
     suspend fun getGroupNameList(
         @PathVariable groupId: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): List<GroupNameEntryMessage> =
-        groupService.getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt))
+        groupService
+            .getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt))
             .map { it.toMessage() }
-
 }
 
 data class GroupMessage(
     val groupId: String,
     val name: String,
-    val players: List<GroupPlayerMessage>
+    val players: List<GroupPlayerMessage>,
 )
 
 data class GroupPlayerMessage(
@@ -66,21 +65,23 @@ data class GroupNameEntryMessage(
     val name: String,
 )
 
-private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage = GroupNameEntryMessage(
-    userId = userId.value,
-    name = name,
-)
+private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage =
+    GroupNameEntryMessage(
+        userId = userId.value,
+        name = name,
+    )
 
-private fun GroupProjection.toMessage(): GroupMessage = GroupMessage(
-    groupId = id.value,
-    name = name,
-    players = players.map { player -> player.toMessage() }
-)
+private fun GroupProjection.toMessage(): GroupMessage =
+    GroupMessage(
+        groupId = id.value,
+        name = name,
+        players = players.map { player -> player.toMessage() },
+    )
 
-
-private fun PlayerProjection.toMessage(): GroupPlayerMessage = GroupPlayerMessage(
-    userId = id.value,
-    role = role.name,
-    status = status.name,
-    email = email,
-)
+private fun PlayerProjection.toMessage(): GroupPlayerMessage =
+    GroupPlayerMessage(
+        userId = id.value,
+        role = role.name,
+        status = status.name,
+        email = email,
+    )

@@ -12,8 +12,6 @@ import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.user.TestUserBuilder
 import com.spruhs.kick_app.view.api.UserApi
-import com.spruhs.kick_app.view.api.UserData
-import com.structurizr.configuration.User
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -25,7 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 class GroupCommandPortTest {
-
     @MockK
     lateinit var aggregateStore: AggregateStore
 
@@ -36,182 +33,207 @@ class GroupCommandPortTest {
     lateinit var groupCommandPort: GroupCommandPort
 
     @Test
-    fun `test create group should return group`(): Unit = runBlocking {
-        // Given
-        val command = CreateGroupCommand(
-            userId = UserId("userId"),
-            name = Name("groupName")
-        )
-        coEvery { aggregateStore.save(any()) } returns Unit
+    fun `test create group should return group`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                CreateGroupCommand(
+                    userId = UserId("userId"),
+                    name = Name("groupName"),
+                )
+            coEvery { aggregateStore.save(any()) } returns Unit
 
-        // When
-        val result = groupCommandPort.createGroup(command)
+            // When
+            val result = groupCommandPort.createGroup(command)
 
-        // Then
-        assertThat(result.name.value).isEqualTo("groupName")
-    }
-
-    @Test
-    fun `test change group name should return group`(): Unit = runBlocking {
-        // Given
-        val command = ChangeGroupNameCommand(
-            userId = UserId("userId"),
-            groupId = GroupId("groupId"),
-            newName = Name("newGroupName"
-            ))
-        val group = GroupAggregate(command.userId.value)
-        group.name = Name("oldGroupName")
-        group.players = mutableListOf(Player(
-            id = command.userId,
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
-
-        coEvery {
-            aggregateStore.load(
-                command.groupId.value,
-                GroupAggregate::class.java
-            )
-        } returns group
-        coEvery { aggregateStore.save(any()) } returns Unit
-
-        // When
-        groupCommandPort.changeGroupName(command)
-
-        // Then
-        assertThat(group.name).isEqualTo(command.newName)
-    }
+            // Then
+            assertThat(result.name.value).isEqualTo("groupName")
+        }
 
     @Test
-    fun `invite user should invite user`(): Unit = runBlocking {
-        // Given
-        val command = InviteUserCommand(
-            inviterId = UserId("inviterId"),
-            email = Email("test@testen.com"),
-            groupId = GroupId("groupId")
-        )
-        val invitedUser = TestUserBuilder().buildData()
-        val group = GroupAggregate(command.inviterId.value)
-        group.players = mutableListOf(Player(
-            id = command.inviterId,
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
+    fun `test change group name should return group`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                ChangeGroupNameCommand(
+                    userId = UserId("userId"),
+                    groupId = GroupId("groupId"),
+                    newName =
+                        Name(
+                            "newGroupName",
+                        ),
+                )
+            val group = GroupAggregate(command.userId.value)
+            group.name = Name("oldGroupName")
+            group.players =
+                mutableListOf(
+                    Player(
+                        id = command.userId,
+                        role = PlayerRole.COACH,
+                        status = Active(),
+                    ),
+                )
 
-        coEvery {
-            aggregateStore.load(
-                command.groupId.value,
-                GroupAggregate::class.java
-            )
-        } returns group
-        coEvery { aggregateStore.save(any()) } returns Unit
-        coEvery { userApi.findUserByEmail(command.email) } returns TestUserBuilder().buildData()
+            coEvery {
+                aggregateStore.load(
+                    command.groupId.value,
+                    GroupAggregate::class.java,
+                )
+            } returns group
+            coEvery { aggregateStore.save(any()) } returns Unit
 
-        // When
-        groupCommandPort.inviteUser(command)
+            // When
+            groupCommandPort.changeGroupName(command)
 
-        // Then
-        assertThat(group.invitedUsers).containsExactlyInAnyOrder(invitedUser.id)
-    }
-
-    @Test
-    fun `update player role should update player role`(): Unit = runBlocking {
-        // Given
-        val command = UpdatePlayerRoleCommand(
-            userId = UserId("userId"),
-            updatingUserId = UserId("updatingUserId"),
-            groupId = GroupId("groupId"),
-            newRole = PlayerRole.COACH,
-        )
-        val group = GroupAggregate(command.userId.value)
-        group.players = mutableListOf(Player(
-            id = command.userId,
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ),
-            Player(
-                id = command.updatingUserId,
-                role = PlayerRole.COACH,
-                status = Active(),
-            )
-        )
-
-        coEvery {
-            aggregateStore.load(
-                command.groupId.value,
-                GroupAggregate::class.java
-            )
-        } returns group
-        coEvery { aggregateStore.save(any()) } returns Unit
-
-        // When
-        groupCommandPort.updatePlayerRole(command)
-
-        // Then
-        assertThat(group.players[0].role).isEqualTo(command.newRole)
-    }
+            // Then
+            assertThat(group.name).isEqualTo(command.newName)
+        }
 
     @Test
-    fun `update player status should update player status`(): Unit = runBlocking {
-        // Given
-        val command = UpdatePlayerStatusCommand(
-            userId = UserId("userId"),
-            updatingUserId = UserId("updatingUserId"),
-            groupId = GroupId("groupId"),
-            newStatus = PlayerStatusType.REMOVED,
-        )
-        val group = GroupAggregate(command.userId.value)
-        group.players = mutableListOf(Player(
-            id = command.userId,
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ),
-            Player(
-                id = command.updatingUserId,
-                role = PlayerRole.COACH,
-                status = Active(),
-            )
-        )
+    fun `invite user should invite user`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                InviteUserCommand(
+                    inviterId = UserId("inviterId"),
+                    email = Email("test@testen.com"),
+                    groupId = GroupId("groupId"),
+                )
+            val invitedUser = TestUserBuilder().buildData()
+            val group = GroupAggregate(command.inviterId.value)
+            group.players =
+                mutableListOf(
+                    Player(
+                        id = command.inviterId,
+                        role = PlayerRole.COACH,
+                        status = Active(),
+                    ),
+                )
 
-        coEvery {
-            aggregateStore.load(
-                command.groupId.value,
-                GroupAggregate::class.java
-            )
-        } returns group
-        coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery {
+                aggregateStore.load(
+                    command.groupId.value,
+                    GroupAggregate::class.java,
+                )
+            } returns group
+            coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { userApi.findUserByEmail(command.email) } returns TestUserBuilder().buildData()
 
-        // When
-        groupCommandPort.updatePlayerStatus(command)
+            // When
+            groupCommandPort.inviteUser(command)
 
-        // Then
-        assertThat(group.players[1].status.type()).isEqualTo(command.newStatus)
-    }
+            // Then
+            assertThat(group.invitedUsers).containsExactlyInAnyOrder(invitedUser.id)
+        }
 
     @Test
-    fun `invite user response should handle user response`(): Unit = runBlocking {
-        // Given
-        val command = InviteUserResponseCommand(
-            userId = UserId("userId"),
-            groupId = GroupId("groupId"),
-            response = true
-        )
-        val group = GroupAggregate(command.userId.value)
-        group.invitedUsers = mutableSetOf(command.userId)
+    fun `update player role should update player role`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                UpdatePlayerRoleCommand(
+                    userId = UserId("userId"),
+                    updatingUserId = UserId("updatingUserId"),
+                    groupId = GroupId("groupId"),
+                    newRole = PlayerRole.COACH,
+                )
+            val group = GroupAggregate(command.userId.value)
+            group.players =
+                mutableListOf(
+                    Player(
+                        id = command.userId,
+                        role = PlayerRole.PLAYER,
+                        status = Active(),
+                    ),
+                    Player(
+                        id = command.updatingUserId,
+                        role = PlayerRole.COACH,
+                        status = Active(),
+                    ),
+                )
 
-        coEvery {
-            aggregateStore.load(
-                command.groupId.value,
-                GroupAggregate::class.java
-            )
-        } returns group
+            coEvery {
+                aggregateStore.load(
+                    command.groupId.value,
+                    GroupAggregate::class.java,
+                )
+            } returns group
+            coEvery { aggregateStore.save(any()) } returns Unit
 
-        coEvery { aggregateStore.save(any()) } returns Unit
+            // When
+            groupCommandPort.updatePlayerRole(command)
 
-        // When
-        groupCommandPort.inviteUserResponse(command)
+            // Then
+            assertThat(group.players[0].role).isEqualTo(command.newRole)
+        }
 
-        // Then
-        assertThat(group.players).hasSize(1)
-    }
+    @Test
+    fun `update player status should update player status`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                UpdatePlayerStatusCommand(
+                    userId = UserId("userId"),
+                    updatingUserId = UserId("updatingUserId"),
+                    groupId = GroupId("groupId"),
+                    newStatus = PlayerStatusType.REMOVED,
+                )
+            val group = GroupAggregate(command.userId.value)
+            group.players =
+                mutableListOf(
+                    Player(
+                        id = command.userId,
+                        role = PlayerRole.PLAYER,
+                        status = Active(),
+                    ),
+                    Player(
+                        id = command.updatingUserId,
+                        role = PlayerRole.COACH,
+                        status = Active(),
+                    ),
+                )
+
+            coEvery {
+                aggregateStore.load(
+                    command.groupId.value,
+                    GroupAggregate::class.java,
+                )
+            } returns group
+            coEvery { aggregateStore.save(any()) } returns Unit
+
+            // When
+            groupCommandPort.updatePlayerStatus(command)
+
+            // Then
+            assertThat(group.players[1].status.type()).isEqualTo(command.newStatus)
+        }
+
+    @Test
+    fun `invite user response should handle user response`(): Unit =
+        runBlocking {
+            // Given
+            val command =
+                InviteUserResponseCommand(
+                    userId = UserId("userId"),
+                    groupId = GroupId("groupId"),
+                    response = true,
+                )
+            val group = GroupAggregate(command.userId.value)
+            group.invitedUsers = mutableSetOf(command.userId)
+
+            coEvery {
+                aggregateStore.load(
+                    command.groupId.value,
+                    GroupAggregate::class.java,
+                )
+            } returns group
+
+            coEvery { aggregateStore.save(any()) } returns Unit
+
+            // When
+            groupCommandPort.inviteUserResponse(command)
+
+            // Then
+            assertThat(group.players).hasSize(1)
+        }
 }

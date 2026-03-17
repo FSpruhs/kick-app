@@ -28,7 +28,6 @@ import org.springframework.test.web.reactive.server.expectBody
 @Import(TestSecurityConfig::class, JWTParser::class, LoginRestControllerTest.TestConfig::class)
 @ActiveProfiles("jwtSecurity")
 class LoginRestControllerTest {
-
     @TestConfiguration
     class TestConfig {
         @Bean
@@ -47,24 +46,28 @@ class LoginRestControllerTest {
     @Test
     fun `login should authenticate user`() {
         val userId = "testUserId"
-        val loginRequest = LoginRequest(
-            email = "test@testen.com",
-            password = "Testpassword123"
-        )
+        val loginRequest =
+            LoginRequest(
+                email = "test@testen.com",
+                password = "Testpassword123",
+            )
 
-        val authResponse = AuthTokens(
-            accessToken = "accessToken",
-            refreshToken = "refreshToken",
-        )
+        val authResponse =
+            AuthTokens(
+                accessToken = "accessToken",
+                refreshToken = "refreshToken",
+            )
 
         coEvery { authUseCases.login(LoginCommand(Email(loginRequest.email), loginRequest.password)) }.returns(authResponse)
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/auth/login")
             .header("Authorization", "Bearer ${jwtWithUserId(userId)}")
             .bodyValue(loginRequest)
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<AuthResponse>()
             .consumeWith { response ->
                 val body = response.responseBody
@@ -76,18 +79,21 @@ class LoginRestControllerTest {
 
     @Test
     fun `login should return unauthorized for invalid credentials`() {
-        val loginRequest = LoginRequest(
-            email = "test@testen.com",
-            password = "Testpassword123"
-        )
+        val loginRequest =
+            LoginRequest(
+                email = "test@testen.com",
+                password = "Testpassword123",
+            )
         coEvery { authUseCases.login(any()) }
             .throws(LoginException("Invalid credentials"))
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/auth/login")
             .bodyValue(loginRequest)
             .exchange()
-            .expectStatus().isUnauthorized
+            .expectStatus()
+            .isUnauthorized
             .expectBody<String>()
             .consumeWith { response ->
                 val body = response.responseBody
@@ -99,16 +105,19 @@ class LoginRestControllerTest {
     fun `refresh should return new tokens`() {
         val userId = "testUserId"
         val refreshToken = "refreshToken"
-        val authResponse = AuthTokens(
-            accessToken = "accessToken",
-            refreshToken = "newRefreshToken",
-        )
+        val authResponse =
+            AuthTokens(
+                accessToken = "accessToken",
+                refreshToken = "newRefreshToken",
+            )
         coEvery { authUseCases.refresh(refreshToken) }.returns(authResponse)
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/auth/refresh/$refreshToken")
             .header("Authorization", "Bearer ${jwtWithUserId(userId)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<AuthResponse>()
             .consumeWith { response ->
                 val body = response.responseBody

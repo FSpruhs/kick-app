@@ -8,9 +8,9 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.message.core.adapter.primary.MessageResponse
 import com.spruhs.kick_app.message.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.message.core.application.MessageUseCases
-import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import com.spruhs.kick_app.message.core.domain.Message
 import com.spruhs.kick_app.message.core.domain.MessageType
+import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
@@ -29,7 +29,6 @@ import java.time.LocalDateTime
 @AutoConfigureWebTestClient
 @Import(TestSecurityConfig::class, JWTParser::class, MessageRestControllerTest.TestConfig::class)
 class MessageRestControllerTest {
-
     @TestConfiguration
     class TestConfig {
         @Bean
@@ -48,33 +47,37 @@ class MessageRestControllerTest {
     @Test
     fun `getMessages should get messages`() {
         val userId = "testUserId"
-        val message = Message(
-            id = MessageId("messageId"),
-            user = UserId(userId),
-            text = "Hello",
-            timeStamp = LocalDateTime.now(),
-            type = MessageType.USER_REMOVED_FROM_GROUP,
-            isRead = false,
-            variables = emptyMap()
-        )
+        val message =
+            Message(
+                id = MessageId("messageId"),
+                user = UserId(userId),
+                text = "Hello",
+                timeStamp = LocalDateTime.now(),
+                type = MessageType.USER_REMOVED_FROM_GROUP,
+                isRead = false,
+                variables = emptyMap(),
+            )
 
-        val messageResponse = MessageResponse(
-            id = message.id.value,
-            userId = message.user.value,
-            text = message.text,
-            timeStamp = message.timeStamp.toString(),
-            type = message.type,
-            isRead = message.isRead,
-            variables = message.variables
-        )
+        val messageResponse =
+            MessageResponse(
+                id = message.id.value,
+                userId = message.user.value,
+                text = message.text,
+                timeStamp = message.timeStamp.toString(),
+                type = message.type,
+                isRead = message.isRead,
+                variables = message.variables,
+            )
 
         coEvery { messageUseCases.getByUser(UserId(userId)) } returns listOf(message)
 
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/api/v1/message/user/$userId")
             .header("Authorization", "Bearer ${jwtWithUserId(userId)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<List<MessageResponse>>()
             .consumeWith { response ->
                 assertThat(response.responseBody).isNotNull()
@@ -84,11 +87,13 @@ class MessageRestControllerTest {
 
     @Test
     fun `getMessages should throw exception when different user requested`() {
-        webTestClient.get()
+        webTestClient
+            .get()
             .uri("/api/v1/message/user/testUserId")
             .header("Authorization", "Bearer ${jwtWithUserId("differentId")}")
             .exchange()
-            .expectStatus().isUnauthorized
+            .expectStatus()
+            .isUnauthorized
     }
 
     @Test
@@ -98,10 +103,12 @@ class MessageRestControllerTest {
 
         coEvery { messageUseCases.markAsRead(MarkAsReadCommand(MessageId(messageId), UserId(userId))) } returns Unit
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/message/$messageId/read")
             .header("Authorization", "Bearer ${jwtWithUserId(userId)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 }

@@ -37,12 +37,12 @@ data class MatchDocument(
     var cadrePlayers: Set<RegisteredPlayerInfoDocument>,
     var deregisteredPlayers: Set<RegisteredPlayerInfoDocument>,
     var waitingBenchPlayers: Set<RegisteredPlayerInfoDocument>,
-    var result: List<MatchResultDocument>
+    var result: List<MatchResultDocument>,
 )
 
 data class RegisteredPlayerInfoDocument(
     val userId: String,
-    val guestOf: String?
+    val guestOf: String?,
 )
 
 data class MatchResultDocument(
@@ -53,92 +53,108 @@ data class MatchResultDocument(
 
 @Service
 class MatchProjectionMongoDB(
-    private val repository: MatchRepository
+    private val repository: MatchRepository,
 ) : MatchProjectionRepository {
     override suspend fun save(matchProjection: MatchProjection) {
         repository.save(matchProjection.toDocument()).awaitSingle()
     }
 
     override suspend fun findById(matchId: MatchId): MatchProjection? =
-        repository.findById(matchId.value)
+        repository
+            .findById(matchId.value)
             .awaitFirstOrNull()
             ?.toProjection()
 
     override suspend fun findAllByGroupId(
         groupId: GroupId,
-        filter: MatchFilter
-    ): List<MatchProjection> = repository.findFilteredMatches(groupId.value, filter)
-        .map { it.toProjection() }
-        .collectList()
-        .awaitSingle()
+        filter: MatchFilter,
+    ): List<MatchProjection> =
+        repository
+            .findFilteredMatches(groupId.value, filter)
+            .map { it.toProjection() }
+            .collectList()
+            .awaitSingle()
 }
 
 @Repository
-interface MatchRepository : ReactiveMongoRepository<MatchDocument, String>, MatchRepositoryCustom
+interface MatchRepository :
+    ReactiveMongoRepository<MatchDocument, String>,
+    MatchRepositoryCustom
 
-interface MatchRepositoryCustom {
-    fun findFilteredMatches(groupId: String, filter: MatchFilter): Flux<MatchDocument>
+fun interface MatchRepositoryCustom {
+    fun findFilteredMatches(
+        groupId: String,
+        filter: MatchFilter,
+    ): Flux<MatchDocument>
 }
 
 class MatchRepositoryImpl(
     private val mongoTemplate: ReactiveMongoTemplate,
 ) : MatchRepositoryCustom {
-    override fun findFilteredMatches(groupId: String, filter: MatchFilter): Flux<MatchDocument> {
-
-        val criteria = buildList {
-            add(Criteria.where(MatchDocument::groupId.name).`is`(groupId))
-            add(Criteria.where(MatchDocument::canceled.name).`is`(false))
-            filter.after?.let { add(Criteria.where(MatchDocument::start.name).gte(it)) }
-            filter.before?.let { add(Criteria.where(MatchDocument::start.name).lte(it)) }
-            filter.userId?.let {
-                add(Criteria.where("${MatchDocument::result.name}.${MatchResultDocument::userId.name}").`is`(it.value))
+    override fun findFilteredMatches(
+        groupId: String,
+        filter: MatchFilter,
+    ): Flux<MatchDocument> {
+        val criteria =
+            buildList {
+                add(Criteria.where(MatchDocument::groupId.name).`is`(groupId))
+                add(Criteria.where(MatchDocument::canceled.name).`is`(false))
+                filter.after?.let { add(Criteria.where(MatchDocument::start.name).gte(it)) }
+                filter.before?.let { add(Criteria.where(MatchDocument::start.name).lte(it)) }
+                filter.userId?.let {
+                    add(Criteria.where("${MatchDocument::result.name}.${MatchResultDocument::userId.name}").`is`(it.value))
+                }
             }
-        }
 
-        val query = Query().apply {
-            if (criteria.isNotEmpty()) {
-                addCriteria(Criteria().andOperator(*criteria.toTypedArray()))
+        val query =
+            Query().apply {
+                if (criteria.isNotEmpty()) {
+                    addCriteria(Criteria().andOperator(*criteria.toTypedArray()))
+                }
+                with(Sort.by(Sort.Direction.DESC, MatchDocument::start.name))
+                filter.limit?.let { limit(it) }
             }
-            with(Sort.by(Sort.Direction.DESC, MatchDocument::start.name))
-            filter.limit?.let { limit(it) }
-        }
 
         return mongoTemplate.find(query, MatchDocument::class.java)
     }
 }
 
-private fun MatchDocument.toProjection() = MatchProjection(
-    id = MatchId(id),
-    groupId = GroupId(groupId),
-    start = start,
-    playground = playground,
-    isCanceled = this.canceled,
-    maxPlayer = maxPlayer,
-    minPlayer = minPlayer,
-    result = result.map {
-        ParticipatingPlayer(
-            userId = UserId(it.userId),
-            playerResult = PlayerResult.valueOf(it.result),
-            team = MatchTeam.valueOf(it.team)
-        )
-    },
-    cadrePlayers = cadrePlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
-    waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
-    deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let {UserId(it)}) }.toSet(),
-)
+private fun MatchDocument.toProjection() =
+    MatchProjection(
+        id = MatchId(id),
+        groupId = GroupId(groupId),
+        start = start,
+        playground = playground,
+        isCanceled = this.canceled,
+        maxPlayer = maxPlayer,
+        minPlayer = minPlayer,
+        result =
+            result.map {
+                ParticipatingPlayer(
+                    userId = UserId(it.userId),
+                    playerResult = PlayerResult.valueOf(it.result),
+                    team = MatchTeam.valueOf(it.team),
+                )
+            },
+        cadrePlayers = cadrePlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let { UserId(it) }) }.toSet(),
+        waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let { UserId(it) }) }.toSet(),
+        deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfo(UserId(it.userId), it.guestOf?.let { UserId(it) }) }.toSet(),
+    )
 
-private fun MatchProjection.toDocument() = MatchDocument(
-    id = id.value,
-    groupId = groupId.value,
-    start = start,
-    playground = playground,
-    maxPlayer = maxPlayer,
-    minPlayer = minPlayer,
-    canceled = isCanceled,
-    cadrePlayers = cadrePlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
-    deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
-    waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
-    result = result.map {
-        MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name)
-    }
-)
+private fun MatchProjection.toDocument() =
+    MatchDocument(
+        id = id.value,
+        groupId = groupId.value,
+        start = start,
+        playground = playground,
+        maxPlayer = maxPlayer,
+        minPlayer = minPlayer,
+        canceled = isCanceled,
+        cadrePlayers = cadrePlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
+        deregisteredPlayers = deregisteredPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
+        waitingBenchPlayers = waitingBenchPlayers.map { RegisteredPlayerInfoDocument(it.userId.value, it.guestOf?.value) }.toSet(),
+        result =
+            result.map {
+                MatchResultDocument(it.userId.value, it.team.name, it.playerResult.name)
+            },
+    )

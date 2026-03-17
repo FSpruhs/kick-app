@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 class SampleDataLoader(
     private val importers: List<SampleDataImporter>,
     private val databaseCleaner: List<DatabaseCleaner>,
-    @Value("\${app.load-sample-data}") private val loadSampleData: Boolean
+    @Value("\${app.load-sample-data}") private val loadSampleData: Boolean,
 ) {
     private val log = getLogger(this::class.java)
 
@@ -26,15 +26,15 @@ class SampleDataLoader(
         databaseCleaner.forEach { it.clean() }
 
         log.info("Loading sample data...")
-        importers.forEach { it.import()}
+        importers.forEach { it.import() }
     }
 }
 
-interface SampleDataImporter {
+fun interface SampleDataImporter {
     suspend fun import()
 }
 
-interface DatabaseCleaner {
+fun interface DatabaseCleaner {
     suspend fun clean()
 }
 
@@ -43,7 +43,6 @@ interface DatabaseCleaner {
 class MongoDBCleaner(
     private val mongoTemplate: MongoTemplate,
 ) : DatabaseCleaner {
-
     private val log = getLogger(this::class.java)
 
     override suspend fun clean() {
@@ -64,7 +63,6 @@ class MongoDBCleaner(
 class PostgreSQLCleaner(
     private val client: DatabaseClient,
 ) : DatabaseCleaner {
-
     private val log = getLogger(this::class.java)
 
     override suspend fun clean() {

@@ -21,12 +21,11 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest
 @Import(MongoTestConfig::class)
 abstract class AbstractMongoTest {
-
     companion object {
-
-        private val mongoContainer = MongoDBContainer("mongo:7.0").apply {
-            start()
-        }
+        private val mongoContainer =
+            MongoDBContainer("mongo:7.0").apply {
+                start()
+            }
 
         @JvmStatic
         @DynamicPropertySource
@@ -47,21 +46,20 @@ abstract class AbstractMongoTest {
 @TestConfiguration
 class MongoTestConfig {
     @Bean
-    fun fakeUserIdentityProvider(): UserIdentityProviderPort = object : UserIdentityProviderPort {
-        override suspend fun save(
-            email: Email,
-            nickName: NickName,
-            password: Password?,
-            userId: UserId?
-        ): UserId {
-            return UserId("fake-user-id")
-        }
+    fun fakeUserIdentityProvider(): UserIdentityProviderPort =
+        object : UserIdentityProviderPort {
+            override suspend fun save(
+                email: Email,
+                nickName: NickName,
+                password: Password?,
+                userId: UserId?,
+            ): UserId = UserId("fake-user-id")
 
-        override suspend fun changeNickName(
-            userId: UserId,
-            nickName: NickName
-        ) {
-            println()
+            override suspend fun changeNickName(
+                userId: UserId,
+                nickName: NickName,
+            ) {
+                println()
+            }
         }
-    }
 }

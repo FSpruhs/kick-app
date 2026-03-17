@@ -7,10 +7,10 @@ import org.springframework.modulith.docs.Documenter
 import org.springframework.modulith.test.TestApplicationModules
 
 class SpringModulithApplicationTest {
-
     @Test
     fun verifiesModularStructure() {
-        ApplicationModules.of(KickAppApplication::class.java)
+        ApplicationModules
+            .of(KickAppApplication::class.java)
             .verify()
     }
 

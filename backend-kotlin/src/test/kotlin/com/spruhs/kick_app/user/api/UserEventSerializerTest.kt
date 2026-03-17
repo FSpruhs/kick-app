@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 class UserEventSerializerTest {
-
     @ParameterizedTest
     @MethodSource("data")
     fun `serialize and deserialize user events`(event: Any) {
@@ -26,10 +25,11 @@ class UserEventSerializerTest {
 
     companion object {
         @JvmStatic
-        fun data() = listOf(
-            UserCreatedEvent("userId", "email", "nickName"),
-            UserNickNameChangedEvent("userId", "newNickName"),
-            UserImageUpdatedEvent("userId", UserImageId("imageId"))
-        )
+        fun data() =
+            listOf(
+                UserCreatedEvent("userId", "email", "nickName"),
+                UserNickNameChangedEvent("userId", "newNickName"),
+                UserImageUpdatedEvent("userId", UserImageId("imageId")),
+            )
     }
 }

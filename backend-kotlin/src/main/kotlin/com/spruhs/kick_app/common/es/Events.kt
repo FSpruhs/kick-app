@@ -4,13 +4,14 @@ import com.spruhs.kick_app.common.helper.getLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 
-interface EventPublisher {
+fun interface EventPublisher {
     fun publish(events: List<Any>)
 }
 
 @Service
-class EventPublisherAdapter(val applicationEventPublisher: ApplicationEventPublisher) : EventPublisher {
-
+class EventPublisherAdapter(
+    val applicationEventPublisher: ApplicationEventPublisher,
+) : EventPublisher {
     private val log = getLogger(this::class.java)
 
     override fun publish(events: List<Any>) {
@@ -20,4 +21,3 @@ class EventPublisherAdapter(val applicationEventPublisher: ApplicationEventPubli
         }
     }
 }
-

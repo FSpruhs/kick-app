@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.architecture
 
-
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import org.junit.jupiter.api.Test
@@ -12,8 +11,10 @@ class HexagonalArchitectureTests {
     @Test
     fun `domain should not depend on application or adapter`() {
         noClasses()
-            .that().resideInAPackage("..domain..")
-            .should().dependOnClassesThat()
+            .that()
+            .resideInAPackage("..domain..")
+            .should()
+            .dependOnClassesThat()
             .resideInAnyPackage("..application..", "..adapter..")
             .check(importedClasses)
     }
@@ -21,8 +22,10 @@ class HexagonalArchitectureTests {
     @Test
     fun `application should not depend on adapter`() {
         noClasses()
-            .that().resideInAPackage("..application..")
-            .should().dependOnClassesThat()
+            .that()
+            .resideInAPackage("..application..")
+            .should()
+            .dependOnClassesThat()
             .resideInAPackage("..adapter..")
             .check(importedClasses)
     }

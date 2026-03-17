@@ -7,8 +7,11 @@ import com.spruhs.kick_app.common.types.UserImageId
 
 interface UserApi {
     suspend fun findUserById(userId: UserId): UserData
+
     suspend fun getGroups(userId: UserId): List<GroupId>
+
     suspend fun existsByEmail(email: Email): Boolean
+
     suspend fun findUserByEmail(email: Email): UserData?
 }
 

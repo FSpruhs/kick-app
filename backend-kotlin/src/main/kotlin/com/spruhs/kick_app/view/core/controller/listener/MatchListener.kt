@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
-import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -20,7 +20,7 @@ class MatchListener(
     private val eventExecutionStrategy: EventExecutionStrategy,
     private val userService: UserService,
     private val matchService: MatchService,
-    private val statisticService: StatisticService
+    private val statisticService: StatisticService,
 ) {
     @EventListener(MatchResultEnteredEvent::class)
     fun onStatisticRelevantEvent(event: MatchResultEnteredEvent) {

@@ -14,9 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDateTime
 
-
 class MatchAggregateTest {
-
     @Test
     fun `planMatch should plan a match`() {
         // Given
@@ -32,7 +30,7 @@ class MatchAggregateTest {
             groupId = groupId,
             start = start,
             playground = playground,
-            playerCount = playerCount
+            playerCount = playerCount,
         )
 
         // Then
@@ -74,7 +72,6 @@ class MatchAggregateTest {
         val matchAggregate = MatchAggregate("matchId")
         matchAggregate.start = LocalDateTime.now()
 
-
         assertThatThrownBy {
             // When
             matchAggregate.cancelMatch()
@@ -110,7 +107,7 @@ class MatchAggregateTest {
 
         assertThatThrownBy {
             // When
-            matchAggregate.enterResult( participatingPlayers)
+            matchAggregate.enterResult(participatingPlayers)
 
             // Then
         }.isInstanceOf(MatchCanceledException::class.java)
@@ -173,17 +170,31 @@ class MatchAggregateTest {
         matchAggregate.playerCount = PlayerCount(MinPlayer(4), MaxPlayer(6))
         testData.cadre.forEach { matchAggregate.cadre.add(it) }
         when (testData.oldRegistrationStatus) {
-            RegistrationStatus.Added -> matchAggregate.cadre.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Cancelled -> matchAggregate.waitingBench.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Deregistered -> matchAggregate.deregistered.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
-            RegistrationStatus.Registered -> matchAggregate.cadre.add(RegisteredPlayer.MainPlayer(newPlayerId, 0,LocalDateTime.now(), testData.oldRegistrationStatus))
+            RegistrationStatus.Added ->
+                matchAggregate.cadre.add(
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                )
+            RegistrationStatus.Cancelled ->
+                matchAggregate.waitingBench.add(
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                )
+            RegistrationStatus.Deregistered ->
+                matchAggregate.deregistered.add(
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                )
+            RegistrationStatus.Registered ->
+                matchAggregate.cadre.add(
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                )
         }
 
         // When
         matchAggregate.addRegistration(newPlayerId, testData.newRegistrationStatusType)
 
         // Then
-        assertThat(matchAggregate.cadre.size).isEqualTo(testData.cadre.size + 1 - testData.deregisteredPlayers - testData.placedOnWaitingBench - testData.canceledPlayer)
+        assertThat(matchAggregate.cadre.size).isEqualTo(
+            testData.cadre.size + 1 - testData.deregisteredPlayers - testData.placedOnWaitingBench - testData.canceledPlayer,
+        )
         when {
             testData.deregisteredPlayers == 1 -> {
                 matchAggregate.deregistered.filterIsInstance<RegisteredPlayer.MainPlayer>().find { it.userId == newPlayerId }.let { player ->
@@ -284,7 +295,7 @@ class MatchAggregateTest {
             val expectedWaitingPlayers: Int = 0,
             val expectedCadrePlayers: Int = 0,
             val expectedEventType: List<Class<out BaseEvent>> = emptyList(),
-            val expectedUserIds: List<UserId> = emptyList()
+            val expectedUserIds: List<UserId> = emptyList(),
         )
 
         data class UnregisteredPlayerTestData(
@@ -293,7 +304,7 @@ class MatchAggregateTest {
             val addedPlayers: Int = 0,
             val waitingPlayers: Int = 0,
             val exceptedStatus: RegistrationStatus? = null,
-            val expectedEventType: Class<out BaseEvent>? = null
+            val expectedEventType: Class<out BaseEvent>? = null,
         )
 
         data class RegisteredPlayerTestData(
@@ -304,7 +315,7 @@ class MatchAggregateTest {
             val placedOnWaitingBench: Int = 0,
             val canceledPlayer: Int = 0,
             val exceptedStatus: RegistrationStatus,
-            val expectedEventType: Class<out BaseEvent>? = null
+            val expectedEventType: Class<out BaseEvent>? = null,
         )
 
         data class RegisteredPlayerWithGuestTestData(
@@ -315,381 +326,397 @@ class MatchAggregateTest {
             val expectedCadreMainPlayers: Int = 0,
             val expectedCadreGuestPlayers: Int = 0,
             val expectedWaitingBenchMainPlayers: Int = 0,
-            val expectedWaitingBenchGuestPlayers: Int = 0
+            val expectedWaitingBenchGuestPlayers: Int = 0,
         )
 
-        val fullCadreWithGuests = listOf(
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 1"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 2"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 3"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.GuestPlayer(
-                guestId = "guest 1",
-                guestOf = UserId("player 3"),
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.GuestPlayer(
-                guestId = "guest 2",
-                guestOf = UserId("player 3"),
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 6"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Added
-            )
-        )
-
-        val fullCadre = listOf(
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 1"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 2"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 3"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 4"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 5"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 6"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Added
-            )
-        )
-        val nonFullCadre = listOf(
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 1"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 2"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 3"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 4"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-            RegisteredPlayer.MainPlayer(
-                userId = UserId("player 5"),
-                guests = 0,
-                registeredAt = LocalDateTime.now(),
-                registrationStatus = RegistrationStatus.Registered
-            ),
-        )
-
-        @JvmStatic
-        fun registeredGuestPlayers() = listOf(
-            RegisteredPlayerWithGuestTestData(
-                userId = UserId("new player"),
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                guests = 2,
-                cadre = nonFullCadre,
-                expectedCadreMainPlayers = 6,
-                expectedWaitingBenchGuestPlayers = 2
-            ),
-            RegisteredPlayerWithGuestTestData(
-                userId = UserId("new player"),
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                guests = 2,
-                cadre = emptyList(),
-                expectedCadreMainPlayers = 1,
-                expectedCadreGuestPlayers = 2
-            ),
-            RegisteredPlayerWithGuestTestData(
-                userId = UserId("new player"),
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                guests = 2,
-                cadre = fullCadreWithGuests,
-                expectedCadreMainPlayers = 5,
-                expectedCadreGuestPlayers = 1,
-                expectedWaitingBenchGuestPlayers = 3
-            ),
-            RegisteredPlayerWithGuestTestData(
-                userId = UserId("new player"),
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                guests = 2,
-                cadre = fullCadre,
-                expectedCadreMainPlayers = 6,
-                expectedWaitingBenchMainPlayers = 1,
-                expectedWaitingBenchGuestPlayers = 2
-            ),
-            RegisteredPlayerWithGuestTestData(
-                userId = UserId("new player"),
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                guests = 2,
-                cadre = fullCadre.subList(0, 4),
-                expectedCadreMainPlayers = 5,
-                expectedCadreGuestPlayers = 1,
-                expectedWaitingBenchGuestPlayers = 1
-            ),
-        )
-
-        @JvmStatic
-        fun registeredPlayers() = listOf(
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.REGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Registered,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Registered,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.ADDED,
-                oldRegistrationStatus = RegistrationStatus.Registered,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Registered,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Registered,
-                cadre = fullCadre,
-                deregisteredPlayers = 1,
-                exceptedStatus = RegistrationStatus.Deregistered,
-                expectedEventType = PlayerDeregisteredEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.CANCELLED,
-                oldRegistrationStatus = RegistrationStatus.Registered,
-                cadre = fullCadre,
-                placedOnWaitingBench = 1,
-                exceptedStatus = RegistrationStatus.Cancelled,
-                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.REGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Deregistered,
-                cadre = fullCadre,
-                placedOnWaitingBench = 1,
-                exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.REGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Deregistered,
-                cadre = nonFullCadre,
-                exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerAddedToCadreEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Deregistered,
-                deregisteredPlayers = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Deregistered,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.ADDED,
-                oldRegistrationStatus = RegistrationStatus.Deregistered,
-                deregisteredPlayers = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Deregistered,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.CANCELLED,
-                oldRegistrationStatus = RegistrationStatus.Deregistered,
-                deregisteredPlayers = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Deregistered,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.REGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Added,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Added,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Added,
-                deregisteredPlayers = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Deregistered,
-                expectedEventType = PlayerDeregisteredEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.ADDED,
-                oldRegistrationStatus = RegistrationStatus.Added,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Added,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.CANCELLED,
-                oldRegistrationStatus = RegistrationStatus.Added,
-                canceledPlayer = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Cancelled,
-                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.REGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Cancelled,
-                canceledPlayer = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Cancelled,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
-                oldRegistrationStatus = RegistrationStatus.Cancelled,
-                canceledPlayer = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Cancelled,
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.ADDED,
-                oldRegistrationStatus = RegistrationStatus.Cancelled,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Added,
-                expectedEventType = PlayerAddedToCadreEvent::class.java
-            ),
-            RegisteredPlayerTestData(
-                newRegistrationStatusType = RegistrationStatusType.CANCELLED,
-                oldRegistrationStatus = RegistrationStatus.Cancelled,
-                canceledPlayer = 1,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Cancelled,
-            ),
-        ).stream()
-
-        @JvmStatic
-        fun addedWaitingPlayers() = listOf(
-            AddWaitingPlayerTestData(
-                userId = UserId("player 1"),
-                registrationStatusType = RegistrationStatusType.DEREGISTERED,
-                cadre = fullCadre,
-                waitingPlayers = listOf(RegisteredPlayer.MainPlayer(
-                    userId = UserId("cancelledPlayer"),
-                    guests = 0,
-                    registeredAt = LocalDateTime.now().minusHours(2),
-                    registrationStatus = RegistrationStatus.Cancelled
-                ),RegisteredPlayer.MainPlayer(
-                    userId = UserId("notSoLongWaitingPlayer"),
+        val fullCadreWithGuests =
+            listOf(
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 1"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
-                    registrationStatus = RegistrationStatus.Registered
-                ),RegisteredPlayer.MainPlayer(
-                    userId = UserId("waitingPlayer"),
-                    guests = 0,
-                    registeredAt = LocalDateTime.now().minusHours(1),
-                    registrationStatus = RegistrationStatus.Registered
-                )),
-                expectedWaitingPlayers = 2,
-                expectedCadrePlayers = fullCadre.size,
-                expectedEventType = listOf(PlayerDeregisteredEvent::class.java, PlayerAddedToCadreEvent::class.java),
-                expectedUserIds = listOf(UserId("waitingPlayer"))
-            ),
-            AddWaitingPlayerTestData(
-                userId = UserId("player 1"),
-                registrationStatusType = RegistrationStatusType.CANCELLED,
-                cadre = fullCadre,
-                waitingPlayers = listOf(RegisteredPlayer.MainPlayer(
-                    userId = UserId("cancelledPlayer"),
-                    guests = 0,
-                    registeredAt = LocalDateTime.now().minusHours(2),
-                    registrationStatus = RegistrationStatus.Cancelled
-                ),RegisteredPlayer.MainPlayer(
-                    userId = UserId("notSoLongWaitingPlayer"),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 2"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
-                    registrationStatus = RegistrationStatus.Registered
-                ),RegisteredPlayer.MainPlayer(
-                    userId = UserId("waitingPlayer"),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 3"),
                     guests = 0,
-                    registeredAt = LocalDateTime.now().minusHours(1),
-                    registrationStatus = RegistrationStatus.Registered
-                )),
-                expectedWaitingPlayers = 3,
-                expectedCadrePlayers = fullCadre.size,
-                expectedEventType = listOf(PlayerPlacedOnWaitingBenchEvent::class.java, PlayerAddedToCadreEvent::class.java),
-                expectedUserIds = listOf(UserId("waitingPlayer"))
-            ),
-        ).stream()
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.GuestPlayer(
+                    guestId = "guest 1",
+                    guestOf = UserId("player 3"),
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.GuestPlayer(
+                    guestId = "guest 2",
+                    guestOf = UserId("player 3"),
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 6"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Added,
+                ),
+            )
+
+        val fullCadre =
+            listOf(
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 1"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 2"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 3"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 4"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 5"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 6"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Added,
+                ),
+            )
+        val nonFullCadre =
+            listOf(
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 1"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 2"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 3"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 4"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayer.MainPlayer(
+                    userId = UserId("player 5"),
+                    guests = 0,
+                    registeredAt = LocalDateTime.now(),
+                    registrationStatus = RegistrationStatus.Registered,
+                ),
+            )
 
         @JvmStatic
-        fun unregisteredPlayers() = listOf(
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                cadre = fullCadre,
-                waitingPlayers = 1,
-                exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java
-            ),
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.REGISTERED,
-                cadre = nonFullCadre,
-                addedPlayers = 1,
-                exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerAddedToCadreEvent::class.java
-            ),
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.DEREGISTERED,
-                cadre = nonFullCadre,
-                exceptedStatus = RegistrationStatus.Registered,
-                expectedEventType = PlayerDeregisteredEvent::class.java
-            ),
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.DEREGISTERED,
-                cadre = fullCadre,
-                exceptedStatus = RegistrationStatus.Deregistered,
-                expectedEventType = PlayerDeregisteredEvent::class.java
-            ),
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.CANCELLED,
-                cadre = fullCadre,
-            ),
-            UnregisteredPlayerTestData(
-                registrationStatusType = RegistrationStatusType.ADDED,
-                cadre = fullCadre,
-            ),
-        ).stream()
+        fun registeredGuestPlayers() =
+            listOf(
+                RegisteredPlayerWithGuestTestData(
+                    userId = UserId("new player"),
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    guests = 2,
+                    cadre = nonFullCadre,
+                    expectedCadreMainPlayers = 6,
+                    expectedWaitingBenchGuestPlayers = 2,
+                ),
+                RegisteredPlayerWithGuestTestData(
+                    userId = UserId("new player"),
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    guests = 2,
+                    cadre = emptyList(),
+                    expectedCadreMainPlayers = 1,
+                    expectedCadreGuestPlayers = 2,
+                ),
+                RegisteredPlayerWithGuestTestData(
+                    userId = UserId("new player"),
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    guests = 2,
+                    cadre = fullCadreWithGuests,
+                    expectedCadreMainPlayers = 5,
+                    expectedCadreGuestPlayers = 1,
+                    expectedWaitingBenchGuestPlayers = 3,
+                ),
+                RegisteredPlayerWithGuestTestData(
+                    userId = UserId("new player"),
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    guests = 2,
+                    cadre = fullCadre,
+                    expectedCadreMainPlayers = 6,
+                    expectedWaitingBenchMainPlayers = 1,
+                    expectedWaitingBenchGuestPlayers = 2,
+                ),
+                RegisteredPlayerWithGuestTestData(
+                    userId = UserId("new player"),
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    guests = 2,
+                    cadre = fullCadre.subList(0, 4),
+                    expectedCadreMainPlayers = 5,
+                    expectedCadreGuestPlayers = 1,
+                    expectedWaitingBenchGuestPlayers = 1,
+                ),
+            )
+
+        @JvmStatic
+        fun registeredPlayers() =
+            listOf(
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.REGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Registered,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.ADDED,
+                    oldRegistrationStatus = RegistrationStatus.Registered,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Registered,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Registered,
+                    cadre = fullCadre,
+                    deregisteredPlayers = 1,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                    expectedEventType = PlayerDeregisteredEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.CANCELLED,
+                    oldRegistrationStatus = RegistrationStatus.Registered,
+                    cadre = fullCadre,
+                    placedOnWaitingBench = 1,
+                    exceptedStatus = RegistrationStatus.Cancelled,
+                    expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.REGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Deregistered,
+                    cadre = fullCadre,
+                    placedOnWaitingBench = 1,
+                    exceptedStatus = RegistrationStatus.Registered,
+                    expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.REGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Deregistered,
+                    cadre = nonFullCadre,
+                    exceptedStatus = RegistrationStatus.Registered,
+                    expectedEventType = PlayerAddedToCadreEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Deregistered,
+                    deregisteredPlayers = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.ADDED,
+                    oldRegistrationStatus = RegistrationStatus.Deregistered,
+                    deregisteredPlayers = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.CANCELLED,
+                    oldRegistrationStatus = RegistrationStatus.Deregistered,
+                    deregisteredPlayers = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.REGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Added,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Added,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Added,
+                    deregisteredPlayers = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                    expectedEventType = PlayerDeregisteredEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.ADDED,
+                    oldRegistrationStatus = RegistrationStatus.Added,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Added,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.CANCELLED,
+                    oldRegistrationStatus = RegistrationStatus.Added,
+                    canceledPlayer = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Cancelled,
+                    expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.REGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Cancelled,
+                    canceledPlayer = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Cancelled,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    oldRegistrationStatus = RegistrationStatus.Cancelled,
+                    canceledPlayer = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Cancelled,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.ADDED,
+                    oldRegistrationStatus = RegistrationStatus.Cancelled,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Added,
+                    expectedEventType = PlayerAddedToCadreEvent::class.java,
+                ),
+                RegisteredPlayerTestData(
+                    newRegistrationStatusType = RegistrationStatusType.CANCELLED,
+                    oldRegistrationStatus = RegistrationStatus.Cancelled,
+                    canceledPlayer = 1,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Cancelled,
+                ),
+            ).stream()
+
+        @JvmStatic
+        fun addedWaitingPlayers() =
+            listOf(
+                AddWaitingPlayerTestData(
+                    userId = UserId("player 1"),
+                    registrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    cadre = fullCadre,
+                    waitingPlayers =
+                        listOf(
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("cancelledPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now().minusHours(2),
+                                registrationStatus = RegistrationStatus.Cancelled,
+                            ),
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("notSoLongWaitingPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now(),
+                                registrationStatus = RegistrationStatus.Registered,
+                            ),
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("waitingPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now().minusHours(1),
+                                registrationStatus = RegistrationStatus.Registered,
+                            ),
+                        ),
+                    expectedWaitingPlayers = 2,
+                    expectedCadrePlayers = fullCadre.size,
+                    expectedEventType = listOf(PlayerDeregisteredEvent::class.java, PlayerAddedToCadreEvent::class.java),
+                    expectedUserIds = listOf(UserId("waitingPlayer")),
+                ),
+                AddWaitingPlayerTestData(
+                    userId = UserId("player 1"),
+                    registrationStatusType = RegistrationStatusType.CANCELLED,
+                    cadre = fullCadre,
+                    waitingPlayers =
+                        listOf(
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("cancelledPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now().minusHours(2),
+                                registrationStatus = RegistrationStatus.Cancelled,
+                            ),
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("notSoLongWaitingPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now(),
+                                registrationStatus = RegistrationStatus.Registered,
+                            ),
+                            RegisteredPlayer.MainPlayer(
+                                userId = UserId("waitingPlayer"),
+                                guests = 0,
+                                registeredAt = LocalDateTime.now().minusHours(1),
+                                registrationStatus = RegistrationStatus.Registered,
+                            ),
+                        ),
+                    expectedWaitingPlayers = 3,
+                    expectedCadrePlayers = fullCadre.size,
+                    expectedEventType = listOf(PlayerPlacedOnWaitingBenchEvent::class.java, PlayerAddedToCadreEvent::class.java),
+                    expectedUserIds = listOf(UserId("waitingPlayer")),
+                ),
+            ).stream()
+
+        @JvmStatic
+        fun unregisteredPlayers() =
+            listOf(
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    cadre = fullCadre,
+                    waitingPlayers = 1,
+                    exceptedStatus = RegistrationStatus.Registered,
+                    expectedEventType = PlayerPlacedOnWaitingBenchEvent::class.java,
+                ),
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.REGISTERED,
+                    cadre = nonFullCadre,
+                    addedPlayers = 1,
+                    exceptedStatus = RegistrationStatus.Registered,
+                    expectedEventType = PlayerAddedToCadreEvent::class.java,
+                ),
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    cadre = nonFullCadre,
+                    exceptedStatus = RegistrationStatus.Registered,
+                    expectedEventType = PlayerDeregisteredEvent::class.java,
+                ),
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.DEREGISTERED,
+                    cadre = fullCadre,
+                    exceptedStatus = RegistrationStatus.Deregistered,
+                    expectedEventType = PlayerDeregisteredEvent::class.java,
+                ),
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.CANCELLED,
+                    cadre = fullCadre,
+                ),
+                UnregisteredPlayerTestData(
+                    registrationStatusType = RegistrationStatusType.ADDED,
+                    cadre = fullCadre,
+                ),
+            ).stream()
     }
-
 }

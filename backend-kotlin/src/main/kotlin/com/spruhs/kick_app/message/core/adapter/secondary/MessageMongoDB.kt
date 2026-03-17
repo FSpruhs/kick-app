@@ -15,7 +15,9 @@ import reactor.core.publisher.Flux
 import java.time.LocalDateTime
 
 @Service
-class MessagePersistenceAdapter(private val messageRepository: MessageRepository) : MessagePersistencePort {
+class MessagePersistenceAdapter(
+    private val messageRepository: MessageRepository,
+) : MessagePersistencePort {
     override suspend fun save(message: Message) {
         messageRepository.save(message.toDocument()).awaitFirstOrNull()
     }
@@ -24,13 +26,15 @@ class MessagePersistenceAdapter(private val messageRepository: MessageRepository
         messageRepository.saveAll(messages.map { it.toDocument() }).collectList().awaitSingle()
     }
 
-    override suspend fun findById(messageId: MessageId): Message? {
-        return messageRepository.findById(messageId.value).awaitFirstOrNull()?.toDomain()
-    }
+    override suspend fun findById(messageId: MessageId): Message? = messageRepository.findById(messageId.value).awaitFirstOrNull()?.toDomain()
 
-    override suspend fun findByUser(userId: UserId): List<Message> {
-        return messageRepository.findByUserId(userId.value).map { it.toDomain() }.collectList().awaitSingle()
-    }
+    override suspend fun findByUser(userId: UserId): List<Message> =
+        messageRepository
+            .findByUserId(userId.value)
+            .map {
+                it.toDomain()
+            }.collectList()
+            .awaitSingle()
 }
 
 @Repository
@@ -46,25 +50,27 @@ data class MessageDocument(
     val type: String,
     val timeStamp: String,
     val isRead: Boolean,
-    val variables: Map<String, String>
+    val variables: Map<String, String>,
 )
 
-private fun Message.toDocument() = MessageDocument(
-    id = this.id.value,
-    userId = this.user.value,
-    content = this.text,
-    timeStamp = this.timeStamp.toString(),
-    isRead = this.isRead,
-    type = this.type.toString(),
-    variables = this.variables
-)
+private fun Message.toDocument() =
+    MessageDocument(
+        id = this.id.value,
+        userId = this.user.value,
+        content = this.text,
+        timeStamp = this.timeStamp.toString(),
+        isRead = this.isRead,
+        type = this.type.toString(),
+        variables = this.variables,
+    )
 
-private fun MessageDocument.toDomain() = Message(
-    id = MessageId(this.id),
-    user = UserId(this.userId),
-    text = this.content,
-    timeStamp = LocalDateTime.parse(this.timeStamp),
-    isRead = this.isRead,
-    type = MessageType.valueOf(this.type),
-    variables = this.variables
-)
+private fun MessageDocument.toDomain() =
+    Message(
+        id = MessageId(this.id),
+        user = UserId(this.userId),
+        text = this.content,
+        timeStamp = LocalDateTime.parse(this.timeStamp),
+        isRead = this.isRead,
+        type = MessageType.valueOf(this.type),
+        variables = this.variables,
+    )

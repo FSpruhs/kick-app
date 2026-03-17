@@ -13,19 +13,22 @@ import java.io.InputStream
 class MinIOUserImageAdapter(
     private val minioClient: MinioClient,
     private val properties: MinIOProperties,
-): UserImagePort {
-    override fun save(inputStream: InputStream, contentType: String): UserImageId {
+) : UserImagePort {
+    override fun save(
+        inputStream: InputStream,
+        contentType: String,
+    ): UserImageId {
         val newId = generateId()
 
         minioClient.putObject(
-            PutObjectArgs.builder()
+            PutObjectArgs
+                .builder()
                 .bucket(properties.bucket)
                 .`object`(newId)
                 .stream(inputStream, -1, 10485760)
                 .contentType(contentType)
-                .build()
+                .build(),
         )
         return UserImageId(newId)
     }
-
 }

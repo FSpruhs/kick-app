@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.listener
 
-import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.user.api.UserCreatedEvent
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
@@ -16,7 +16,6 @@ class UserListener(
     private val userService: UserService,
     private val groupService: GroupService,
 ) {
-
     @EventListener(
         UserCreatedEvent::class,
         UserNickNameChangedEvent::class,

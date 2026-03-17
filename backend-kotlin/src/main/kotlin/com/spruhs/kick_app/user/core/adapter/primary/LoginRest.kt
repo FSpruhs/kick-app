@@ -20,43 +20,43 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/auth")
 class LoginRestController(
-    private val authUseCases: AuthUseCasesPort
+    private val authUseCases: AuthUseCasesPort,
 ) {
-
     @PostMapping("/login")
-    suspend fun login(@RequestBody request: LoginRequest): AuthResponse =
-        authUseCases.login(request.toCommand()).toResponse()
+    suspend fun login(
+        @RequestBody request: LoginRequest,
+    ): AuthResponse = authUseCases.login(request.toCommand()).toResponse()
 
     @PostMapping("/refresh/{refreshToken}")
-    suspend fun refresh(@PathVariable refreshToken: String): AuthResponse =
-        authUseCases.refresh(refreshToken).toResponse()
-
+    suspend fun refresh(
+        @PathVariable refreshToken: String,
+    ): AuthResponse = authUseCases.refresh(refreshToken).toResponse()
 }
 
 @ControllerAdvice
 class LoginExceptionHandler {
-
     @ExceptionHandler
-    fun handleLoginException(e: LoginException) =
-        ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
+    fun handleLoginException(e: LoginException) = ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)
 }
 
-private fun LoginRequest.toCommand() = LoginCommand(
-    email = Email(this.email),
-    password = this.password
-)
+private fun LoginRequest.toCommand() =
+    LoginCommand(
+        email = Email(this.email),
+        password = this.password,
+    )
 
 data class LoginRequest(
     val email: String,
-    val password: String
+    val password: String,
 )
 
 data class AuthResponse(
     val accessToken: String,
-    val refreshToken: String
+    val refreshToken: String,
 )
 
-private fun AuthTokens.toResponse() = AuthResponse(
-    accessToken = accessToken,
-    refreshToken = refreshToken
-)
+private fun AuthTokens.toResponse() =
+    AuthResponse(
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+    )

@@ -13,7 +13,5 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 class KickAppApplication
 
 fun main(args: Array<String>) {
-	runApplication<KickAppApplication>(*args)
+    runApplication<KickAppApplication>(*args)
 }
-
-

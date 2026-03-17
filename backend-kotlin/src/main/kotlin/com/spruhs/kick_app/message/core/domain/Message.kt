@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.message.core.domain
 
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import java.time.LocalDateTime
 
 data class Message(
@@ -36,7 +36,10 @@ enum class MessageType {
 
 interface MessagePersistencePort {
     suspend fun save(message: Message)
+
     suspend fun saveAll(messages: List<Message>)
+
     suspend fun findById(messageId: MessageId): Message?
+
     suspend fun findByUser(userId: UserId): List<Message>
 }

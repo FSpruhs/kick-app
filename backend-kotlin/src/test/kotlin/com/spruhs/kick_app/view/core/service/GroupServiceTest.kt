@@ -1,13 +1,13 @@
 package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.es.BaseEvent
-import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.exceptions.PlayerNotFoundException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.group.TestGroupBuilder
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
@@ -40,7 +40,6 @@ import kotlin.test.assertFailsWith
 
 @ExtendWith(MockKExtension::class)
 class GroupServiceTest {
-
     @MockK
     lateinit var repository: GroupProjectionRepository
 
@@ -54,412 +53,494 @@ class GroupServiceTest {
     lateinit var groupService: GroupService
 
     @Test
-    fun `getGroup should return group`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder()
-            .withPlayers(
-                listOf(
-                    Player(
-                        id = UserId("player1"),
-                        status = Active(),
-                        role = PlayerRole.COACH,
-                    )
-                )
-            )
-            .buildProjection()
+    fun `getGroup should return group`(): Unit =
+        runBlocking {
+            // Given
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
 
-        coEvery { repository.findById(group.id) } returns group
+            coEvery { repository.findById(group.id) } returns group
 
-        // When
-        groupService.getGroup(group.id, group.players.first().id).let { result ->
-            // Then
-            assertThat(result).isNotNull()
-            assertThat(result).isEqualTo(group)
+            // When
+            groupService.getGroup(group.id, group.players.first().id).let { result ->
+                // Then
+                assertThat(result).isNotNull()
+                assertThat(result).isEqualTo(group)
+            }
         }
-    }
 
     @Test
-    fun `getGroup should throw exception when player not in group`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder().buildProjection()
+    fun `getGroup should throw exception when player not in group`(): Unit =
+        runBlocking {
+            // Given
+            val group = TestGroupBuilder().buildProjection()
 
-        coEvery { repository.findById(group.id) } returns group
+            coEvery { repository.findById(group.id) } returns group
 
-        // When
-        assertFailsWith<PlayerNotFoundException> { groupService.getGroup(group.id, UserId("not in group")) }
-    }
+            // When
+            assertFailsWith<PlayerNotFoundException> { groupService.getGroup(group.id, UserId("not in group")) }
+        }
 
     @Test
-    fun `getGroup should throw exception when player not active`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder()
-            .withPlayers(
-                listOf(
-                    Player(
-                        id = UserId("player1"),
-                        status = Removed(),
-                        role = PlayerRole.COACH,
-                    )
+    fun `getGroup should throw exception when player not active`(): Unit =
+        runBlocking {
+            // Given
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Removed(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
+
+            coEvery { repository.findById(group.id) } returns group
+
+            // When
+            assertFailsWith<UserNotAuthorizedException> { groupService.getGroup(group.id, group.players.first().id) }
+        }
+
+    @Test
+    fun `getPlayer should return player`(): Unit =
+        runBlocking {
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                            Player(
+                                id = UserId("player2"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
+
+            coEvery { repository.findById(group.id) } returns group
+
+            // When
+            groupService
+                .getPlayer(
+                    group.id,
+                    group.players.first().id,
+                    group.players[1].id,
+                ).let { result ->
+                    // Then
+                    assertThat(result).isNotNull()
+                    assertThat(result).isEqualTo(group.players.first())
+                }
+        }
+
+    @Test
+    fun `getPlayer should throw exception when player not found`(): Unit =
+        runBlocking {
+            val group = TestGroupBuilder().buildProjection()
+
+            coEvery { repository.findById(group.id) } returns group
+
+            // When
+            assertFailsWith<PlayerNotFoundException> {
+                groupService.getPlayer(
+                    group.id,
+                    UserId("not in group"),
+                    UserId("also not in group"),
                 )
-            )
-            .buildProjection()
-
-        coEvery { repository.findById(group.id) } returns group
-
-        // When
-        assertFailsWith<UserNotAuthorizedException> { groupService.getGroup(group.id, group.players.first().id) }
-    }
+            }
+        }
 
     @Test
-    fun `getPlayer should return player`(): Unit = runBlocking {
-        val group = TestGroupBuilder()
-            .withPlayers(
-                listOf(
-                    Player(
-                        id = UserId("player1"),
-                        status = Active(),
-                        role = PlayerRole.COACH,
+    fun `getPlayer should throw exception when requester not found`(): Unit =
+        runBlocking {
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
+
+            coEvery { repository.findById(group.id) } returns group
+
+            // When
+            assertFailsWith<PlayerNotFoundException> {
+                groupService.getPlayer(
+                    group.id,
+                    group.players.first().id,
+                    UserId("also not in group"),
+                )
+            }
+        }
+
+    @Test
+    fun `getPlayer should throw exception when requester not authorized`(): Unit =
+        runBlocking {
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                            Player(
+                                id = UserId("player2"),
+                                status = Removed(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
+
+            coEvery { repository.findById(group.id) } returns group
+
+            // When
+            assertFailsWith<UserNotAuthorizedException> {
+                groupService.getPlayer(
+                    group.id,
+                    group.players.first().id,
+                    group.players[1].id,
+                )
+            }
+        }
+
+    @Test
+    fun `getGroupNameList should return group name list`(): Unit =
+        runBlocking {
+            // Given
+            val groupNameList =
+                GroupNameListProjection(
+                    groupId = GroupId("groupId"),
+                    players =
+                        listOf(
+                            GroupNameListEntry(
+                                userId = UserId("player1"),
+                                name = "Max",
+                                imageUrl = "testUrl",
+                            ),
+                        ),
+                )
+
+            coEvery { groupNameListRepository.findByGroupId(groupNameList.groupId) } returns groupNameList
+
+            // When
+            groupService.getGroupNameList(groupNameList.groupId, groupNameList.players.first().userId).let { result ->
+                // Then
+                assertThat(result).isNotNull()
+                assertThat(result).isEqualTo(groupNameList.players)
+            }
+        }
+
+    @Test
+    fun `getGroupNameList should throw exception when user not in list`(): Unit =
+        runBlocking {
+            // Given
+            val groupNameList =
+                GroupNameListProjection(
+                    groupId = GroupId("groupId"),
+                    players = emptyList(),
+                )
+
+            coEvery { groupNameListRepository.findByGroupId(groupNameList.groupId) } returns groupNameList
+
+            // When
+            assertFailsWith<UserNotAuthorizedException> {
+                groupService.getGroupNameList(
+                    groupNameList.groupId,
+                    UserId("not found"),
+                )
+            }
+        }
+
+    @Test
+    fun `whenEvent should handle user nick name changed event`(): Unit =
+        runBlocking {
+            // Given
+            val groupNameList =
+                GroupNameListProjection(
+                    groupId = GroupId("groupId"),
+                    players =
+                        listOf(
+                            GroupNameListEntry(
+                                userId = UserId("player1"),
+                                name = "Max",
+                            ),
+                        ),
+                )
+
+            val event =
+                UserNickNameChangedEvent(
+                    aggregateId =
+                        groupNameList.players
+                            .first()
+                            .userId.value,
+                    nickName = "Maximilian",
+                )
+
+            coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)
+            coEvery {
+                groupNameListRepository.save(
+                    groupNameList.copy(
+                        players =
+                            listOf(
+                                groupNameList.players.first().copy(name = event.nickName),
+                            ),
                     ),
-                    Player(
-                        id = UserId("player2"),
-                        status = Active(),
-                        role = PlayerRole.COACH,
-                    )
                 )
-            )
-            .buildProjection()
+            } returns Unit
 
-        coEvery { repository.findById(group.id) } returns group
-
-        // When
-        groupService.getPlayer(
-            group.id,
-            group.players.first().id,
-            group.players[1].id
-        ).let { result ->
-            // Then
-            assertThat(result).isNotNull()
-            assertThat(result).isEqualTo(group.players.first())
+            // When
+            groupService.whenEvent(event)
         }
-    }
 
     @Test
-    fun `getPlayer should throw exception when player not found`(): Unit = runBlocking {
-        val group = TestGroupBuilder().buildProjection()
+    fun `whenEvent should handle user image updated event`(): Unit =
+        runBlocking {
+            // Given
+            val groupNameList =
+                GroupNameListProjection(
+                    groupId = GroupId("groupId"),
+                    players =
+                        listOf(
+                            GroupNameListEntry(
+                                userId = UserId("player1"),
+                                name = "Max",
+                            ),
+                        ),
+                )
 
-        coEvery { repository.findById(group.id) } returns group
+            val event =
+                UserImageUpdatedEvent(
+                    aggregateId =
+                        groupNameList.players
+                            .first()
+                            .userId.value,
+                    imageId = UserImageId("newImageId"),
+                )
 
-        // When
-        assertFailsWith<PlayerNotFoundException> {
-            groupService.getPlayer(
-                group.id,
-                UserId("not in group"),
-                UserId("also not in group")
-            )
+            coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)
+            coEvery {
+                groupNameListRepository.save(
+                    groupNameList.copy(
+                        players =
+                            listOf(
+                                groupNameList.players.first().copy(imageUrl = event.imageId.value),
+                            ),
+                    ),
+                )
+            } returns Unit
+
+            // When
+            groupService.whenEvent(event)
         }
-    }
 
     @Test
-    fun `getPlayer should throw exception when requester not found`(): Unit = runBlocking {
-        val group = TestGroupBuilder().withPlayers(
-            listOf(
-                Player(
+    fun `whenEvent should handle group created`(): Unit =
+        runBlocking {
+            // Given
+            val group =
+                TestGroupBuilder()
+                    .withPlayers(
+                        listOf(
+                            Player(
+                                id = UserId("player1"),
+                                status = Active(),
+                                role = PlayerRole.COACH,
+                            ),
+                        ),
+                    ).buildProjection()
+
+            val event =
+                GroupCreatedEvent(
+                    aggregateId = group.id.value,
+                    userId = group.players.first().id,
+                    name = group.name,
+                    userStatus = group.players.first().status,
+                    userRole = group.players.first().role,
+                )
+
+            coEvery { repository.save(group) } returns Unit
+            coEvery { userApi.findUserById(event.userId) } returns
+                UserData(
+                    id = group.players.first().id,
+                    email = group.players.first().email,
+                    nickName = "newNickName",
+                    imageId = null,
+                )
+            coEvery {
+                groupNameListRepository.save(
+                    GroupNameListProjection(
+                        groupId = group.id,
+                        players =
+                            mutableListOf(
+                                GroupNameListEntry(
+                                    userId = group.players.first().id,
+                                    name = "newNickName",
+                                ),
+                            ),
+                    ),
+                )
+            } returns Unit
+
+            // When
+            groupService.whenEvent(event)
+        }
+
+    @Test
+    fun `whenEvent should handel group name changed event`(): Unit =
+        runBlocking {
+            // Given
+            val group = TestGroupBuilder().buildProjection()
+            val event =
+                GroupNameChangedEvent(
+                    aggregateId = group.id.value,
+                    name = "groupNameChanged",
+                )
+
+            coEvery { repository.findById(group.id) } returns group
+            coEvery { repository.save(group.copy(name = event.name)) } returns Unit
+
+            // When
+            groupService.whenEvent(event)
+        }
+
+    @Test
+    fun `whenEvent should handel player entered event event`(): Unit =
+        runBlocking {
+            // Given
+            val group = TestGroupBuilder().buildProjection()
+            val newPlayer =
+                PlayerProjection(
                     id = UserId("player1"),
-                    status = Active(),
+                    status = PlayerStatusType.ACTIVE,
                     role = PlayerRole.COACH,
+                    email = "testMail",
                 )
-            )
-        ).buildProjection()
+            val event =
+                PlayerEnteredGroupEvent(
+                    aggregateId = group.id.value,
+                    userId = newPlayer.id,
+                    groupName = group.name,
+                    userStatus = newPlayer.status,
+                    userRole = newPlayer.role,
+                )
 
-        coEvery { repository.findById(group.id) } returns group
+            coEvery { repository.findById(group.id) } returns group
+            coEvery { userApi.findUserById(newPlayer.id) } returns
+                UserData(
+                    id = newPlayer.id,
+                    email = "testMail",
+                    nickName = "newNickName",
+                    imageId = null,
+                )
+            coEvery { repository.save(group.copy(players = listOf(newPlayer))) } returns Unit
+            coEvery { groupNameListRepository.findByGroupId(group.id) } returns
+                GroupNameListProjection(
+                    groupId = group.id,
+                    players = emptyList(),
+                )
+            coEvery {
+                groupNameListRepository.save(
+                    GroupNameListProjection(
+                        groupId = group.id,
+                        players =
+                            mutableListOf(
+                                GroupNameListEntry(
+                                    userId = newPlayer.id,
+                                    name = "newNickName",
+                                ),
+                            ),
+                    ),
+                )
+            } returns Unit
 
-        // When
-        assertFailsWith<PlayerNotFoundException> {
-            groupService.getPlayer(
-                group.id,
-                group.players.first().id,
-                UserId("also not in group")
-            )
+            // When
+            groupService.whenEvent(event)
         }
-    }
 
-    @Test
-    fun `getPlayer should throw exception when requester not authorized`(): Unit = runBlocking {
-        val group = TestGroupBuilder().withPlayers(
-            listOf(
-                Player(
-                    id = UserId("player1"),
-                    status = Active(),
-                    role = PlayerRole.COACH,
-                ),
-                Player(
-                    id = UserId("player2"),
-                    status = Removed(),
-                    role = PlayerRole.COACH,
-                )
-            )
-        ).buildProjection()
-
-        coEvery { repository.findById(group.id) } returns group
-
-        // When
-        assertFailsWith<UserNotAuthorizedException> {
-            groupService.getPlayer(
-                group.id,
-                group.players.first().id,
-                group.players[1].id,
-            )
-        }
-    }
-
-    @Test
-    fun `getGroupNameList should return group name list`(): Unit = runBlocking {
-        // Given
-        val groupNameList = GroupNameListProjection(
-            groupId = GroupId("groupId"),
-            players = listOf(
-                GroupNameListEntry(
-                    userId = UserId("player1"),
-                    name = "Max",
-                    imageUrl = "testUrl"
-                )
-            )
-        )
-
-
-        coEvery { groupNameListRepository.findByGroupId(groupNameList.groupId) } returns groupNameList
-
-        // When
-        groupService.getGroupNameList(groupNameList.groupId, groupNameList.players.first().userId).let { result ->
-            // Then
-            assertThat(result).isNotNull()
-            assertThat(result).isEqualTo(groupNameList.players)
-        }
-    }
-
-    @Test
-    fun `getGroupNameList should throw exception when user not in list`(): Unit = runBlocking {
-        // Given
-        val groupNameList = GroupNameListProjection(
-            groupId = GroupId("groupId"),
-            players = emptyList()
-        )
-
-        coEvery { groupNameListRepository.findByGroupId(groupNameList.groupId) } returns groupNameList
-
-        // When
-        assertFailsWith<UserNotAuthorizedException> {
-            groupService.getGroupNameList(
-                groupNameList.groupId,
-                UserId("not found")
-            )
-        }
-    }
-
-    @Test
-    fun `whenEvent should handle user nick name changed event`(): Unit = runBlocking {
-        // Given
-        val groupNameList = GroupNameListProjection(
-            groupId = GroupId("groupId"),
-            players = listOf(
-                GroupNameListEntry(
-                    userId = UserId("player1"),
-                    name = "Max",
-                )
-            )
-        )
-
-        val event = UserNickNameChangedEvent(
-            aggregateId = groupNameList.players.first().userId.value,
-            nickName = "Maximilian"
-        )
-
-        coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)
-        coEvery { groupNameListRepository.save(
-            groupNameList.copy(
-                players = listOf(
-                    groupNameList.players.first().copy(name = event.nickName)
-                )
-            )
-        )} returns Unit
-
-        // When
-        groupService.whenEvent(event)
-    }
-
-    @Test
-    fun `whenEvent should handle user image updated event`(): Unit = runBlocking {
-        // Given
-        val groupNameList = GroupNameListProjection(
-            groupId = GroupId("groupId"),
-            players = listOf(
-                GroupNameListEntry(
-                    userId = UserId("player1"),
-                    name = "Max",
-                )
-            )
-        )
-
-        val event = UserImageUpdatedEvent(
-            aggregateId = groupNameList.players.first().userId.value,
-            imageId = UserImageId("newImageId")
-        )
-
-        coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)
-        coEvery { groupNameListRepository.save(
-            groupNameList.copy(
-                players = listOf(
-                    groupNameList.players.first().copy(imageUrl = event.imageId.value)
-                )
-            )
-        )} returns Unit
-
-        // When
-        groupService.whenEvent(event)
-    }
-
-    @Test
-    fun `whenEvent should handle group created`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder()
-            .withPlayers(
-                listOf(
-                    Player(
-                        id = UserId("player1"),
-                        status = Active(),
-                        role = PlayerRole.COACH,
-                    )
-                )
-            )
-            .buildProjection()
-
-        val event = GroupCreatedEvent(
-            aggregateId = group.id.value,
-            userId = group.players.first().id,
-            name = group.name,
-            userStatus = group.players.first().status,
-            userRole = group.players.first().role
-        )
-
-        coEvery { repository.save(group) } returns Unit
-        coEvery { userApi.findUserById(event.userId) } returns UserData(
-            id = group.players.first().id,
-            email = group.players.first().email,
-            nickName = "newNickName",
-            imageId = null
-        )
-        coEvery { groupNameListRepository.save(GroupNameListProjection(
-            groupId = group.id,
-            players = mutableListOf(GroupNameListEntry(
-                userId = group.players.first().id,
-                name = "newNickName",
-            ))
-        )) } returns Unit
-
-        // When
-        groupService.whenEvent(event)
-    }
-
-    @Test
-    fun `whenEvent should handel group name changed event`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder().buildProjection()
-        val event = GroupNameChangedEvent(
-            aggregateId = group.id.value,
-            name = "groupNameChanged"
-        )
-
-        coEvery { repository.findById(group.id) } returns group
-        coEvery { repository.save(group.copy(name = event.name)) } returns Unit
-
-        // When
-        groupService.whenEvent(event)
-    }
-
-    @Test
-    fun `whenEvent should handel player entered event event`(): Unit = runBlocking {
-        // Given
-        val group = TestGroupBuilder().buildProjection()
-        val newPlayer = PlayerProjection(
-            id = UserId("player1"),
-            status = PlayerStatusType.ACTIVE,
-            role = PlayerRole.COACH,
-            email = "testMail"
-        )
-        val event = PlayerEnteredGroupEvent(
-            aggregateId = group.id.value,
-            userId = newPlayer.id,
-            groupName = group.name,
-            userStatus = newPlayer.status,
-            userRole = newPlayer.role,
-        )
-
-        coEvery { repository.findById(group.id) } returns group
-        coEvery { userApi.findUserById(newPlayer.id) } returns UserData(
-            id = newPlayer.id,
-            email = "testMail",
-            nickName = "newNickName",
-            imageId = null
-        )
-        coEvery { repository.save(group.copy(players = listOf(newPlayer))) } returns Unit
-        coEvery { groupNameListRepository.findByGroupId(group.id) } returns GroupNameListProjection(
-            groupId = group.id,
-            players = emptyList()
-        )
-        coEvery { groupNameListRepository.save(GroupNameListProjection(
-            groupId = group.id,
-            players = mutableListOf(GroupNameListEntry(
-                userId = newPlayer.id,
-                name = "newNickName",
-            ))
-        )) } returns Unit
-
-        // When
-        groupService.whenEvent(event)
-    }
-    
     @ParameterizedTest
     @MethodSource("roleData")
-    fun `whenEvent should handle player role event`(data: TestPlayerRoleData) = runBlocking {
-        // Given
-        val group = TestGroupBuilder()
-            .withId(data.event.aggregateId)
-            .withPlayers(listOf(data.player))
-            .buildProjection()
-        
-        coEvery { repository.findById(group.id) } returns group
-        coEvery { repository.save(group.copy(players = listOf(PlayerProjection(
-            id = group.players.first().id,
-            status = group.players.first().status,
-            role = data.expectedRole,
-            email = group.players.first().email
-        )))) } returns Unit
+    fun `whenEvent should handle player role event`(data: TestPlayerRoleData) =
+        runBlocking {
+            // Given
+            val group =
+                TestGroupBuilder()
+                    .withId(data.event.aggregateId)
+                    .withPlayers(listOf(data.player))
+                    .buildProjection()
 
-        // When
-        groupService.whenEvent(data.event)
-    }
+            coEvery { repository.findById(group.id) } returns group
+            coEvery {
+                repository.save(
+                    group.copy(
+                        players =
+                            listOf(
+                                PlayerProjection(
+                                    id = group.players.first().id,
+                                    status = group.players.first().status,
+                                    role = data.expectedRole,
+                                    email = group.players.first().email,
+                                ),
+                            ),
+                    ),
+                )
+            } returns Unit
+
+            // When
+            groupService.whenEvent(data.event)
+        }
 
     @ParameterizedTest
     @MethodSource("statusData")
-    fun `whenEvent should handle player status event`(data: TestPlayerStatusData) = runBlocking {
-        // Given
-        val group = TestGroupBuilder()
-            .withId(data.event.aggregateId)
-            .withPlayers(listOf(data.player))
-            .buildProjection()
+    fun `whenEvent should handle player status event`(data: TestPlayerStatusData) =
+        runBlocking {
+            // Given
+            val group =
+                TestGroupBuilder()
+                    .withId(data.event.aggregateId)
+                    .withPlayers(listOf(data.player))
+                    .buildProjection()
 
-        coEvery { repository.findById(group.id) } returns group
-        coEvery { repository.save(group.copy(players = listOf(PlayerProjection(
-            id = group.players.first().id,
-            status = data.expectedStatus,
-            role = group.players.first().role,
-            email = group.players.first().email
-        )))) } returns Unit
+            coEvery { repository.findById(group.id) } returns group
+            coEvery {
+                repository.save(
+                    group.copy(
+                        players =
+                            listOf(
+                                PlayerProjection(
+                                    id = group.players.first().id,
+                                    status = data.expectedStatus,
+                                    role = group.players.first().role,
+                                    email = group.players.first().email,
+                                ),
+                            ),
+                    ),
+                )
+            } returns Unit
 
-        // When
-        groupService.whenEvent(data.event)
-    }
-    
+            // When
+            groupService.whenEvent(data.event)
+        }
+
     companion object {
         data class TestPlayerRoleData(
             val player: Player,
@@ -474,86 +555,98 @@ class GroupServiceTest {
         )
 
         @JvmStatic
-        fun statusData() = listOf(
-            TestPlayerStatusData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Inactive(),
-                    role = PlayerRole.COACH,
+        fun statusData() =
+            listOf(
+                TestPlayerStatusData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Inactive(),
+                            role = PlayerRole.COACH,
+                        ),
+                    event =
+                        PlayerActivatedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                        ),
+                    expectedStatus = PlayerStatusType.ACTIVE,
                 ),
-                event = PlayerActivatedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
+                TestPlayerStatusData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Active(),
+                            role = PlayerRole.COACH,
+                        ),
+                    event =
+                        PlayerDeactivatedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                        ),
+                    expectedStatus = PlayerStatusType.INACTIVE,
                 ),
-                expectedStatus = PlayerStatusType.ACTIVE
-            ),
-            TestPlayerStatusData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Active(),
-                    role = PlayerRole.COACH,
+                TestPlayerStatusData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Inactive(),
+                            role = PlayerRole.COACH,
+                        ),
+                    event =
+                        PlayerRemovedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                            groupName = "player1",
+                        ),
+                    expectedStatus = PlayerStatusType.REMOVED,
                 ),
-                event = PlayerDeactivatedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
+                TestPlayerStatusData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Inactive(),
+                            role = PlayerRole.COACH,
+                        ),
+                    event =
+                        PlayerLeavedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                        ),
+                    expectedStatus = PlayerStatusType.LEAVED,
                 ),
-                expectedStatus = PlayerStatusType.INACTIVE
-            ),
-            TestPlayerStatusData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Inactive(),
-                    role = PlayerRole.COACH,
-                ),
-                event = PlayerRemovedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
-                    groupName = "player1",
-                ),
-                expectedStatus = PlayerStatusType.REMOVED
-            ),
-            TestPlayerStatusData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Inactive(),
-                    role = PlayerRole.COACH,
-                ),
-                event = PlayerLeavedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
-                ),
-                expectedStatus = PlayerStatusType.LEAVED
             )
-        )
-        
-        @JvmStatic
-        fun roleData() = listOf(
-            TestPlayerRoleData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Active(),
-                    role = PlayerRole.PLAYER,
-                ),
-                event = PlayerPromotedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
-                ),
-                expectedRole = PlayerRole.COACH
-            ),
-            TestPlayerRoleData(
-                player = Player(
-                    id = UserId("player1"),
-                    status = Active(),
-                    role = PlayerRole.COACH,
-                ),
-                event = PlayerDowngradedEvent(
-                    aggregateId = "groupId",
-                    userId = UserId("player1"),
-                ),
-                expectedRole = PlayerRole.PLAYER
-            )
-            
-        )
-    }
 
+        @JvmStatic
+        fun roleData() =
+            listOf(
+                TestPlayerRoleData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Active(),
+                            role = PlayerRole.PLAYER,
+                        ),
+                    event =
+                        PlayerPromotedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                        ),
+                    expectedRole = PlayerRole.COACH,
+                ),
+                TestPlayerRoleData(
+                    player =
+                        Player(
+                            id = UserId("player1"),
+                            status = Active(),
+                            role = PlayerRole.COACH,
+                        ),
+                    event =
+                        PlayerDowngradedEvent(
+                            aggregateId = "groupId",
+                            userId = UserId("player1"),
+                        ),
+                    expectedRole = PlayerRole.PLAYER,
+                ),
+            )
+    }
 }

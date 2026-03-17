@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-
 @ConfigurationProperties("minio")
 data class MinIOProperties(
     val url: String,
@@ -19,10 +18,10 @@ data class MinIOProperties(
 @EnableConfigurationProperties(MinIOProperties::class)
 class MinIOConfig {
     @Bean
-    fun minIOClient(properties: MinIOProperties): MinioClient {
-        return MinioClient.builder()
+    fun minIOClient(properties: MinIOProperties): MinioClient =
+        MinioClient
+            .builder()
             .endpoint(properties.url)
             .credentials(properties.accessKey, properties.secretKey)
             .build()
-    }
 }

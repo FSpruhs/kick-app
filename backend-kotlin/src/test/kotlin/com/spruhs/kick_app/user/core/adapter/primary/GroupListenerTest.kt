@@ -23,7 +23,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 class GroupListenerTest {
-
     @MockK
     lateinit var messageUseCases: MessageUseCases
 
@@ -32,101 +31,122 @@ class GroupListenerTest {
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
-        listener = GroupListener(
-            messageUseCases = messageUseCases,
-            eventExecutionStrategy = object : EventExecutionStrategy {
-                override fun execute(block: suspend () -> Unit) {
-                    runBlocking { block() }
-                }
+        listener =
+            GroupListener(
+                messageUseCases = messageUseCases,
+                eventExecutionStrategy =
+                    object : EventExecutionStrategy {
+                        override fun execute(block: suspend () -> Unit) {
+                            runBlocking { block() }
+                        }
+                    },
+            )
+    }
+
+    @Test
+    fun `onEvent should send message when player is invited`() =
+        runBlocking {
+            // Given
+            val event =
+                PlayerInvitedEvent(
+                    userId = UserId("user-123"),
+                    aggregateId = "aggregate-789",
+                    groupName = "Test User",
+                )
+
+            coEvery { messageUseCases.send(any(), any()) } returns Unit
+
+            // When
+            listener.onEvent(event)
+
+            // Then
+            coVerify {
+                messageUseCases.send(
+                    MessageType.USER_INVITED_TO_GROUP,
+                    MessageParams(
+                        userId = event.userId,
+                        groupId = GroupId(event.aggregateId),
+                        groupName = event.groupName,
+                    ),
+                )
             }
-        )
-    }
+        }
 
     @Test
-    fun `onEvent should send message when player is invited`() = runBlocking {
-        // Given
-        val event = PlayerInvitedEvent(
-            userId = UserId("user-123"),
-            aggregateId = "aggregate-789",
-            groupName = "Test User",
-        )
+    fun `onEvent should handle player removed event`() =
+        runBlocking {
+            // Given
+            val event = PlayerRemovedEvent("aggregate-123", UserId("user-456"), "Test User")
 
-        coEvery { messageUseCases.send(any(), any()) } returns Unit
+            coEvery { messageUseCases.send(any(), any()) } returns Unit
 
-        // When
-        listener.onEvent(event)
+            // When
+            listener.onEvent(event)
 
-        // Then
-        coVerify {
-            messageUseCases.send(MessageType.USER_INVITED_TO_GROUP, MessageParams(
-                userId = event.userId,
-                groupId = GroupId(event.aggregateId),
-                groupName = event.groupName
-            ))
+            // Then
+            coVerify {
+                messageUseCases.send(
+                    MessageType.USER_REMOVED_FROM_GROUP,
+                    MessageParams(
+                        userId = event.userId,
+                        groupId = GroupId(event.aggregateId),
+                        groupName = event.groupName,
+                    ),
+                )
+            }
         }
-    }
 
     @Test
-    fun `onEvent should handle player removed event`() = runBlocking {
-        // Given
-        val event = PlayerRemovedEvent("aggregate-123", UserId("user-456"), "Test User")
+    fun `onEvent should handle player promoted event`() =
+        runBlocking {
+            // Given
+            val event =
+                PlayerPromotedEvent(
+                    userId = UserId("user-123"),
+                    aggregateId = "aggregate-789",
+                )
 
-        coEvery { messageUseCases.send(any(), any()) } returns Unit
+            coEvery { messageUseCases.send(any(), any()) } returns Unit
 
-        // When
-        listener.onEvent(event)
+            // When
+            listener.onEvent(event)
 
-        // Then
-        coVerify {
-            messageUseCases.send(MessageType.USER_REMOVED_FROM_GROUP, MessageParams(
-                userId = event.userId,
-                groupId = GroupId(event.aggregateId),
-                groupName = event.groupName
-            ))
+            // Then
+            coVerify {
+                messageUseCases.send(
+                    MessageType.USER_PROMOTED,
+                    MessageParams(
+                        userId = event.userId,
+                        groupId = GroupId(event.aggregateId),
+                    ),
+                )
+            }
         }
-    }
 
     @Test
-    fun `onEvent should handle player promoted event`() = runBlocking {
-        // Given
-        val event = PlayerPromotedEvent(
-            userId = UserId("user-123"),
-            aggregateId = "aggregate-789",
-        )
+    fun `onEvent should handle player downgraded event`() =
+        runBlocking {
+            // Given
+            val event =
+                PlayerDowngradedEvent(
+                    userId = UserId("user-123"),
+                    aggregateId = "aggregate-789",
+                )
 
-        coEvery { messageUseCases.send(any(), any()) } returns Unit
+            coEvery { messageUseCases.send(any(), any()) } returns Unit
 
-        // When
-        listener.onEvent(event)
+            // When
+            listener.onEvent(event)
 
-        // Then
-        coVerify {
-            messageUseCases.send(MessageType.USER_PROMOTED, MessageParams(
-                userId = event.userId,
-                groupId = GroupId(event.aggregateId),
-            ))
+            // Then
+            coVerify {
+                messageUseCases.send(
+                    MessageType.USER_DOWNGRADED,
+                    MessageParams(
+                        userId = event.userId,
+                        groupId = GroupId(event.aggregateId),
+                    ),
+                )
+            }
         }
-    }
-
-    @Test
-    fun `onEvent should handle player downgraded event`() = runBlocking {
-        // Given
-        val event = PlayerDowngradedEvent(
-            userId = UserId("user-123"),
-            aggregateId = "aggregate-789",
-        )
-
-        coEvery { messageUseCases.send(any(), any()) } returns Unit
-
-        // When
-        listener.onEvent(event)
-
-        // Then
-        coVerify {
-            messageUseCases.send(MessageType.USER_DOWNGRADED, MessageParams(
-                userId = event.userId,
-                groupId = GroupId(event.aggregateId),
-            ))
-        }
-    }
 }

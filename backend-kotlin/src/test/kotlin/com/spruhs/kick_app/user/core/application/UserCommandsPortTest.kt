@@ -19,10 +19,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import kotlin.test.assertFailsWith
 
-
 @ExtendWith(MockKExtension::class)
 class UserCommandsPortTest {
-
     @MockK
     lateinit var aggregateStore: AggregateStore
 
@@ -39,36 +37,36 @@ class UserCommandsPortTest {
     lateinit var userCommandsPort: UserCommandsPort
 
     @Test
-    fun `registerUser should throw exception if email exists`(): Unit = runBlocking {
-        // Given
-        val command = RegisterUserCommand(NickName("Test"), Email("test@testen.com"))
-        coEvery { userApi.existsByEmail(command.email) } returns true
+    fun `registerUser should throw exception if email exists`(): Unit =
+        runBlocking {
+            // Given
+            val command = RegisterUserCommand(NickName("Test"), Email("test@testen.com"))
+            coEvery { userApi.existsByEmail(command.email) } returns true
 
-        // When + Then
-        assertFailsWith<UserWithEmailAlreadyExistsException> {
-            userCommandsPort.registerUser(command)
+            // When + Then
+            assertFailsWith<UserWithEmailAlreadyExistsException> {
+                userCommandsPort.registerUser(command)
+            }
         }
-    }
-
 
     @Test
-    fun `changeNickName should change user nick name`(): Unit = runBlocking {
-        // Given
-        val command = ChangeUserNickNameCommand(UserId("1234"), NickName("NewNick"))
-        coEvery {
-            aggregateStore.load(
-                command.userId.value,
-                UserAggregate::class.java
-            )
-        } returns UserAggregate(command.userId.value)
-        coEvery { userIdentityProviderPort.changeNickName(command.userId, command.nickName) } returns Unit
-        coEvery { aggregateStore.save(any()) } returns Unit
+    fun `changeNickName should change user nick name`(): Unit =
+        runBlocking {
+            // Given
+            val command = ChangeUserNickNameCommand(UserId("1234"), NickName("NewNick"))
+            coEvery {
+                aggregateStore.load(
+                    command.userId.value,
+                    UserAggregate::class.java,
+                )
+            } returns UserAggregate(command.userId.value)
+            coEvery { userIdentityProviderPort.changeNickName(command.userId, command.nickName) } returns Unit
+            coEvery { aggregateStore.save(any()) } returns Unit
 
-        // When
-        userCommandsPort.changeNickName(command)
+            // When
+            userCommandsPort.changeNickName(command)
 
-        // Then
-        coVerify { userIdentityProviderPort.changeNickName(command.userId, command.nickName) }
-    }
-
+            // Then
+            coVerify { userIdentityProviderPort.changeNickName(command.userId, command.nickName) }
+        }
 }

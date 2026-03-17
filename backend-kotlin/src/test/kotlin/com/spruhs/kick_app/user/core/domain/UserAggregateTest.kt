@@ -1,15 +1,11 @@
 package com.spruhs.kick_app.user.core.domain
 
 import com.spruhs.kick_app.common.types.Email
-import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
-import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
-import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class UserAggregateTest {
-
     @Test
     fun `createUser should create user`() {
         // Given
@@ -18,7 +14,6 @@ class UserAggregateTest {
 
         val nickName = NickName("testNickName")
         val email = Email("test@testen.com")
-
 
         // When
         userAggregate.createUser(email, nickName)
@@ -58,5 +53,4 @@ class UserAggregateTest {
         // Then
         assertThat(userAggregate.userImageId).isEqualTo(imageId)
     }
-
 }

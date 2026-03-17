@@ -31,7 +31,7 @@ data class GroupDocument(
 data class GroupNameListDocument(
     @Id
     val groupId: String,
-    val playerEntries: List<GroupNameListEntryDocument>
+    val playerEntries: List<GroupNameListEntryDocument>,
 )
 
 data class GroupNameListEntryDocument(
@@ -48,9 +48,12 @@ data class PlayerDocument(
 )
 
 @Service
-class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupProjectionRepository {
+class GroupProjectionMongoDB(
+    private val repository: GroupRepository,
+) : GroupProjectionRepository {
     override suspend fun findById(groupId: GroupId): GroupProjection? =
-        repository.findById(groupId.value)
+        repository
+            .findById(groupId.value)
             .awaitFirstOrNull()
             ?.toProjection()
 
@@ -60,9 +63,12 @@ class GroupProjectionMongoDB(private val repository: GroupRepository) : GroupPro
 }
 
 @Service
-class GroupNameListMongoDB(private val repository: GroupNameListRepository) : GroupNameListProjectionRepository {
+class GroupNameListMongoDB(
+    private val repository: GroupNameListRepository,
+) : GroupNameListProjectionRepository {
     override suspend fun findByGroupId(groupId: GroupId): GroupNameListProjection? =
-        repository.findById(groupId.value)
+        repository
+            .findById(groupId.value)
             .awaitFirstOrNull()
             ?.toProjection()
 
@@ -71,11 +77,11 @@ class GroupNameListMongoDB(private val repository: GroupNameListRepository) : Gr
     }
 
     override suspend fun findByUserId(userId: UserId): List<GroupNameListProjection> =
-        repository.findByPlayerEntriesUserId(userId.value)
+        repository
+            .findByPlayerEntriesUserId(userId.value)
             .map { it.toProjection() }
             .collectList()
             .awaitSingle()
-
 }
 
 @Repository
@@ -86,50 +92,58 @@ interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocumen
     fun findByPlayerEntriesUserId(userId: String): Flux<GroupNameListDocument>
 }
 
-private fun GroupDocument.toProjection() = GroupProjection(
+private fun GroupDocument.toProjection() =
+    GroupProjection(
         id = GroupId(id),
         name = name,
-        players = players.map {
-            PlayerProjection(
-                id = UserId(it.id),
-                status = PlayerStatusType.valueOf(it.status),
-                role = PlayerRole.valueOf(it.role),
-                email = it.email,
-            )
-        }
+        players =
+            players.map {
+                PlayerProjection(
+                    id = UserId(it.id),
+                    status = PlayerStatusType.valueOf(it.status),
+                    role = PlayerRole.valueOf(it.role),
+                    email = it.email,
+                )
+            },
     )
 
-private fun GroupProjection.toDocument() = GroupDocument(
+private fun GroupProjection.toDocument() =
+    GroupDocument(
         id = id.value,
         name = name,
-        players = players.map {
-            PlayerDocument(
-                id = it.id.value,
-                status = it.status.name,
-                role = it.role.name,
-                email = it.email,
-            )
-        }
+        players =
+            players.map {
+                PlayerDocument(
+                    id = it.id.value,
+                    status = it.status.name,
+                    role = it.role.name,
+                    email = it.email,
+                )
+            },
     )
 
-private fun GroupNameListDocument.toProjection() = GroupNameListProjection(
+private fun GroupNameListDocument.toProjection() =
+    GroupNameListProjection(
         groupId = GroupId(groupId),
-        players = playerEntries.map {
-            GroupNameListEntry(
-                userId = UserId(it.userId),
-                name = it.name,
-                imageUrl = it.imageUrl
-            )
-        }
+        players =
+            playerEntries.map {
+                GroupNameListEntry(
+                    userId = UserId(it.userId),
+                    name = it.name,
+                    imageUrl = it.imageUrl,
+                )
+            },
     )
 
-private fun GroupNameListProjection.toDocument() = GroupNameListDocument(
+private fun GroupNameListProjection.toDocument() =
+    GroupNameListDocument(
         groupId = groupId.value,
-        playerEntries = players.map {
-            GroupNameListEntryDocument(
-                userId = it.userId.value,
-                name = it.name,
-                imageUrl = it.imageUrl
-            )
-        }
+        playerEntries =
+            players.map {
+                GroupNameListEntryDocument(
+                    userId = it.userId.value,
+                    name = it.name,
+                    imageUrl = it.imageUrl,
+                )
+            },
     )

@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.message.core.adapter.primary
 
+import com.spruhs.kick_app.common.exceptions.MessageNotFoundException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.MessageId
-import com.spruhs.kick_app.common.exceptions.MessageNotFoundException
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.message.core.application.MarkAsReadCommand
 import com.spruhs.kick_app.message.core.application.MessageUseCases
 import com.spruhs.kick_app.message.core.domain.Message
@@ -25,13 +25,12 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/message")
 class MessageRestController(
     private val messageUseCases: MessageUseCases,
-    private val jwtParser: JWTParser
+    private val jwtParser: JWTParser,
 ) {
-
     @GetMapping("/user/{userId}")
     suspend fun getMessagesByUser(
         @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable userId: String
+        @PathVariable userId: String,
     ): List<MessageResponse> {
         require(userId == jwtParser.getUserId(jwt).value) {
             throw UserNotAuthorizedException(UserId(userId))
@@ -42,23 +41,21 @@ class MessageRestController(
     @PutMapping("/{messageId}/read")
     suspend fun markMessageAsRead(
         @AuthenticationPrincipal jwt: Jwt,
-        @PathVariable messageId: String
+        @PathVariable messageId: String,
     ) {
         messageUseCases.markAsRead(
             MarkAsReadCommand(
                 messageId = MessageId(messageId),
-                userId = jwtParser.getUserId(jwt)
-            )
+                userId = jwtParser.getUserId(jwt),
+            ),
         )
     }
 }
 
 @ControllerAdvice
 class MessageExceptionHandler {
-
     @ExceptionHandler
-    fun handleMessageNotFoundException(ex: MessageNotFoundException) =
-         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
+    fun handleMessageNotFoundException(ex: MessageNotFoundException) = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
 }
 
 data class MessageResponse(
@@ -68,15 +65,16 @@ data class MessageResponse(
     val timeStamp: String,
     val type: MessageType,
     val isRead: Boolean,
-    val variables: Map<String, String>
+    val variables: Map<String, String>,
 )
 
-private fun Message.toResponse() = MessageResponse(
-    id = id.value,
-    userId = user.value,
-    text = text,
-    timeStamp = timeStamp.toString(),
-    isRead = isRead,
-    variables = variables,
-    type = type
-)
+private fun Message.toResponse() =
+    MessageResponse(
+        id = id.value,
+        userId = user.value,
+        text = text,
+        timeStamp = timeStamp.toString(),
+        isRead = isRead,
+        variables = variables,
+        type = type,
+    )

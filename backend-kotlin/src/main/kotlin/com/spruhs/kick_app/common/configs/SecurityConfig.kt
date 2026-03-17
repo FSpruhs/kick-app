@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.common.configs
 
-import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.helper.getLogger
+import com.spruhs.kick_app.common.types.UserId
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
@@ -39,18 +39,16 @@ import javax.crypto.SecretKey
 @Profile("oauth2")
 @Configuration
 class OAuth2SecurityConfig(
-    private val corsConfigurationSource: CorsConfigurationSource
+    private val corsConfigurationSource: CorsConfigurationSource,
 ) {
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            //.cors { it.configurationSource(corsConfigurationSource) }
+            // .cors { it.configurationSource(corsConfigurationSource) }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
                 auth.anyRequest().authenticated()
-            }
-            .csrf { it.disable() }
+            }.csrf { it.disable() }
             .oauth2ResourceServer { oauth2 ->
                 oauth2.jwt(Customizer.withDefaults())
             }
@@ -58,8 +56,9 @@ class OAuth2SecurityConfig(
     }
 
     @Bean
-    fun keycloak(): Keycloak {
-        return KeycloakBuilder.builder()
+    fun keycloak(): Keycloak =
+        KeycloakBuilder
+            .builder()
             .serverUrl("http://localhost:8080")
             .realm("kick-app")
             .clientId("kick")
@@ -68,42 +67,43 @@ class OAuth2SecurityConfig(
             .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
             .clientSecret("**********")
             .build()
-    }
 }
 
 @Profile("jwtSecurity")
 @Configuration
 class JwtSecurityConfig(
-    private val corsConfigurationSource: CorsConfigurationSource
+    private val corsConfigurationSource: CorsConfigurationSource,
 ) {
     @Bean
     fun securityFilterChain(
         http: ServerHttpSecurity,
         jwtUtil: JwtUtil,
-    ): SecurityWebFilterChain {
-        return http
+    ): SecurityWebFilterChain =
+        http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource) }
             .authorizeExchange { exchanges ->
-                exchanges.pathMatchers(
-                    "/v3/api-docs/**",
-                    "/swagger-ui.html",
-                    "/swagger-ui/**",
-                    "/swagger-resources/**",
-                    "/webjars/**"
-                ).permitAll()
-                    .pathMatchers(HttpMethod.POST, "/api/v1/user").permitAll()
-                    .pathMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                    .anyExchange().authenticated()
-            }
-
-            .addFilterAt(JwtAuthenticationWebFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
+                exchanges
+                    .pathMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                    ).permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/user")
+                    .permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/auth/**")
+                    .permitAll()
+                    .anyExchange()
+                    .authenticated()
+            }.addFilterAt(JwtAuthenticationWebFilter(jwtUtil), SecurityWebFiltersOrder.AUTHENTICATION)
             .build()
-    }
 
     @Bean
-    fun jwtUtil(@Value("\${jwt.secret}") secret: String) = JwtUtil(secret)
-
+    fun jwtUtil(
+        @Value("\${jwt.secret}") secret: String,
+    ) = JwtUtil(secret)
 }
 
 @Configuration
@@ -122,10 +122,12 @@ class CorsConfiguration {
 }
 
 class JwtAuthenticationWebFilter(
-    private val jwtUtil: JwtUtil
+    private val jwtUtil: JwtUtil,
 ) : WebFilter {
-
-    override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: WebFilterChain,
+    ): Mono<Void> {
         val token = extractToken(exchange.request)
         return if (token != null && jwtUtil.isTokenValid(token)) {
             val jwt = jwtUtil.toJwt(token)
@@ -144,34 +146,57 @@ class JwtAuthenticationWebFilter(
     }
 }
 
-class JwtUtil(secret: String) {
-
+class JwtUtil(
+    secret: String,
+) {
     private val log = getLogger(this::class.java)
     private val key: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray())
 
-    fun generateToken(userId: UserId, expirationMillis: Long): String {
-        return Jwts.builder()
+    fun generateToken(
+        userId: UserId,
+        expirationMillis: Long,
+    ): String =
+        Jwts
+            .builder()
             .setSubject(userId.value)
             .setIssuedAt(Date())
             .setExpiration(Date(System.currentTimeMillis() + expirationMillis))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact()
-    }
 
     fun getUserId(token: String): UserId =
-        UserId(Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body.subject)
+        UserId(
+            Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .body.subject,
+        )
 
-    fun isTokenValid(token: String): Boolean = try {
-        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token)
-        true
-    } catch (e: Exception) {
-        log.error(e.message)
-        false
-    }
+    fun isTokenValid(token: String): Boolean =
+        try {
+            Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+            true
+        } catch (e: Exception) {
+            log.error(e.message)
+            false
+        }
 
     fun toJwt(token: String): Jwt {
-        val claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).body
-        return Jwt.withTokenValue(token)
+        val claims =
+            Jwts
+                .parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .body
+        return Jwt
+            .withTokenValue(token)
             .header("alg", "HS256")
             .header("typ", "JWT")
             .subject(claims.subject)

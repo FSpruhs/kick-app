@@ -13,9 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.io.InputStream
 
 class UserAggregate(
-    override val aggregateId: String
+    override val aggregateId: String,
 ) : AggregateRoot(aggregateId, TYPE) {
-
     var nickName: NickName = NickName("Default")
     var email: Email = Email("default@defaults.com")
     var userImageId: UserImageId? = null
@@ -43,7 +42,10 @@ class UserAggregate(
         userImageId = event.imageId
     }
 
-    fun createUser(email: Email, nickName: NickName) {
+    fun createUser(
+        email: Email,
+        nickName: NickName,
+    ) {
         apply(UserCreatedEvent(aggregateId, email.value, nickName.value))
     }
 
@@ -61,8 +63,17 @@ class UserAggregate(
 }
 
 interface UserIdentityProviderPort {
-    suspend fun save(email: Email, nickName: NickName, password: Password? = null, userId: UserId? = null): UserId
-    suspend fun changeNickName(userId: UserId, nickName: NickName)
+    suspend fun save(
+        email: Email,
+        nickName: NickName,
+        password: Password? = null,
+        userId: UserId? = null,
+    ): UserId
+
+    suspend fun changeNickName(
+        userId: UserId,
+        nickName: NickName,
+    )
 }
 
 fun interface UserLoginPort {
@@ -70,16 +81,18 @@ fun interface UserLoginPort {
 }
 
 @JvmInline
-value class NickName(val value: String) {
+value class NickName(
+    val value: String,
+) {
     init {
         require(value.length in 2..20) { "Nick name must be between 2 and 20 characters" }
     }
 }
 
-
 @JvmInline
-value class Password private constructor(val value: String) {
-
+value class Password private constructor(
+    val value: String,
+) {
     companion object {
         private val encoder = BCryptPasswordEncoder()
 
@@ -92,15 +105,10 @@ value class Password private constructor(val value: String) {
             return Password(encoder.encode(plaintext))
         }
 
-        fun fromHash(hash: String): Password {
-            return Password(hash)
-        }
-
+        fun fromHash(hash: String): Password = Password(hash)
     }
 
-    fun matches(plaintext: String): Boolean {
-        return encoder.matches(plaintext, value)
-    }
+    fun matches(plaintext: String): Boolean = encoder.matches(plaintext, value)
 }
 
 data class AuthUser(
@@ -110,10 +118,16 @@ data class AuthUser(
 )
 
 fun interface UserImagePort {
-    fun save(inputStream: InputStream, contentType: String): UserImageId
+    fun save(
+        inputStream: InputStream,
+        contentType: String,
+    ): UserImageId
 }
 
-data class UserWithEmailAlreadyExistsException(val email: Email) :
-    RuntimeException("User with email already exists: $email")
+data class UserWithEmailAlreadyExistsException(
+    val email: Email,
+) : RuntimeException("User with email already exists: $email")
 
-class CreateUserIdentityProviderException(message: String) : RuntimeException(message)
+class CreateUserIdentityProviderException(
+    message: String,
+) : RuntimeException(message)

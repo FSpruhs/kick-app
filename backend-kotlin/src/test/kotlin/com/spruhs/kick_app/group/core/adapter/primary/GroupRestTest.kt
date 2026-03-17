@@ -14,7 +14,8 @@ import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import io.mockk.coEvery
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -47,11 +48,16 @@ class GroupRestTest {
     @Test
     fun `updatePlayer should update player status and role`() {
         val requestingUser = UserId("testUserId")
-        val builder = TestGroupBuilder().withPlayers(listOf(Player(
-            id = UserId("testPlayerId"),
-            status = Active(),
-            role = PlayerRole.PLAYER
-        )))
+        val builder =
+            TestGroupBuilder().withPlayers(
+                listOf(
+                    Player(
+                        id = UserId("testPlayerId"),
+                        status = Active(),
+                        role = PlayerRole.PLAYER,
+                    ),
+                ),
+            )
         val group = builder.build()
         val newStatus = PlayerStatusType.ACTIVE
         val newRole = PlayerRole.COACH
@@ -59,11 +65,14 @@ class GroupRestTest {
         coEvery { groupCommandPort.updatePlayerStatus(builder.toUpdatePlayerStatusCommand(requestingUser, newStatus)) } returns Unit
         coEvery { groupCommandPort.updatePlayerRole(builder.toUpdatePlayerRoleCommand(requestingUser, newRole)) } returns Unit
 
-        webTestClient.put()
-            .uri("/api/v1/group/${group.aggregateId}/players/${group.players.first().id.value}?status=${newStatus.name}&role=${newRole.name}")
-            .header("Authorization", "Bearer ${jwtWithUserId(requestingUser.value)}")
+        webTestClient
+            .put()
+            .uri(
+                "/api/v1/group/${group.aggregateId}/players/${group.players.first().id.value}?status=${newStatus.name}&role=${newRole.name}",
+            ).header("Authorization", "Bearer ${jwtWithUserId(requestingUser.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -74,12 +83,14 @@ class GroupRestTest {
 
         coEvery { groupCommandPort.createGroup(builder.toCreateGroupCommand(requestingUser)) } returns group
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/group")
             .header("Authorization", "Bearer ${jwtWithUserId(requestingUser.value)}")
             .bodyValue(builder.toCreateGroupRequest())
             .exchange()
-            .expectStatus().isCreated
+            .expectStatus()
+            .isCreated
             .expectBody<String>()
             .consumeWith { response ->
                 assertNotNull(response.responseBody)
@@ -96,11 +107,13 @@ class GroupRestTest {
 
         coEvery { groupCommandPort.changeGroupName(builder.toUpdateGroupNameCommand(requestingUser, newName)) } returns Unit
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/group/${group.aggregateId}/name?name=$newName")
             .header("Authorization", "Bearer ${jwtWithUserId(requestingUser.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -112,11 +125,13 @@ class GroupRestTest {
 
         coEvery { groupCommandPort.inviteUser(builder.toInviteUserCommand(requestingUser, userIdToInvite)) } returns Unit
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/group/${group.aggregateId}/invited-users/${userIdToInvite.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(requestingUser.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -127,12 +142,14 @@ class GroupRestTest {
 
         coEvery { groupCommandPort.inviteUserResponse(builder.toInvitedUserResponseCommand(invitedUser, response)) } returns Unit
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/group/invited-users")
             .header("Authorization", "Bearer ${jwtWithUserId(invitedUser.value)}")
             .bodyValue(builder.toInvitedUserResponse(response))
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
     }
 
     @Test
@@ -140,11 +157,13 @@ class GroupRestTest {
         val invitedUser = UserId("userToInvite")
         val builder = TestGroupBuilder().withInvitedPlayers(listOf(invitedUser.value))
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/group/invited-users")
             .header("Authorization", "Bearer ${jwtWithUserId("anotherUser")}")
             .bodyValue(builder.toInvitedUserResponse(true))
             .exchange()
-            .expectStatus().isUnauthorized
+            .expectStatus()
+            .isUnauthorized
     }
 }

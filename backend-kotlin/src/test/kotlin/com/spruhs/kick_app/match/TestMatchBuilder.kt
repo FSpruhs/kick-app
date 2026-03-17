@@ -27,7 +27,6 @@ import com.spruhs.kick_app.view.core.service.RegisteredPlayerInfo
 import java.time.LocalDateTime
 
 class TestMatchBuilder {
-
     var matchId = "testMatchId"
     var groupId = "testGroupId"
     var start: LocalDateTime = LocalDateTime.now()
@@ -35,33 +34,39 @@ class TestMatchBuilder {
     val playground = "testPlayground"
     val maxPlayers = 8
     val minPlayers = 4
-    val cadre = listOf(
-        RegisteredPlayer.MainPlayer(UserId("player 1"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
-        RegisteredPlayer.MainPlayer(UserId("player 2"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
+    val cadre =
+        listOf(
+            RegisteredPlayer.MainPlayer(UserId("player 1"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
+            RegisteredPlayer.MainPlayer(UserId("player 2"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
         )
-    val waitingBench = listOf(
-        RegisteredPlayer.MainPlayer(UserId("player 3"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
-        RegisteredPlayer.MainPlayer(UserId("player 4"), 0,LocalDateTime.now(), RegistrationStatus.Registered),
-    )
-    val deregistered = listOf(
-        RegisteredPlayer.MainPlayer(UserId("player 5"), 0,LocalDateTime.now(), RegistrationStatus.Deregistered),
-        RegisteredPlayer.MainPlayer(UserId("player 6"), 0,LocalDateTime.now(), RegistrationStatus.Deregistered),
-    )
-    val participatingPlayers = listOf(
-        ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN, MatchTeam.A),
-        ParticipatingPlayer(UserId("player 2"), PlayerResult.LOSS,MatchTeam.B),
-        ParticipatingPlayer(UserId("player 3"), PlayerResult.WIN,MatchTeam.A),
-        ParticipatingPlayer(UserId("player 4"), PlayerResult.LOSS,MatchTeam.B),
-    )
+    val waitingBench =
+        listOf(
+            RegisteredPlayer.MainPlayer(UserId("player 3"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
+            RegisteredPlayer.MainPlayer(UserId("player 4"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
+        )
+    val deregistered =
+        listOf(
+            RegisteredPlayer.MainPlayer(UserId("player 5"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered),
+            RegisteredPlayer.MainPlayer(UserId("player 6"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered),
+        )
+    val participatingPlayers =
+        listOf(
+            ParticipatingPlayer(UserId("player 1"), PlayerResult.WIN, MatchTeam.A),
+            ParticipatingPlayer(UserId("player 2"), PlayerResult.LOSS, MatchTeam.B),
+            ParticipatingPlayer(UserId("player 3"), PlayerResult.WIN, MatchTeam.A),
+            ParticipatingPlayer(UserId("player 4"), PlayerResult.LOSS, MatchTeam.B),
+        )
 
     fun withStart(start: LocalDateTime) = apply { this.start = start }
+
     fun withGroupId(groupId: String) = apply { this.groupId = groupId }
+
     fun withId(matchId: String) = apply { this.matchId = matchId }
+
     fun withIsCanceled(isCanceled: Boolean) = apply { this.isCanceled = isCanceled }
 
-
-    fun build(): MatchAggregate {
-        return MatchAggregate(matchId).also { match ->
+    fun build(): MatchAggregate =
+        MatchAggregate(matchId).also { match ->
             match.groupId = GroupId(this.groupId)
             match.start = this.start
             match.isCanceled = this.isCanceled
@@ -77,83 +82,84 @@ class TestMatchBuilder {
                 match.deregistered.add(player)
             }
         }
-    }
 
-    fun toPlanMatchRequest(): PlanMatchRequest {
-        return PlanMatchRequest(
+    fun toPlanMatchRequest(): PlanMatchRequest =
+        PlanMatchRequest(
             groupId = this.groupId,
             start = this.start,
             playground = this.playground,
             maxPlayer = this.maxPlayers,
-            minPlayer = this.minPlayers
+            minPlayer = this.minPlayers,
         )
-    }
 
-    fun toPlanMatchCommand(requestingUserId: UserId): PlanMatchCommand {
-        return PlanMatchCommand(
+    fun toPlanMatchCommand(requestingUserId: UserId): PlanMatchCommand =
+        PlanMatchCommand(
             requesterId = requestingUserId,
             groupId = GroupId(this.groupId),
             start = this.start,
             playground = Playground(this.playground),
-            playerCount = PlayerCount(MinPlayer(this.minPlayers), MaxPlayer(this.maxPlayers))
+            playerCount = PlayerCount(MinPlayer(this.minPlayers), MaxPlayer(this.maxPlayers)),
         )
-    }
 
-    fun toEnterResultRequest(): EnterResultRequest {
-        return EnterResultRequest(
-            players = participatingPlayers.map { PlayerMatchResult(it.userId.value, it.playerResult.name, it.team.name) }
+    fun toEnterResultRequest(): EnterResultRequest =
+        EnterResultRequest(
+            players = participatingPlayers.map { PlayerMatchResult(it.userId.value, it.playerResult.name, it.team.name) },
         )
-    }
 
-    fun toEnterResultCommand(userId: UserId): EnterResultCommand {
-        return EnterResultCommand(
+    fun toEnterResultCommand(userId: UserId): EnterResultCommand =
+        EnterResultCommand(
             userId = userId,
             matchId = MatchId(this.matchId),
-            players = this.participatingPlayers.map { player ->
-                ParticipatingPlayer(
-                    userId = player.userId,
-                    playerResult = player.playerResult,
-                    team = player.team
-                )
-            }
+            players =
+                this.participatingPlayers.map { player ->
+                    ParticipatingPlayer(
+                        userId = player.userId,
+                        playerResult = player.playerResult,
+                        team = player.team,
+                    )
+                },
         )
-    }
 
-    fun toCancelMatchCommand(userId: UserId): CancelMatchCommand {
-        return CancelMatchCommand(
-            userId = userId,
-            matchId = MatchId(this.matchId)
-        )
-    }
-
-    fun toChangePlaygroundCommand(userId: UserId, playground: Playground): ChangePlaygroundCommand {
-        return ChangePlaygroundCommand(
+    fun toCancelMatchCommand(userId: UserId): CancelMatchCommand =
+        CancelMatchCommand(
             userId = userId,
             matchId = MatchId(this.matchId),
-            playground = playground
         )
-    }
 
-    fun toAddRegistrationCommand(updatingUser: UserId, updatedUser: UserId, status: RegistrationStatusType): AddRegistrationCommand {
-        return AddRegistrationCommand(
+    fun toChangePlaygroundCommand(
+        userId: UserId,
+        playground: Playground,
+    ): ChangePlaygroundCommand =
+        ChangePlaygroundCommand(
+            userId = userId,
+            matchId = MatchId(this.matchId),
+            playground = playground,
+        )
+
+    fun toAddRegistrationCommand(
+        updatingUser: UserId,
+        updatedUser: UserId,
+        status: RegistrationStatusType,
+    ): AddRegistrationCommand =
+        AddRegistrationCommand(
             updatingUser = updatingUser,
             updatedUser = updatedUser,
             matchId = MatchId(this.matchId),
-            status = status
+            status = status,
         )
-    }
 
-    fun toProjection() = MatchProjection(
-        id = MatchId(matchId),
-        groupId = GroupId(groupId),
-        start = start,
-        playground = playground,
-        isCanceled = isCanceled,
-        maxPlayer = maxPlayers,
-        minPlayer = minPlayers,
-        cadrePlayers = cadre.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
-        waitingBenchPlayers = waitingBench.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
-        deregisteredPlayers = deregistered.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
-        result = participatingPlayers
-    )
+    fun toProjection() =
+        MatchProjection(
+            id = MatchId(matchId),
+            groupId = GroupId(groupId),
+            start = start,
+            playground = playground,
+            isCanceled = isCanceled,
+            maxPlayer = maxPlayers,
+            minPlayer = minPlayers,
+            cadrePlayers = cadre.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
+            waitingBenchPlayers = waitingBench.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
+            deregisteredPlayers = deregistered.map { RegisteredPlayerInfo(it.userId, null) }.toSet(),
+            result = participatingPlayers,
+        )
 }

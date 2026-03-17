@@ -8,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 class PasswordTest {
-
     @ParameterizedTest
     @MethodSource("invalidPasswords")
     fun `fromPlaintext should throw exception if password not valid`(plaintext: String) {
@@ -45,24 +44,25 @@ class PasswordTest {
         }
     }
 
-
     companion object {
         @JvmStatic
-        fun invalidPasswords() = listOf(
-            "Short",
-            "onlylowercase",
-            "ONLYUPPERCASE",
-            "12345678",
-            "NoNumber@Special"
-        )
+        fun invalidPasswords() =
+            listOf(
+                "Short",
+                "onlylowercase",
+                "ONLYUPPERCASE",
+                "12345678",
+                "NoNumber@Special",
+            )
 
         @JvmStatic
-        fun validPasswords() = listOf(
-            "Valid1@Password",
-            "AnotherValid2#Password",
-            "Complex3\$Password!",
-            "Strong4%Password&",
-            "Secure5^Password*"
-        )
+        fun validPasswords() =
+            listOf(
+                "Valid1@Password",
+                "AnotherValid2#Password",
+                "Complex3\$Password!",
+                "Strong4%Password&",
+                "Secure5^Password*",
+            )
     }
 }

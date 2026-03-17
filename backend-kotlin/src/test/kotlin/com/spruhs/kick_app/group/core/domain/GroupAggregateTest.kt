@@ -1,32 +1,26 @@
 package com.spruhs.kick_app.group.core.domain
 
-import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.exceptions.PlayerNotFoundException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
-import com.spruhs.kick_app.common.types.Email
-import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand
-import com.spruhs.kick_app.group.core.application.CreateGroupCommand
-import com.spruhs.kick_app.group.core.application.InviteUserCommand
-import com.spruhs.kick_app.group.core.application.InviteUserResponseCommand
-import com.spruhs.kick_app.group.core.application.UpdatePlayerRoleCommand
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import kotlin.test.Test
 
 class GroupAggregateTest {
-
     @Test
     fun `inviteUser should add user to invitedUsers`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
 
         val inviterId = UserId("userId")
 
@@ -55,11 +49,13 @@ class GroupAggregateTest {
     fun `inviteUser should throw exception if inviter is not active`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.PLAYER,
-            status = Inactive(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.PLAYER,
+                status = Inactive(),
+            ),
+        )
 
         val inviterId = UserId("userId")
 
@@ -74,16 +70,20 @@ class GroupAggregateTest {
     fun `inviteUser should throw exception if user already in group`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
-        group.players.add(Player(
-            id = UserId("inviteeId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
+        group.players.add(
+            Player(
+                id = UserId("inviteeId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
 
         val inviterId = UserId("userId")
 
@@ -98,10 +98,9 @@ class GroupAggregateTest {
     fun `createGroup should create a new group`() {
         // Given
         val group = GroupAggregate("groupId")
-        
+
         val userId = UserId("ownerId")
         val name = Name("Test Group")
-        
 
         // When
         group.createGroup(userId, name)
@@ -112,7 +111,12 @@ class GroupAggregateTest {
         assertThat(group.players).hasSize(1)
         assertThat(group.players.first().id).isEqualTo(UserId("ownerId"))
         assertThat(group.players.first().role).isEqualTo(PlayerRole.COACH)
-        assertThat(group.players.first().status.type()).isEqualTo(PlayerStatusType.ACTIVE)
+        assertThat(
+            group.players
+                .first()
+                .status
+                .type(),
+        ).isEqualTo(PlayerStatusType.ACTIVE)
         assertThat(group.invitedUsers).isEmpty()
     }
 
@@ -121,11 +125,13 @@ class GroupAggregateTest {
         // Given
         val group = GroupAggregate("groupId")
         group.name = Name("Old Group Name")
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.COACH,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val newName = Name("New Group Name")
@@ -142,11 +148,13 @@ class GroupAggregateTest {
         // Given
         val group = GroupAggregate("groupId")
         group.name = Name("Old Group Name")
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val newName = Name("New Group Name")
@@ -174,7 +182,12 @@ class GroupAggregateTest {
         assertThat(group.players).hasSize(1)
         assertThat(group.players.first().id).isEqualTo(UserId("userId"))
         assertThat(group.players.first().role).isEqualTo(PlayerRole.PLAYER)
-        assertThat(group.players.first().status.type()).isEqualTo(PlayerStatusType.ACTIVE)
+        assertThat(
+            group.players
+                .first()
+                .status
+                .type(),
+        ).isEqualTo(PlayerStatusType.ACTIVE)
         assertThat(group.invitedUsers).isEmpty()
     }
 
@@ -214,11 +227,13 @@ class GroupAggregateTest {
     fun `updatePlayerRole should throw exception when updating player not admin`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("updatingUserId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("updatingUserId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val updatingUserId = UserId("updatingUserId")
@@ -235,11 +250,13 @@ class GroupAggregateTest {
     fun `updatePlayerRole should throw exception when updated player not in group`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("updatingUserId"),
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("updatingUserId"),
+                role = PlayerRole.COACH,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val updatingUserId = UserId("updatingUserId")
@@ -256,21 +273,24 @@ class GroupAggregateTest {
     fun `updatePlayerRole should downgrade player role`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("updatingUserId"),
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
+        group.players.add(
+            Player(
+                id = UserId("updatingUserId"),
+                role = PlayerRole.COACH,
+                status = Active(),
+            ),
+        )
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.COACH,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val updatingUserId = UserId("updatingUserId")
         val newRole = PlayerRole.PLAYER
-
 
         // When
         group.updatePlayerRole(userId, updatingUserId, newRole)
@@ -286,22 +306,24 @@ class GroupAggregateTest {
     fun `updatePlayerRole should upgrade player role`() {
         // Given
         val group = GroupAggregate("groupId")
-        group.players.add(Player(
-            id = UserId("updatingUserId"),
-            role = PlayerRole.COACH,
-            status = Active(),
-        ))
-        group.players.add(Player(
-            id = UserId("userId"),
-            role = PlayerRole.PLAYER,
-            status = Active(),
-        ))
-
+        group.players.add(
+            Player(
+                id = UserId("updatingUserId"),
+                role = PlayerRole.COACH,
+                status = Active(),
+            ),
+        )
+        group.players.add(
+            Player(
+                id = UserId("userId"),
+                role = PlayerRole.PLAYER,
+                status = Active(),
+            ),
+        )
 
         val userId = UserId("userId")
         val updatingUserId = UserId("updatingUserId")
         val newRole = PlayerRole.COACH
-
 
         // When
         group.updatePlayerRole(userId, updatingUserId, newRole)

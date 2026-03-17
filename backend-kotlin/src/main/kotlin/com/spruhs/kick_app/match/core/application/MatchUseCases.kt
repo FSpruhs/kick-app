@@ -1,14 +1,17 @@
 package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.core.domain.MatchAggregate
+import com.spruhs.kick_app.match.core.domain.PlayerCount
+import com.spruhs.kick_app.match.core.domain.Playground
+import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.view.api.GroupApi
-import com.spruhs.kick_app.match.core.domain.*
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -27,7 +30,7 @@ class MatchCommandPort(
                 groupId = command.groupId,
                 start = command.start,
                 playground = command.playground,
-                playerCount = command.playerCount
+                playerCount = command.playerCount,
             )
             aggregateStore.save(it)
         }
@@ -51,7 +54,10 @@ class MatchCommandPort(
         aggregateStore.save(match)
     }
 
-    private suspend fun validateRegistrationRequest(command: AddRegistrationCommand, match: MatchAggregate) {
+    private suspend fun validateRegistrationRequest(
+        command: AddRegistrationCommand,
+        match: MatchAggregate,
+    ) {
         require(groupApi.isActiveMember(match.groupId, command.updatedUser)) {
             throw UserNotAuthorizedException(command.updatingUser)
         }
@@ -92,12 +98,12 @@ class MatchCommandPort(
 data class EnterResultCommand(
     val userId: UserId,
     val matchId: MatchId,
-    val players: List<ParticipatingPlayer>
+    val players: List<ParticipatingPlayer>,
 )
 
 data class CancelMatchCommand(
     val userId: UserId,
-    val matchId: MatchId
+    val matchId: MatchId,
 )
 
 data class PlanMatchCommand(
@@ -112,11 +118,11 @@ data class AddRegistrationCommand(
     val updatingUser: UserId,
     val updatedUser: UserId,
     val matchId: MatchId,
-    val status: RegistrationStatusType
+    val status: RegistrationStatusType,
 )
 
 data class ChangePlaygroundCommand(
     val userId: UserId,
     val matchId: MatchId,
-    val playground: Playground
+    val playground: Playground,
 )

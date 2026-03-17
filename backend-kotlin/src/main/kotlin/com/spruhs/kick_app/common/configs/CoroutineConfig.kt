@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Configuration
 import javax.annotation.PreDestroy
 
 @Configuration
-class ApplicationConfiguration {
-
+class CoroutineConfig {
     private val log = getLogger(this::class.java)
     private val applicationCoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

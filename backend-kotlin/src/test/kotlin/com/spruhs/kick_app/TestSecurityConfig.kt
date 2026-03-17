@@ -15,30 +15,31 @@ import java.util.Date
 
 @TestConfiguration
 class TestSecurityConfig {
-
     @Bean
-    fun reactiveJwtDecoder(): ReactiveJwtDecoder = ReactiveJwtDecoder { token ->
-        val parts = token.split(".")
-        val payloadJson = String(Base64.getDecoder().decode(parts[1]), Charsets.UTF_8)
-        val claims: Map<String, Any> = jacksonObjectMapper().readValue(payloadJson)
+    fun reactiveJwtDecoder(): ReactiveJwtDecoder =
+        ReactiveJwtDecoder { token ->
+            val parts = token.split(".")
+            val payloadJson = String(Base64.getDecoder().decode(parts[1]), Charsets.UTF_8)
+            val claims: Map<String, Any> = jacksonObjectMapper().readValue(payloadJson)
 
-        Mono.just(
-            Jwt.withTokenValue(token)
-                .header("alg", "none")
-                .claims { it.putAll(claims) }
-                .issuedAt(Instant.now())
-                .expiresAt(Instant.now().plusSeconds(3600))
-                .build()
-        )
-    }
+            Mono.just(
+                Jwt
+                    .withTokenValue(token)
+                    .header("alg", "none")
+                    .claims { it.putAll(claims) }
+                    .issuedAt(Instant.now())
+                    .expiresAt(Instant.now().plusSeconds(3600))
+                    .build(),
+            )
+        }
 }
 
 object TestHelpers {
-    fun jwtWithUserId(userId: String): String {
-        return JWT.create()
+    fun jwtWithUserId(userId: String): String =
+        JWT
+            .create()
             .withSubject(userId)
             .withIssuedAt(Date.from(Instant.now()))
             .withExpiresAt(Date.from(Instant.now().plusSeconds(3600)))
             .sign(Algorithm.none())
-    }
 }

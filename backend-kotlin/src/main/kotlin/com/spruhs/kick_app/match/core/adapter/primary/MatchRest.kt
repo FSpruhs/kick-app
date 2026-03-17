@@ -1,34 +1,54 @@
 package com.spruhs.kick_app.match.core.adapter.primary
 
-import com.spruhs.kick_app.common.types.GroupId
-import com.spruhs.kick_app.common.helper.JWTParser
-import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.exceptions.MatchNotFoundException
+import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.GroupId
+import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
-import com.spruhs.kick_app.match.core.application.*
-import com.spruhs.kick_app.match.core.domain.*
+import com.spruhs.kick_app.match.core.application.AddRegistrationCommand
+import com.spruhs.kick_app.match.core.application.CancelMatchCommand
+import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
+import com.spruhs.kick_app.match.core.application.EnterResultCommand
+import com.spruhs.kick_app.match.core.application.MatchCommandPort
+import com.spruhs.kick_app.match.core.application.PlanMatchCommand
+import com.spruhs.kick_app.match.core.domain.MatchCanceledException
+import com.spruhs.kick_app.match.core.domain.MatchStartTimeException
+import com.spruhs.kick_app.match.core.domain.MaxPlayer
+import com.spruhs.kick_app.match.core.domain.MinPlayer
+import com.spruhs.kick_app.match.core.domain.PlayerCount
+import com.spruhs.kick_app.match.core.domain.Playground
+import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ControllerAdvice
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/v1/match")
 class MatchRestController(
     private val matchCommandPort: MatchCommandPort,
-    private val jwtParser: JWTParser
+    private val jwtParser: JWTParser,
 ) {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     suspend fun planMatch(
         @RequestBody request: PlanMatchRequest,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) = matchCommandPort
         .plan(request.toCommand(jwtParser.getUserId(jwt)))
         .aggregateId
@@ -36,13 +56,13 @@ class MatchRestController(
     @DeleteMapping("/{matchId}")
     suspend fun cancelMatch(
         @PathVariable matchId: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
         matchCommandPort.cancelMatch(
             CancelMatchCommand(
                 userId = jwtParser.getUserId(jwt),
-                matchId = MatchId(matchId)
-            )
+                matchId = MatchId(matchId),
+            ),
         )
     }
 
@@ -50,14 +70,14 @@ class MatchRestController(
     suspend fun changePlayground(
         @PathVariable matchId: String,
         @RequestParam playground: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
         matchCommandPort.changePlayground(
             ChangePlaygroundCommand(
                 userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
-                playground = Playground(playground)
-            )
+                playground = Playground(playground),
+            ),
         )
     }
 
@@ -66,7 +86,7 @@ class MatchRestController(
         @PathVariable matchId: String,
         @PathVariable userId: String,
         @RequestParam status: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
         matchCommandPort.addRegistration(
             AddRegistrationCommand(
@@ -74,7 +94,7 @@ class MatchRestController(
                 updatingUser = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 status = RegistrationStatusType.valueOf(status),
-            )
+            ),
         )
     }
 
@@ -82,32 +102,28 @@ class MatchRestController(
     suspend fun addResult(
         @PathVariable matchId: String,
         @RequestBody request: EnterResultRequest,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ) {
         matchCommandPort.enterResult(
             EnterResultCommand(
                 userId = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 players = request.players.map { it.toParticipatingPlayer() },
-            )
+            ),
         )
     }
 }
 
 @ControllerAdvice
 class MatchExceptionHandler {
+    @ExceptionHandler
+    fun handleMatchNotFoundException(ex: MatchNotFoundException) = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
 
     @ExceptionHandler
-    fun handleMatchNotFoundException(ex: MatchNotFoundException) =
-        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
+    fun handleMatchStartTimeException(ex: MatchStartTimeException) = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
 
     @ExceptionHandler
-    fun handleMatchStartTimeException(ex: MatchStartTimeException) =
-        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
-
-    @ExceptionHandler
-    fun handleMatchCanceledException(ex: MatchCanceledException) =
-        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
+    fun handleMatchCanceledException(ex: MatchCanceledException) = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.message)
 }
 
 data class EnterResultRequest(
@@ -117,7 +133,7 @@ data class EnterResultRequest(
 data class PlayerMatchResult(
     val userId: String,
     val result: String,
-    val team: String
+    val team: String,
 )
 
 data class PlanMatchRequest(
@@ -125,19 +141,21 @@ data class PlanMatchRequest(
     val start: LocalDateTime,
     val playground: String,
     val maxPlayer: Int,
-    val minPlayer: Int
+    val minPlayer: Int,
 )
 
-private fun PlanMatchRequest.toCommand(requestingUserId: UserId) = PlanMatchCommand(
-    requesterId = requestingUserId,
-    groupId = GroupId(groupId),
-    start = start,
-    playground = Playground(playground),
-    playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer))
-)
+private fun PlanMatchRequest.toCommand(requestingUserId: UserId) =
+    PlanMatchCommand(
+        requesterId = requestingUserId,
+        groupId = GroupId(groupId),
+        start = start,
+        playground = Playground(playground),
+        playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer)),
+    )
 
-private fun PlayerMatchResult.toParticipatingPlayer() = ParticipatingPlayer(
-    userId = UserId(userId),
-    team = MatchTeam.valueOf(team),
-    playerResult = PlayerResult.valueOf(result)
-)
+private fun PlayerMatchResult.toParticipatingPlayer() =
+    ParticipatingPlayer(
+        userId = UserId(userId),
+        team = MatchTeam.valueOf(team),
+        playerResult = PlayerResult.valueOf(result),
+    )

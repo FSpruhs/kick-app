@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.message.core.application
 
+import com.spruhs.kick_app.common.exceptions.MessageNotFoundException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.MessageId
-import com.spruhs.kick_app.common.exceptions.MessageNotFoundException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.message.core.domain.Message
@@ -19,8 +19,10 @@ class MessageUseCases(
     private val messagePersistencePort: MessagePersistencePort,
     private val groupApi: GroupApi,
 ) {
-
-    suspend fun send(messageType: MessageType, params: MessageParams) {
+    suspend fun send(
+        messageType: MessageType,
+        params: MessageParams,
+    ) {
         createMessage(messageType, params).apply {
             messagePersistencePort.save(this)
         }
@@ -39,9 +41,10 @@ class MessageUseCases(
     suspend fun sendAllActiveUsersInGroupMessage(
         messageType: MessageType,
         params: MessageParams,
-        groupId: GroupId
+        groupId: GroupId,
     ) {
-        groupApi.getActivePlayers(groupId)
+        groupApi
+            .getActivePlayers(groupId)
             .map { createMessage(messageType, params.copy(userId = it)) }
             .toList()
             .let { messagePersistencePort.saveAll(it) }
@@ -53,7 +56,7 @@ class MessageUseCases(
 
 data class MarkAsReadCommand(
     val messageId: MessageId,
-    val userId: UserId
+    val userId: UserId,
 )
 
 data class MessageParams(
@@ -65,8 +68,11 @@ data class MessageParams(
     val playground: String? = null,
 )
 
-private fun createMessage(type: MessageType, params: MessageParams): Message {
-    return when (type) {
+private fun createMessage(
+    type: MessageType,
+    params: MessageParams,
+): Message =
+    when (type) {
         MessageType.USER_INVITED_TO_GROUP -> MessageFactory().createUserInvitedToGroupMessage(params)
         MessageType.USER_LEAVED_GROUP -> MessageFactory().createUserLeavedGroupMessage(params)
         MessageType.USER_REMOVED_FROM_GROUP -> MessageFactory().createUserRemovedFromGroupMessage(params)
@@ -78,15 +84,14 @@ private fun createMessage(type: MessageType, params: MessageParams): Message {
         MessageType.PLAYER_ADDED_TO_CADRE -> MessageFactory().createPlayerAddedToCadreMessage(params)
         MessageType.PLAYER_PLACED_ON_WAITING_BENCH -> MessageFactory().createPlayerPlacedOnWaitingBenchMessage(params)
     }
-}
 
 private const val GROUP_ID = "groupId"
 private const val MATCH_ID = "matchId"
 
 class MessageFactory {
     fun createUserInvitedToGroupMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         require(!params.groupName.isNullOrBlank())
         return Message(
             id = MessageId(generateId()),
@@ -95,13 +100,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createUserLeavedGroupMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         require(!params.groupName.isNullOrBlank())
         return Message(
             id = MessageId(generateId()),
@@ -110,13 +115,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createUserRemovedFromGroupMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         require(!params.groupName.isNullOrBlank())
         return Message(
             id = MessageId(generateId()),
@@ -125,14 +130,14 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createMatchCreatedMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
-        require(params.matchId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
+        requireNotNull(params.matchId)
         return Message(
             id = MessageId(generateId()),
             text = "Invented for match on ${params.start}",
@@ -140,13 +145,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value),
         )
     }
 
     fun createUserDowngradedMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         return Message(
             id = MessageId(generateId()),
             text = "You have been downgraded to player.",
@@ -154,13 +159,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createUserPromotedMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         return Message(
             id = MessageId(generateId()),
             text = "You have been promoted in to admin",
@@ -168,14 +173,14 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createMatchCanceledMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
-        require(params.matchId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
+        requireNotNull(params.matchId)
         return Message(
             id = MessageId(generateId()),
             text = "Match has been canceled",
@@ -183,13 +188,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value),
         )
     }
 
     fun createPlaygroundChangedMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.groupId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.groupId)
         require(!params.playground.isNullOrBlank())
         return Message(
             id = MessageId(generateId()),
@@ -198,13 +203,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(GROUP_ID to params.groupId.value)
+            variables = mapOf(GROUP_ID to params.groupId.value),
         )
     }
 
     fun createPlayerAddedToCadreMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.matchId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.matchId)
         return Message(
             id = MessageId(generateId()),
             text = "You have been added to the cadre.",
@@ -212,13 +217,13 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(MATCH_ID to params.matchId.value)
+            variables = mapOf(MATCH_ID to params.matchId.value),
         )
     }
 
     fun createPlayerPlacedOnWaitingBenchMessage(params: MessageParams): Message {
-        require(params.userId != null)
-        require(params.matchId != null)
+        requireNotNull(params.userId)
+        requireNotNull(params.matchId)
         return Message(
             id = MessageId(generateId()),
             text = "You have been placed on waiting bench.",
@@ -226,7 +231,7 @@ class MessageFactory {
             user = params.userId,
             timeStamp = LocalDateTime.now(),
             isRead = false,
-            variables = mapOf(MATCH_ID to params.matchId.value)
+            variables = mapOf(MATCH_ID to params.matchId.value),
         )
     }
 }

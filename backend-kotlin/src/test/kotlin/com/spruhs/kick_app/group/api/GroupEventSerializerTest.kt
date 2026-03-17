@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.group.api
 
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
-import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.core.domain.GroupAggregate
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
@@ -14,9 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.Test
 
-
 class GroupEventSerializerTest {
-
     @ParameterizedTest
     @MethodSource("data")
     fun `serialize and deserialize group created event`(event: Any) {
@@ -35,19 +33,20 @@ class GroupEventSerializerTest {
 
     companion object {
         @JvmStatic
-        fun data() = listOf(
-            GroupCreatedEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.COACH),
-            GroupNameChangedEvent("groupId", "newGroupName"),
-            PlayerInvitedEvent("groupId", UserId("userId"), "groupName"),
-            PlayerEnteredGroupEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.PLAYER),
-            PlayerRejectedGroupEvent("groupId", UserId("userId")),
-            PlayerPromotedEvent("groupId", UserId("userId")),
-            PlayerDowngradedEvent("groupId", UserId("userId")),
-            PlayerActivatedEvent("groupId", UserId("userId")),
-            PlayerDeactivatedEvent("groupId", UserId("userId")),
-            PlayerRemovedEvent("groupId", UserId("userId"), "groupName"),
-            PlayerLeavedEvent("groupId", UserId("userId")),
-        )
+        fun data() =
+            listOf(
+                GroupCreatedEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.COACH),
+                GroupNameChangedEvent("groupId", "newGroupName"),
+                PlayerInvitedEvent("groupId", UserId("userId"), "groupName"),
+                PlayerEnteredGroupEvent("groupId", UserId("userId"), "groupName", PlayerStatusType.ACTIVE, PlayerRole.PLAYER),
+                PlayerRejectedGroupEvent("groupId", UserId("userId")),
+                PlayerPromotedEvent("groupId", UserId("userId")),
+                PlayerDowngradedEvent("groupId", UserId("userId")),
+                PlayerActivatedEvent("groupId", UserId("userId")),
+                PlayerDeactivatedEvent("groupId", UserId("userId")),
+                PlayerRemovedEvent("groupId", UserId("userId"), "groupName"),
+                PlayerLeavedEvent("groupId", UserId("userId")),
+            )
     }
 
     @Test
@@ -62,7 +61,7 @@ class GroupEventSerializerTest {
         assertThatThrownBy {
             GroupEventSerializer().serialize(event, aggregate)
 
-        // Then
+            // Then
         }.isInstanceOf(UnknownEventTypeException::class.java)
     }
 
@@ -77,7 +76,7 @@ class GroupEventSerializerTest {
         assertThatThrownBy {
             GroupEventSerializer().deserialize(serialized)
 
-        // Then
+            // Then
         }.isInstanceOf(UnknownEventTypeException::class.java)
     }
 }

@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
-import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.PlayerStatisticProjection
 import com.spruhs.kick_app.view.core.service.StatisticService
@@ -16,19 +16,20 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/statistic")
 class StatisticViewRestController(
     private val statisticService: StatisticService,
-    private val jwtParser: JWTParser
+    private val jwtParser: JWTParser,
 ) {
-
     @GetMapping("/group/{groupId}/player/{userId}")
     suspend fun getPlayerStatistics(
         @PathVariable groupId: String,
         @PathVariable userId: String,
-        @AuthenticationPrincipal jwt: Jwt
-    ): PlayerStatisticMessage = statisticService.getPlayerStatistics(
-        groupId = GroupId(groupId),
-        userId = UserId(userId),
-        requestingUserId = jwtParser.getUserId(jwt)
-    ).toMessage()
+        @AuthenticationPrincipal jwt: Jwt,
+    ): PlayerStatisticMessage =
+        statisticService
+            .getPlayerStatistics(
+                groupId = GroupId(groupId),
+                userId = UserId(userId),
+                requestingUserId = jwtParser.getUserId(jwt),
+            ).toMessage()
 }
 
 data class PlayerStatisticMessage(
@@ -40,11 +41,12 @@ data class PlayerStatisticMessage(
     val draws: Int,
 )
 
-private fun PlayerStatisticProjection.toMessage() = PlayerStatisticMessage(
-    groupId = this.groupId.value,
-    userId = this.userId.value,
-    totalMatches = this.totalMatches,
-    wins = this.wins,
-    losses = this.losses,
-    draws = this.draws
-)
+private fun PlayerStatisticProjection.toMessage() =
+    PlayerStatisticMessage(
+        groupId = this.groupId.value,
+        userId = this.userId.value,
+        totalMatches = this.totalMatches,
+        wins = this.wins,
+        losses = this.losses,
+        draws = this.draws,
+    )

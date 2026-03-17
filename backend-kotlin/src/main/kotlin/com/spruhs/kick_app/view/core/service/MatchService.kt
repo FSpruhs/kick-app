@@ -1,13 +1,12 @@
 package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.exceptions.MatchNotFoundException
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
-import com.spruhs.kick_app.common.exceptions.MatchNotFoundException
-import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
-import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -16,6 +15,7 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
+import com.spruhs.kick_app.view.api.GroupApi
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -107,7 +107,10 @@ class MatchService(
         }
     }
 
-    suspend fun getMatch(matchId: MatchId, userId: UserId): MatchProjection {
+    suspend fun getMatch(
+        matchId: MatchId,
+        userId: UserId,
+    ): MatchProjection {
         val match = findMatch(matchId)
         require(groupApi.isActiveMember(match.groupId, userId)) { throw UserNotAuthorizedException(userId) }
         return match
@@ -133,8 +136,13 @@ class MatchService(
 
 interface MatchProjectionRepository {
     suspend fun save(matchProjection: MatchProjection)
+
     suspend fun findById(matchId: MatchId): MatchProjection?
-    suspend fun findAllByGroupId(groupId: GroupId, filter: MatchFilter): List<MatchProjection>
+
+    suspend fun findAllByGroupId(
+        groupId: GroupId,
+        filter: MatchFilter,
+    ): List<MatchProjection>
 }
 
 data class MatchProjection(
@@ -160,7 +168,7 @@ data class MatchFilter(
     val after: LocalDateTime? = null,
     val before: LocalDateTime? = null,
     val userId: UserId? = null,
-    val limit: Int? = null
+    val limit: Int? = null,
 ) {
     init {
         require(after == null || before == null || after.isBefore(before)) {
@@ -181,5 +189,5 @@ private fun MatchPlannedEvent.toProjection(): MatchProjection =
         cadrePlayers = emptySet(),
         deregisteredPlayers = emptySet(),
         waitingBenchPlayers = emptySet(),
-        result = emptyList()
+        result = emptyList(),
     )

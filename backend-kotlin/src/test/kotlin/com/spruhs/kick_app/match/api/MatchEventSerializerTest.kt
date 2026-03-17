@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.time.LocalDateTime
 
 class MatchEventSerializerTest {
-
     @ParameterizedTest
     @MethodSource("data")
     fun `serialize and deserialize match events`(event: Any) {
@@ -28,14 +27,20 @@ class MatchEventSerializerTest {
 
     companion object {
         @JvmStatic
-        fun data() = listOf(
-            MatchPlannedEvent("matchId", GroupId("groupId"), LocalDateTime.now(), "playground", 10, 5),
-            PlayerAddedToCadreEvent("matchId", UserId("userId"), "status"),
-            PlayerDeregisteredEvent("matchId", UserId("userId"), "status"),
-            PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),
-            MatchCanceledEvent("matchId", GroupId("groupId")),
-            PlaygroundChangedEvent("matchId", "newPlayground", GroupId("groupId")),
-            MatchResultEnteredEvent("matchId", GroupId("groupId"), listOf(ParticipatingPlayer(UserId("user"), PlayerResult.WIN, MatchTeam.A)), LocalDateTime.now()),
-        )
+        fun data() =
+            listOf(
+                MatchPlannedEvent("matchId", GroupId("groupId"), LocalDateTime.now(), "playground", 10, 5),
+                PlayerAddedToCadreEvent("matchId", UserId("userId"), "status"),
+                PlayerDeregisteredEvent("matchId", UserId("userId"), "status"),
+                PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),
+                MatchCanceledEvent("matchId", GroupId("groupId")),
+                PlaygroundChangedEvent("matchId", "newPlayground", GroupId("groupId")),
+                MatchResultEnteredEvent(
+                    "matchId",
+                    GroupId("groupId"),
+                    listOf(ParticipatingPlayer(UserId("user"), PlayerResult.WIN, MatchTeam.A)),
+                    LocalDateTime.now(),
+                ),
+            )
     }
 }

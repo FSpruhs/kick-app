@@ -1,10 +1,10 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
+import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.helper.JWTParser
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.view.core.service.UserProjection
 import com.spruhs.kick_app.view.core.service.UserService
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -19,13 +19,12 @@ import java.time.LocalDateTime
 @RequestMapping("/api/v1/user")
 class UserViewRestController(
     private val userService: UserService,
-    private val jwtParser: JWTParser
+    private val jwtParser: JWTParser,
 ) {
-
     @GetMapping("/{userId}")
     suspend fun getUser(
         @PathVariable userId: String,
-        @AuthenticationPrincipal jwt: Jwt
+        @AuthenticationPrincipal jwt: Jwt,
     ): UserMessage {
         require(userId == jwtParser.getUserId(jwt).value) {
             throw UserNotAuthorizedException(UserId(userId))
@@ -50,18 +49,20 @@ data class GroupInfoMessage(
     val lastMatch: LocalDateTime? = null,
 )
 
-private fun UserProjection.toMessage() = UserMessage(
-    id = this.id.value,
-    nickName = this.nickName,
-    email = this.email,
-    imageId = this.userImageId?.value,
-    groups = this.groups.map { group ->
-        GroupInfoMessage(
-            id = group.id.value,
-            name = group.name,
-            userStatus = group.userStatus,
-            userRole = group.userRole,
-            lastMatch = group.lastMatch
-        )
-    }
-)
+private fun UserProjection.toMessage() =
+    UserMessage(
+        id = this.id.value,
+        nickName = this.nickName,
+        email = this.email,
+        imageId = this.userImageId?.value,
+        groups =
+            this.groups.map { group ->
+                GroupInfoMessage(
+                    id = group.id.value,
+                    name = group.name,
+                    userStatus = group.userStatus,
+                    userRole = group.userRole,
+                    lastMatch = group.lastMatch,
+                )
+            },
+    )

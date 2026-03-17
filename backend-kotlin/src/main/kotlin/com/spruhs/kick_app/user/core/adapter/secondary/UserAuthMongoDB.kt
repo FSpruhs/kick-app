@@ -1,9 +1,9 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
-import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.user.core.domain.AuthUser
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password
@@ -19,37 +19,41 @@ import reactor.core.publisher.Flux
 
 @Profile("jwtSecurity")
 @Service
-class UserAuthMongoDBAdapter(private val repository: UserAuthRepository) : UserIdentityProviderPort, UserLoginPort {
-
+class UserAuthMongoDBAdapter(
+    private val repository: UserAuthRepository,
+) : UserIdentityProviderPort,
+    UserLoginPort {
     private val log = getLogger(this::class.java)
 
     override suspend fun save(
         email: Email,
         nickName: NickName,
         password: Password?,
-        userId: UserId?
+        userId: UserId?,
     ): UserId {
         require(password != null) { "Password required" }
         val newId = userId?.value ?: generateId()
-        repository.save(
-            UserAuthDocument(
-                userId = newId,
-                email = email.value,
-                passwordHash = password.value
-            )
-        ).awaitFirstOrNull()
+        repository
+            .save(
+                UserAuthDocument(
+                    userId = newId,
+                    email = email.value,
+                    passwordHash = password.value,
+                ),
+            ).awaitFirstOrNull()
         return UserId(newId)
     }
 
     override suspend fun changeNickName(
         userId: UserId,
-        nickName: NickName
+        nickName: NickName,
     ) {
         log.info("Changing nickname for user {}", nickName)
     }
 
     override suspend fun getAuthUser(email: Email): AuthUser? =
-        repository.findByEmail(email.value)
+        repository
+            .findByEmail(email.value)
             .awaitFirstOrNull()
             ?.toAuthUser()
 }
@@ -67,8 +71,9 @@ interface UserAuthRepository : ReactiveMongoRepository<UserAuthDocument, String>
     fun findByEmail(email: String): Flux<UserAuthDocument>
 }
 
-private fun UserAuthDocument.toAuthUser(): AuthUser = AuthUser(
-    email = Email(this.email),
-    userId = UserId(this.userId),
-    password = Password.fromHash(this.passwordHash)
-)
+private fun UserAuthDocument.toAuthUser(): AuthUser =
+    AuthUser(
+        email = Email(this.email),
+        userId = UserId(this.userId),
+        password = Password.fromHash(this.passwordHash),
+    )

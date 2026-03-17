@@ -1,8 +1,8 @@
 package com.spruhs.kick_app.view.core.service
 
-import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.exceptions.UserNotFoundException
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.TestUserBuilder
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
@@ -23,58 +23,62 @@ class UserApiServiceTest {
     lateinit var service: UserApiService
 
     @Test
-    fun `findUserById should return users by id`(): Unit = runBlocking {
-        // Given
-        val user = TestUserBuilder().buildProjection()
+    fun `findUserById should return users by id`(): Unit =
+        runBlocking {
+            // Given
+            val user = TestUserBuilder().buildProjection()
 
-        coEvery { repository.getUser(user.id) } returns user
+            coEvery { repository.getUser(user.id) } returns user
 
-        // When
-        service.findUserById(user.id).let { result ->
-            // Then
-            assertThat(result.id).isEqualTo(user.id)
-            assertThat(result.nickName).isEqualTo(user.nickName)
-            assertThat(result.email).isEqualTo(user.email)
+            // When
+            service.findUserById(user.id).let { result ->
+                // Then
+                assertThat(result.id).isEqualTo(user.id)
+                assertThat(result.nickName).isEqualTo(user.nickName)
+                assertThat(result.email).isEqualTo(user.email)
+            }
         }
-    }
 
     @Test
-    fun `findUsersById should throw exception when user not found`(): Unit = runBlocking {
-        // Given
-        val userId = UserId("testUserId")
+    fun `findUsersById should throw exception when user not found`(): Unit =
+        runBlocking {
+            // Given
+            val userId = UserId("testUserId")
 
-        coEvery { repository.getUser(userId) } returns null
+            coEvery { repository.getUser(userId) } returns null
 
-        // When
-        assertFailsWith<UserNotFoundException> { service.findUserById(userId) }
-    }
+            // When
+            assertFailsWith<UserNotFoundException> { service.findUserById(userId) }
+        }
 
     @Test
-    fun `existsByEmail should return true when user exists with given email`(): Unit = runBlocking {
-        // Given
-        val email = Email("test@testen.com")
+    fun `existsByEmail should return true when user exists with given email`(): Unit =
+        runBlocking {
+            // Given
+            val email = Email("test@testen.com")
 
-        coEvery { repository.existsByEmail(email) } returns true
+            coEvery { repository.existsByEmail(email) } returns true
 
-        // When
-        service.existsByEmail(email).let { result ->
+            // When
+            service.existsByEmail(email).let { result ->
 
-            // Then
-            assertThat(result).isTrue
+                // Then
+                assertThat(result).isTrue
+            }
         }
-    }
 
     @Test
-    fun `getGroups should get groups`(): Unit = runBlocking {
-        // Given
-        val user = TestUserBuilder().buildProjection()
-        coEvery { repository.getUser(user.id) } returns user
+    fun `getGroups should get groups`(): Unit =
+        runBlocking {
+            // Given
+            val user = TestUserBuilder().buildProjection()
+            coEvery { repository.getUser(user.id) } returns user
 
-        // When
-        service.getGroups(user.id).let { result ->
-            // Then
-            assertThat(result).isNotEmpty
-            assertThat(result).containsExactlyInAnyOrderElementsOf(user.groups.map { it.id })
+            // When
+            service.getGroups(user.id).let { result ->
+                // Then
+                assertThat(result).isNotEmpty
+                assertThat(result).containsExactlyInAnyOrderElementsOf(user.groups.map { it.id })
+            }
         }
-    }
 }

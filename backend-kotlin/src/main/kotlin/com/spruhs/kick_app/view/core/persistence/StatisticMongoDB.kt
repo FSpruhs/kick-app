@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.view.core.persistence
 
-
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.PlayerStatisticProjection
@@ -28,14 +27,16 @@ data class PlayerStatisticDocument(
 
 @Service
 class StatisticProjectionMongoDB(
-    private val repository: StatisticsRepository
+    private val repository: StatisticsRepository,
 ) : StatisticProjectionRepository {
     override suspend fun findByPlayer(
         groupId: GroupId,
-        userId: UserId
-    ): PlayerStatisticProjection? = repository.findByGroupIdAndUserId(groupId.value, userId.value)
-        .awaitFirstOrNull()
-        ?.toProjection()
+        userId: UserId,
+    ): PlayerStatisticProjection? =
+        repository
+            .findByGroupIdAndUserId(groupId.value, userId.value)
+            .awaitFirstOrNull()
+            ?.toProjection()
 
     override suspend fun save(statistic: PlayerStatisticProjection) {
         repository.save(statistic.toDocument()).awaitSingle()
@@ -44,25 +45,30 @@ class StatisticProjectionMongoDB(
 
 @Repository
 interface StatisticsRepository : ReactiveMongoRepository<PlayerStatisticDocument, String> {
-    fun findByGroupIdAndUserId(groupId: String, userId: String): Mono<PlayerStatisticDocument>
+    fun findByGroupIdAndUserId(
+        groupId: String,
+        userId: String,
+    ): Mono<PlayerStatisticDocument>
 }
 
-private fun PlayerStatisticDocument.toProjection() = PlayerStatisticProjection(
-    id = id,
-    groupId = GroupId(groupId),
-    userId = UserId(userId),
-    totalMatches = totalMatches,
-    wins = wins,
-    losses = losses,
-    draws = draws,
-)
+private fun PlayerStatisticDocument.toProjection() =
+    PlayerStatisticProjection(
+        id = id,
+        groupId = GroupId(groupId),
+        userId = UserId(userId),
+        totalMatches = totalMatches,
+        wins = wins,
+        losses = losses,
+        draws = draws,
+    )
 
-private fun PlayerStatisticProjection.toDocument() = PlayerStatisticDocument(
-    id = id,
-    groupId = groupId.value,
-    userId = userId.value,
-    totalMatches = totalMatches,
-    wins = wins,
-    losses = losses,
-    draws = draws,
-)
+private fun PlayerStatisticProjection.toDocument() =
+    PlayerStatisticDocument(
+        id = id,
+        groupId = groupId.value,
+        userId = userId.value,
+        totalMatches = totalMatches,
+        wins = wins,
+        losses = losses,
+        draws = draws,
+    )

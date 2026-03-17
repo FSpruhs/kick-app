@@ -8,4 +8,3 @@ import org.springframework.modulith.PackageInfo
 @NamedInterface
 @ApplicationModule(type = ApplicationModule.Type.OPEN, allowedDependencies = ["group.core", "common"])
 class ModuleMetaData
-

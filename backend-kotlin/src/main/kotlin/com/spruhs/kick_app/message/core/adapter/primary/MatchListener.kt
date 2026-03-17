@@ -16,16 +16,15 @@ import org.springframework.stereotype.Component
 @Component("MessageMatchListener")
 class MatchListener(
     private val messageUseCases: MessageUseCases,
-    private val eventExecutionStrategy: EventExecutionStrategy
+    private val eventExecutionStrategy: EventExecutionStrategy,
 ) {
-
     @EventListener(MatchPlannedEvent::class)
     fun onEvent(event: MatchPlannedEvent) {
         eventExecutionStrategy.execute {
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CREATED,
                 params = event.toMessageParams(),
-                groupId = event.groupId
+                groupId = event.groupId,
             )
         }
     }
@@ -36,7 +35,7 @@ class MatchListener(
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.MATCH_CANCELED,
                 params = event.toMessageParams(),
-                groupId = event.groupId
+                groupId = event.groupId,
             )
         }
     }
@@ -47,7 +46,7 @@ class MatchListener(
             messageUseCases.sendAllActiveUsersInGroupMessage(
                 messageType = MessageType.PLAYGROUND_CHANGED,
                 params = event.toMessageParams(),
-                groupId = event.groupId
+                groupId = event.groupId,
             )
         }
     }
@@ -73,29 +72,34 @@ class MatchListener(
     }
 }
 
-private fun PlaygroundChangedEvent.toMessageParams() = MessageParams(
-    matchId = MatchId(this.aggregateId),
-    groupId = this.groupId,
-    playground = this.newPlayground
-)
+private fun PlaygroundChangedEvent.toMessageParams() =
+    MessageParams(
+        matchId = MatchId(this.aggregateId),
+        groupId = this.groupId,
+        playground = this.newPlayground,
+    )
 
-private fun MatchCanceledEvent.toMessageParams() = MessageParams(
-    matchId = MatchId(this.aggregateId),
-    groupId = this.groupId
-)
+private fun MatchCanceledEvent.toMessageParams() =
+    MessageParams(
+        matchId = MatchId(this.aggregateId),
+        groupId = this.groupId,
+    )
 
-private fun PlayerPlacedOnWaitingBenchEvent.toMessageParams() = MessageParams(
-    matchId = MatchId(this.aggregateId),
-    userId = this.userId
-)
+private fun PlayerPlacedOnWaitingBenchEvent.toMessageParams() =
+    MessageParams(
+        matchId = MatchId(this.aggregateId),
+        userId = this.userId,
+    )
 
-private fun PlayerAddedToCadreEvent.toMessageParams() = MessageParams(
-    matchId = MatchId(this.aggregateId),
-    userId = this.userId,
-)
+private fun PlayerAddedToCadreEvent.toMessageParams() =
+    MessageParams(
+        matchId = MatchId(this.aggregateId),
+        userId = this.userId,
+    )
 
-private fun MatchPlannedEvent.toMessageParams() = MessageParams(
-    matchId = MatchId(this.aggregateId),
-    start = this.start,
-    groupId = this.groupId
-)
+private fun MatchPlannedEvent.toMessageParams() =
+    MessageParams(
+        matchId = MatchId(this.aggregateId),
+        start = this.start,
+        groupId = this.groupId,
+    )

@@ -2,7 +2,10 @@ package com.spruhs.kick_app.message.core.adapter.primary
 
 import com.spruhs.kick_app.common.configs.EventExecutionStrategy
 import com.spruhs.kick_app.common.types.GroupId
-import com.spruhs.kick_app.group.api.*
+import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
+import com.spruhs.kick_app.group.api.PlayerInvitedEvent
+import com.spruhs.kick_app.group.api.PlayerPromotedEvent
+import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.message.core.application.MessageParams
 import com.spruhs.kick_app.message.core.application.MessageUseCases
 import com.spruhs.kick_app.message.core.domain.MessageType
@@ -14,7 +17,6 @@ class GroupListener(
     private val messageUseCases: MessageUseCases,
     private val eventExecutionStrategy: EventExecutionStrategy,
 ) {
-
     @EventListener
     fun onEvent(event: PlayerInvitedEvent) {
         eventExecutionStrategy.execute {
@@ -44,24 +46,28 @@ class GroupListener(
     }
 }
 
-private fun PlayerDowngradedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
-    groupId = GroupId(this.aggregateId),
-)
+private fun PlayerDowngradedEvent.toMessageParams() =
+    MessageParams(
+        userId = this.userId,
+        groupId = GroupId(this.aggregateId),
+    )
 
-private fun PlayerPromotedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
-    groupId = GroupId(this.aggregateId),
-)
+private fun PlayerPromotedEvent.toMessageParams() =
+    MessageParams(
+        userId = this.userId,
+        groupId = GroupId(this.aggregateId),
+    )
 
-private fun PlayerInvitedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
-    groupId = GroupId(this.aggregateId),
-    groupName = this.groupName
-)
+private fun PlayerInvitedEvent.toMessageParams() =
+    MessageParams(
+        userId = this.userId,
+        groupId = GroupId(this.aggregateId),
+        groupName = this.groupName,
+    )
 
-private fun PlayerRemovedEvent.toMessageParams() = MessageParams(
-    userId = this.userId,
-    groupId = GroupId(this.aggregateId),
-    groupName = this.groupName
-)
+private fun PlayerRemovedEvent.toMessageParams() =
+    MessageParams(
+        userId = this.userId,
+        groupId = GroupId(this.aggregateId),
+        groupName = this.groupName,
+    )

@@ -17,7 +17,8 @@ import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -32,7 +33,6 @@ import org.springframework.test.web.reactive.server.expectBody
 @AutoConfigureWebTestClient
 @Import(TestSecurityConfig::class, JWTParser::class, MatchRestControllerTest.TestConfig::class)
 class MatchRestControllerTest {
-
     @TestConfiguration
     class TestConfig {
         @Bean
@@ -60,12 +60,14 @@ class MatchRestControllerTest {
 
         coEvery { matchCommandPort.plan(builder.toPlanMatchCommand(userId)) }.returns(match)
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/match")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .bodyValue(planMatchRequest)
             .exchange()
-            .expectStatus().isCreated
+            .expectStatus()
+            .isCreated
             .expectBody<String>()
             .consumeWith { response ->
                 assertNotNull(response.responseBody)
@@ -80,11 +82,13 @@ class MatchRestControllerTest {
 
         coEvery { matchCommandPort.cancelMatch(CancelMatchCommand(userId, matchId)) }.returns(Unit)
 
-        webTestClient.delete()
+        webTestClient
+            .delete()
             .uri("/api/v1/match/${matchId.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<Void>()
             .consumeWith { response ->
                 assertNull(response.responseBody)
@@ -102,15 +106,17 @@ class MatchRestControllerTest {
                 ChangePlaygroundCommand(
                     userId,
                     matchId,
-                    playground
-                )
+                    playground,
+                ),
             )
         }.returns(Unit)
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/match/${matchId.value}/playground?playground=${playground.value}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<Void>()
             .consumeWith { response ->
                 assertNull(response.responseBody)
@@ -130,16 +136,18 @@ class MatchRestControllerTest {
                     updatedUser,
                     userId,
                     matchId,
-                    status
-                )
+                    status,
+                ),
             )
         }.returns(Unit)
 
-        webTestClient.put()
+        webTestClient
+            .put()
             .uri("/api/v1/match/${matchId.value}/players/${updatedUser.value}?status=${status.name}")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<Void>()
             .consumeWith { response ->
                 assertNull(response.responseBody)
@@ -154,16 +162,17 @@ class MatchRestControllerTest {
             matchCommandPort.enterResult(builder.toEnterResultCommand(userId))
         }.returns(Unit)
 
-        webTestClient.post()
+        webTestClient
+            .post()
             .uri("/api/v1/match/${builder.matchId}/result")
             .header("Authorization", "Bearer ${jwtWithUserId(userId.value)}")
             .bodyValue(builder.toEnterResultRequest())
             .exchange()
-            .expectStatus().isOk
+            .expectStatus()
+            .isOk
             .expectBody<Void>()
             .consumeWith { response ->
                 assertNull(response.responseBody)
             }
     }
-
 }

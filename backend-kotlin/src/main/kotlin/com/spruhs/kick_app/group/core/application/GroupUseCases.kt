@@ -7,7 +7,8 @@ import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
-import com.spruhs.kick_app.group.core.domain.*
+import com.spruhs.kick_app.group.core.domain.GroupAggregate
+import com.spruhs.kick_app.group.core.domain.Name
 import com.spruhs.kick_app.view.api.UserApi
 import org.springframework.stereotype.Service
 
@@ -45,7 +46,7 @@ data class UpdatePlayerStatusCommand(
     val userId: UserId,
     val updatingUserId: UserId,
     val groupId: GroupId,
-    val newStatus: PlayerStatusType
+    val newStatus: PlayerStatusType,
 )
 
 @Service
@@ -57,7 +58,7 @@ class GroupCommandPort(
         GroupAggregate(generateId()).also {
             it.createGroup(
                 userId = command.userId,
-                name = command.name
+                name = command.name,
             )
             aggregateStore.save(it)
         }
@@ -66,7 +67,7 @@ class GroupCommandPort(
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
             it.changeGroupName(
                 userId = command.userId,
-                newName = command.newName
+                newName = command.newName,
             )
             aggregateStore.save(it)
         }
@@ -77,7 +78,7 @@ class GroupCommandPort(
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
             it.inviteUser(
                 inviterId = command.inviterId,
-                inviteeId = user.id
+                inviteeId = user.id,
             )
             aggregateStore.save(it)
         }
@@ -87,7 +88,7 @@ class GroupCommandPort(
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
             it.inviteUserResponse(
                 userId = command.userId,
-                response = command.response
+                response = command.response,
             )
             aggregateStore.save(it)
         }
@@ -98,7 +99,7 @@ class GroupCommandPort(
             it.updatePlayerStatus(
                 userId = command.userId,
                 updatingUserId = command.updatingUserId,
-                newStatus = command.newStatus
+                newStatus = command.newStatus,
             )
             aggregateStore.save(it)
         }
@@ -109,7 +110,7 @@ class GroupCommandPort(
             it.updatePlayerRole(
                 userId = command.userId,
                 updatingUserId = command.updatingUserId,
-                newRole = command.newRole
+                newRole = command.newRole,
             )
             aggregateStore.save(it)
         }

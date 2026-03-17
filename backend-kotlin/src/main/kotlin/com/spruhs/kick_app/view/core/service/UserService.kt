@@ -1,14 +1,14 @@
 package com.spruhs.kick_app.view.core.service
 
 import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
+import com.spruhs.kick_app.common.exceptions.UserNotFoundException
+import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
-import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
-import com.spruhs.kick_app.common.exceptions.UserNotFoundException
-import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
 import com.spruhs.kick_app.group.api.PlayerActivatedEvent
@@ -29,7 +29,7 @@ import java.time.LocalDateTime
 
 @Service
 class UserService(
-    private val repository: UserProjectionRepository
+    private val repository: UserProjectionRepository,
 ) {
     suspend fun whenEvent(event: BaseEvent) {
         when (event) {
@@ -44,17 +44,19 @@ class UserService(
             is PlayerEnteredGroupEvent -> addGroupToUser(event.userId, event.toProjection())
             is PlayerRemovedEvent -> removeGroupFromUser(event.userId, GroupId(event.aggregateId))
             is PlayerLeavedEvent -> removeGroupFromUser(event.userId, GroupId(event.aggregateId))
-            is PlayerActivatedEvent -> updateUserStatus(
-                event.userId,
-                GroupId(event.aggregateId),
-                PlayerStatusType.ACTIVE
-            )
+            is PlayerActivatedEvent ->
+                updateUserStatus(
+                    event.userId,
+                    GroupId(event.aggregateId),
+                    PlayerStatusType.ACTIVE,
+                )
 
-            is PlayerDeactivatedEvent -> updateUserStatus(
-                event.userId,
-                GroupId(event.aggregateId),
-                PlayerStatusType.INACTIVE
-            )
+            is PlayerDeactivatedEvent ->
+                updateUserStatus(
+                    event.userId,
+                    GroupId(event.aggregateId),
+                    PlayerStatusType.INACTIVE,
+                )
 
             is PlayerPromotedEvent -> updateUserRole(event.userId, GroupId(event.aggregateId), PlayerRole.COACH)
             is PlayerDowngradedEvent -> updateUserRole(event.userId, GroupId(event.aggregateId), PlayerRole.PLAYER)
@@ -78,12 +80,11 @@ class UserService(
         }
     }
 
-    private suspend fun fetchUser(userId: UserId): UserProjection =
-        repository.getUser(userId) ?: throw UserNotFoundException(userId)
+    private suspend fun fetchUser(userId: UserId): UserProjection = repository.getUser(userId) ?: throw UserNotFoundException(userId)
 
     private suspend fun updateLastMatch(
         groupId: GroupId,
-        lastMatch: LocalDateTime
+        lastMatch: LocalDateTime,
     ) {
         repository.findByGroupId(groupId).forEach { user ->
             updatePlayerLastMatch(user, groupId, lastMatch)
@@ -93,7 +94,7 @@ class UserService(
     private suspend fun updatePlayerLastMatch(
         user: UserProjection,
         groupId: GroupId,
-        lastMatch: LocalDateTime
+        lastMatch: LocalDateTime,
     ) {
         fetchUserGroup(user, groupId)?.let {
             if (it.lastMatch?.isBefore(lastMatch) ?: true) {
@@ -106,7 +107,7 @@ class UserService(
     private suspend fun updateUserStatus(
         userId: UserId,
         groupId: GroupId,
-        status: PlayerStatusType
+        status: PlayerStatusType,
     ) {
         fetchUser(userId).also {
             fetchUserGroup(it, groupId)?.userStatus = status
@@ -114,13 +115,15 @@ class UserService(
         }
     }
 
-    private suspend fun fetchUserGroup(user: UserProjection, groupId: GroupId): UserGroupProjection? =
-        user.groups.find { it.id == groupId }
+    private suspend fun fetchUserGroup(
+        user: UserProjection,
+        groupId: GroupId,
+    ): UserGroupProjection? = user.groups.find { it.id == groupId }
 
     private suspend fun updateUserRole(
         userId: UserId,
         groupId: GroupId,
-        role: PlayerRole
+        role: PlayerRole,
     ) {
         fetchUser(userId).also {
             fetchUserGroup(it, groupId)?.userRole = role
@@ -138,7 +141,7 @@ class UserService(
 
     private suspend fun addGroupToUser(
         userId: UserId,
-        userGroupProjection: UserGroupProjection
+        userGroupProjection: UserGroupProjection,
     ) {
         fetchUser(userId).let {
             it.groups += userGroupProjection
@@ -148,7 +151,7 @@ class UserService(
 
     private suspend fun removeGroupFromUser(
         userId: UserId,
-        groupId: GroupId
+        groupId: GroupId,
     ) {
         fetchUser(userId).let {
             it.groups = it.groups.filter { group -> group.id != groupId }
@@ -156,16 +159,14 @@ class UserService(
         }
     }
 
-    suspend fun getUser(userId: UserId): UserProjection =
-        repository.getUser(userId) ?: throw UserNotFoundException(userId)
+    suspend fun getUser(userId: UserId): UserProjection = repository.getUser(userId) ?: throw UserNotFoundException(userId)
 }
 
 @Service
 class UserApiService(
-    private val repository: UserProjectionRepository
+    private val repository: UserProjectionRepository,
 ) : UserApi {
-    override suspend fun findUserById(userId: UserId): UserData =
-        repository.getUser(userId)?.toData() ?: throw UserNotFoundException(userId)
+    override suspend fun findUserById(userId: UserId): UserData = repository.getUser(userId)?.toData() ?: throw UserNotFoundException(userId)
 
     override suspend fun getGroups(userId: UserId): List<GroupId> =
         repository.getUser(userId)?.groups?.map { it.id }
@@ -173,17 +174,20 @@ class UserApiService(
 
     override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email)
 
-    override suspend fun findUserByEmail(email: Email): UserData? {
-        return repository.findByEmail(email)?.toData()
-    }
+    override suspend fun findUserByEmail(email: Email): UserData? = repository.findByEmail(email)?.toData()
 }
 
 interface UserProjectionRepository {
     suspend fun existsByEmail(email: Email): Boolean
+
     suspend fun getUser(userId: UserId): UserProjection?
+
     suspend fun save(userProjection: UserProjection)
+
     suspend fun saveAll(userProjection: List<UserProjection>)
+
     suspend fun findByGroupId(groupId: GroupId): List<UserProjection>
+
     suspend fun findByEmail(email: Email): UserProjection?
 }
 
@@ -203,31 +207,34 @@ data class UserGroupProjection(
     var lastMatch: LocalDateTime? = null,
 )
 
-private fun UserProjection.toData() = UserData(
-    id = this.id,
-    nickName = this.nickName,
-    email = this.email,
-    imageId = this.userImageId,
-)
+private fun UserProjection.toData() =
+    UserData(
+        id = this.id,
+        nickName = this.nickName,
+        email = this.email,
+        imageId = this.userImageId,
+    )
 
-private fun GroupCreatedEvent.toProjection() = UserGroupProjection(
-    id = GroupId(this.aggregateId),
-    name = this.name,
-    userRole = this.userRole,
-    userStatus = this.userStatus,
-)
+private fun GroupCreatedEvent.toProjection() =
+    UserGroupProjection(
+        id = GroupId(this.aggregateId),
+        name = this.name,
+        userRole = this.userRole,
+        userStatus = this.userStatus,
+    )
 
-private fun PlayerEnteredGroupEvent.toProjection() = UserGroupProjection(
-    id = GroupId(this.aggregateId),
-    name = this.groupName,
-    userRole = this.userRole,
-    userStatus = this.userStatus,
-)
+private fun PlayerEnteredGroupEvent.toProjection() =
+    UserGroupProjection(
+        id = GroupId(this.aggregateId),
+        name = this.groupName,
+        userRole = this.userRole,
+        userStatus = this.userStatus,
+    )
 
 private fun UserCreatedEvent.toProjection() =
     UserProjection(
         id = UserId(this.aggregateId),
         nickName = this.nickName,
         email = this.email,
-        groups = emptyList()
+        groups = emptyList(),
     )

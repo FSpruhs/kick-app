@@ -53,6 +53,6 @@ jobs:
 
       - name: Run Tests with Maven
         working-directory: ./backend-kotlin
-        run: mvn test
+        run: mvn verify
         env:
           TESTCONTAINERS_RYUK_DISABLED: true

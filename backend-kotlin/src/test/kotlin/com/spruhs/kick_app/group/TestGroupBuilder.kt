@@ -39,7 +39,7 @@ class TestGroupBuilder {
         GroupProjection(
             id = GroupId(groupId),
             name = groupName,
-            players = players.map { PlayerProjection(it.id, UserImageId("image.jpg"),it.status.type(), it.role, "") },
+            players = players.map { PlayerProjection(it.id, UserImageId("image.jpg"), it.status.type(), it.role, "") },
         )
 
     fun build(): GroupAggregate =

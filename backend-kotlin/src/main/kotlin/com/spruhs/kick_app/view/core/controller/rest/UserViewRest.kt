@@ -21,7 +21,7 @@ import java.time.LocalDateTime
 class UserViewRestController(
     private val userService: UserService,
     private val jwtParser: JWTParser,
-    private val minioUrlService: MinioUrlService
+    private val minioUrlService: MinioUrlService,
 ) {
     @GetMapping("/{userId}")
     suspend fun getUser(

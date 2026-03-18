@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 class GroupViewRestController(
     private val jwtParser: JWTParser,
     private val groupService: GroupService,
-    private val minioUrlService: MinioUrlService
+    private val minioUrlService: MinioUrlService,
 ) {
     @GetMapping("/{groupId}")
     suspend fun getGroup(
@@ -60,7 +60,7 @@ class GroupViewRestController(
             role = role.name,
             status = status.name,
             email = email,
-            avatarUrl = minioUrlService.toUrl(this.imageId)
+            avatarUrl = minioUrlService.toUrl(this.imageId),
         )
 }
 
@@ -88,4 +88,3 @@ private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage =
         userId = userId.value,
         name = name,
     )
-

@@ -1,12 +1,10 @@
 package com.spruhs.kick_app.view.core.persistence
 
 import com.spruhs.kick_app.AbstractMongoTest
-import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.TestGroupBuilder
-import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.view.core.service.PlayerProjection
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -42,36 +40,45 @@ class GroupProjectionMongoDBTest : AbstractMongoTest() {
     fun `findByUserId should find all groups with player`(): Unit =
         runBlocking {
             // Given
-            val group1 = TestGroupBuilder()
-                .withId("grp-1")
-                .buildProjection()
-                .copy(
-                    players = listOf(
-                        PlayerProjection(
-                            id = UserId("user-1"),
-                            status = PlayerStatusType.ACTIVE,
-                            role = PlayerRole.PLAYER,
-                            email = "")
+            val group1 =
+                TestGroupBuilder()
+                    .withId("grp-1")
+                    .buildProjection()
+                    .copy(
+                        players =
+                            listOf(
+                                PlayerProjection(
+                                    id = UserId("user-1"),
+                                    status = PlayerStatusType.ACTIVE,
+                                    role = PlayerRole.PLAYER,
+                                    email = "",
+                                ),
+                            ),
                     )
+            val group2 =
+                TestGroupBuilder().withId("grp-2").buildProjection().copy(
+                    players =
+                        listOf(
+                            PlayerProjection(
+                                id = UserId("user-2"),
+                                status = PlayerStatusType.ACTIVE,
+                                role = PlayerRole.PLAYER,
+                                email = "",
+                            ),
+                        ),
                 )
-            val group2 = TestGroupBuilder().withId("grp-2").buildProjection().copy(
-                players = listOf(
-                    PlayerProjection(
-                        id = UserId("user-2"),
-                        status = PlayerStatusType.ACTIVE,
-                        role = PlayerRole.PLAYER,
-                        email = "")
+            val group3 =
+                TestGroupBuilder().withId("grp-3").buildProjection().copy(
+                    players =
+                        listOf(
+                            PlayerProjection(
+                                id = UserId("user-1"),
+                                status = PlayerStatusType.ACTIVE,
+                                role = PlayerRole.PLAYER,
+                                email = "",
+                            ),
+                        ),
                 )
-            )
-            val group3 = TestGroupBuilder().withId("grp-3").buildProjection().copy(
-                players = listOf(
-                    PlayerProjection(
-                        id = UserId("user-1"),
-                        status = PlayerStatusType.ACTIVE,
-                        role = PlayerRole.PLAYER,
-                        email = "")
-                )
-            )
 
             adapter.save(group1)
             adapter.save(group2)

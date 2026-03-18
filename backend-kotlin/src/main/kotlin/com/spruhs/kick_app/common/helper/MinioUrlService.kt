@@ -22,13 +22,15 @@ class MinioUrlService(
     fun toUrl(userImageId: UserImageId?): String? {
         if (userImageId == null) return null
 
-        val url = minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
+        val url =
+            minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs
+                    .builder()
                     .method(Method.GET)
                     .bucket(minIOProperties.bucket)
                     .`object`(userImageId.value)
                     .expiry(60 * 30)
-                    .build()
+                    .build(),
             )
 
         if (url == null) {

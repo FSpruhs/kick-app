@@ -81,7 +81,10 @@ fun String.toLocalDateTime(): LocalDateTime = LocalDateTime.parse(this, DateTime
 
 fun LocalDateTime.toISOString(): String = this.format(DateTimeFormatter.ISO_DATE_TIME)
 
-enum class ImageType(val mimeType: String, val extension: String) {
+enum class ImageType(
+    val mimeType: String,
+    val extension: String,
+) {
     PNG("image/png", "png"),
     JPEG("image/jpeg", "jpeg"),
     JPG("image/jpeg", "jpg"),
@@ -98,7 +101,6 @@ enum class ImageType(val mimeType: String, val extension: String) {
             entries.firstOrNull { it.mimeType == mimeType }
                 ?: throw IllegalArgumentException("Unsupported content type: $mimeType")
 
-        fun fromExtension(extension: String): ImageType? =
-            entries.firstOrNull { it.extension == extension.lowercase() }
+        fun fromExtension(extension: String): ImageType? = entries.firstOrNull { it.extension == extension.lowercase() }
     }
 }

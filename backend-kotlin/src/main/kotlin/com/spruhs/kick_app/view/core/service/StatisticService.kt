@@ -8,13 +8,13 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
-import com.spruhs.kick_app.group.api.GroupApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Service

@@ -3,11 +3,11 @@ package com.spruhs.kick_app.match.core.application
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.TestMatchBuilder
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.group.api.GroupApi
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs

@@ -6,12 +6,12 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
-import com.spruhs.kick_app.group.api.GroupApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

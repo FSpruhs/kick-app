@@ -1,7 +1,6 @@
 package com.spruhs.kick_app.message.core
 
 import org.springframework.modulith.ApplicationModule
-import org.springframework.modulith.PackageInfo
 
 @ApplicationModule(
     allowedDependencies = [
@@ -11,7 +10,7 @@ import org.springframework.modulith.PackageInfo
         "common :: common-types",
         "common :: common-exceptions",
         "common :: common-helper",
-        "common :: common-configs"
+        "common :: common-configs",
     ],
 )
 class ModuleMetaData

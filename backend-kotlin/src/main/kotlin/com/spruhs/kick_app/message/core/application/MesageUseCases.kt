@@ -6,11 +6,11 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.MessageId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.message.core.domain.Message
 import com.spruhs.kick_app.message.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.message.core.domain.MessageType
 import com.spruhs.kick_app.message.core.domain.messageReadBy
-import com.spruhs.kick_app.group.api.GroupApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

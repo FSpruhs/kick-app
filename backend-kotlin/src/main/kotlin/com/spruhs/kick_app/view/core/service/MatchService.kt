@@ -7,6 +7,7 @@ import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -15,7 +16,6 @@ import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.user.api.UserApi
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime

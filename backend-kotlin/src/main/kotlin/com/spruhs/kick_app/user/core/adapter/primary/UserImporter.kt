@@ -1,7 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.primary
 
-import com.spruhs.kick_app.common.helper.SampleDataImporter
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.helper.SampleDataImporter
 import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId

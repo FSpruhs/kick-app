@@ -22,10 +22,10 @@ import com.spruhs.kick_app.group.core.domain.Active
 import com.spruhs.kick_app.group.core.domain.Inactive
 import com.spruhs.kick_app.group.core.domain.Player
 import com.spruhs.kick_app.group.core.domain.Removed
-import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
-import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.api.UserData
+import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
+import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

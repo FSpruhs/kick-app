@@ -4,13 +4,13 @@ import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
+import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
-import com.spruhs.kick_app.user.api.UserApi
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service

@@ -12,4 +12,4 @@ import org.springframework.modulith.ApplicationModule
         "common :: common-helper",
     ],
 )
-class ModuleMetadata
+class ModuleMetaData

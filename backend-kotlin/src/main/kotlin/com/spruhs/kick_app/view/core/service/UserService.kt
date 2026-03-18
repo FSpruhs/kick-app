@@ -19,11 +19,11 @@ import com.spruhs.kick_app.group.api.PlayerLeavedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.api.UserCreatedEvent
+import com.spruhs.kick_app.user.api.UserData
 import com.spruhs.kick_app.user.api.UserImageUpdatedEvent
 import com.spruhs.kick_app.user.api.UserNickNameChangedEvent
-import com.spruhs.kick_app.user.api.UserApi
-import com.spruhs.kick_app.user.api.UserData
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 

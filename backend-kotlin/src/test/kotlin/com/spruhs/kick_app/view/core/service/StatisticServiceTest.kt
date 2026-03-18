@@ -7,6 +7,7 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -14,7 +15,6 @@ import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.view.TestStatisticBuilder
-import com.spruhs.kick_app.group.api.GroupApi
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK

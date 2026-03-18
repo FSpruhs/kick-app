@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.group.core.adapter.primary.CreateGroupRequest
 import com.spruhs.kick_app.group.core.adapter.primary.InviteUserResponse
 import com.spruhs.kick_app.group.core.application.ChangeGroupNameCommand
@@ -38,7 +39,7 @@ class TestGroupBuilder {
         GroupProjection(
             id = GroupId(groupId),
             name = groupName,
-            players = players.map { PlayerProjection(it.id, it.status.type(), it.role, "") },
+            players = players.map { PlayerProjection(it.id, UserImageId("image.jpg"),it.status.type(), it.role, "") },
         )
 
     fun build(): GroupAggregate =

@@ -117,7 +117,7 @@ class GroupCommandPortTest {
                 )
             } returns group
             coEvery { aggregateStore.save(any()) } returns Unit
-            coEvery { userApi.findUserByEmail(command.email) } returns TestUserBuilder().buildData()
+            coEvery { userApi.findUserIdByEmail(command.email) } returns TestUserBuilder().buildData().id
 
             // When
             groupCommandPort.inviteUser(command)

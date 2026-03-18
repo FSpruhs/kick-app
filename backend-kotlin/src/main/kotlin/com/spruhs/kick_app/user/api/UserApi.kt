@@ -12,7 +12,7 @@ interface UserApi {
 
     suspend fun existsByEmail(email: Email): Boolean
 
-    suspend fun findUserByEmail(email: Email): UserData?
+    suspend fun findUserIdByEmail(email: Email): UserId?
 }
 
 data class UserData(

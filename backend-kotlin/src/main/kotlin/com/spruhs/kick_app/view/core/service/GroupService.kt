@@ -9,6 +9,7 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.GroupNameChangedEvent
@@ -105,11 +106,28 @@ class GroupService(
         }
     }
 
-    private suspend fun handleUserImageUpdatedEvent(event: UserImageUpdatedEvent) {
+    private suspend fun handleUserImageUpdatedEvent(event: UserImageUpdatedEvent) =
+        coroutineScope {
+            val updateNameListDeferred = async { updateGroupNameList(event) }
+            val updateGroupDeferred = async { updateGroup(event) }
+
+            updateNameListDeferred.await()
+            updateGroupDeferred.await()
+        }
+
+    private suspend fun updateGroup(event: UserImageUpdatedEvent) {
+        repository.findByUserId(UserId(event.aggregateId)).forEach { group ->
+            group.players.find { it.id.value == event.aggregateId }?.let { player ->
+                player.imageId = event.imageId
+                repository.save(group)
+            }
+        }
+    }
+
+    private suspend fun updateGroupNameList(event: UserImageUpdatedEvent) {
         findGroupNameLists(UserId(event.aggregateId)).forEach { groupNameList ->
-            val entry = groupNameList.players.find { it.userId.value == event.aggregateId }
-            if (entry != null) {
-                entry.imageUrl = event.imageId.value
+            groupNameList.players.find { it.userId.value == event.aggregateId }?.let { player ->
+                player.imageId = event.imageId.value
                 groupNameListRepository.save(groupNameList)
             }
         }
@@ -171,7 +189,7 @@ class GroupService(
             groupNameList.players += GroupNameListEntry(user.id, user.nickName, user.imageId?.value)
         } else {
             entry.name = user.nickName
-            entry.imageUrl = user.imageId?.value
+            entry.imageId = user.imageId?.value
         }
         groupNameListRepository.save(groupNameList)
     }
@@ -189,6 +207,7 @@ class GroupService(
                     status = event.userStatus,
                     role = event.userRole,
                     email = user.email,
+                    imageId = user.imageId,
                 )
         } else {
             with(player) {
@@ -269,7 +288,7 @@ data class GroupNameListProjection(
 data class GroupNameListEntry(
     val userId: UserId,
     var name: String,
-    var imageUrl: String? = null,
+    var imageId: String? = null,
 )
 
 data class GroupProjection(
@@ -291,6 +310,7 @@ data class GroupProjection(
 
 data class PlayerProjection(
     val id: UserId,
+    var imageId: UserImageId? = null,
     var status: PlayerStatusType,
     var role: PlayerRole,
     var email: String,
@@ -317,6 +337,8 @@ interface GroupProjectionRepository {
     suspend fun findById(groupId: GroupId): GroupProjection?
 
     suspend fun save(groupProjection: GroupProjection)
+
+    suspend fun findByUserId(userId: UserId): List<GroupProjection>
 }
 
 interface GroupNameListProjectionRepository {
@@ -338,6 +360,7 @@ private fun GroupCreatedEvent.toProjection(user: UserData): GroupProjection =
                     status = userStatus,
                     role = userRole,
                     email = user.email,
+                    imageId = user.imageId,
                 ),
             ),
     )
@@ -346,6 +369,7 @@ private fun UserData.toGroupNameListEntry(): GroupNameListEntry =
     GroupNameListEntry(
         userId = id,
         name = nickName,
+        imageId = imageId?.value,
     )
 
 private fun PlayerProjection.hasMemberStatus(): Boolean = this.status in listOf(PlayerStatusType.ACTIVE, PlayerStatusType.INACTIVE)

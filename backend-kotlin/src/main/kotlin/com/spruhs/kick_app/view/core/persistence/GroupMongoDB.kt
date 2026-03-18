@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.view.core.service.GroupNameListEntry
 import com.spruhs.kick_app.view.core.service.GroupNameListProjection
 import com.spruhs.kick_app.view.core.service.GroupNameListProjectionRepository
@@ -45,6 +46,7 @@ data class PlayerDocument(
     val status: String,
     val role: String,
     val email: String,
+    val imageId: String? = null,
 )
 
 @Service
@@ -60,6 +62,13 @@ class GroupProjectionMongoDB(
     override suspend fun save(groupProjection: GroupProjection) {
         repository.save(groupProjection.toDocument()).awaitSingle()
     }
+
+    override suspend fun findByUserId(userId: UserId): List<GroupProjection> =
+        repository
+            .findByPlayersId(userId.value)
+            .map { it.toProjection() }
+            .collectList()
+            .awaitSingle()
 }
 
 @Service
@@ -85,7 +94,9 @@ class GroupNameListMongoDB(
 }
 
 @Repository
-interface GroupRepository : ReactiveMongoRepository<GroupDocument, String>
+interface GroupRepository : ReactiveMongoRepository<GroupDocument, String> {
+    fun findByPlayersId(userId: String): Flux<GroupDocument>
+}
 
 @Repository
 interface GroupNameListRepository : ReactiveMongoRepository<GroupNameListDocument, String> {
@@ -103,6 +114,7 @@ private fun GroupDocument.toProjection() =
                     status = PlayerStatusType.valueOf(it.status),
                     role = PlayerRole.valueOf(it.role),
                     email = it.email,
+                    imageId = it.imageId?.let { id -> UserImageId(id) },
                 )
             },
     )
@@ -118,6 +130,7 @@ private fun GroupProjection.toDocument() =
                     status = it.status.name,
                     role = it.role.name,
                     email = it.email,
+                    imageId = it.imageId?.value,
                 )
             },
     )
@@ -130,7 +143,7 @@ private fun GroupNameListDocument.toProjection() =
                 GroupNameListEntry(
                     userId = UserId(it.userId),
                     name = it.name,
-                    imageUrl = it.imageUrl,
+                    imageId = it.imageUrl,
                 )
             },
     )
@@ -143,7 +156,7 @@ private fun GroupNameListProjection.toDocument() =
                 GroupNameListEntryDocument(
                     userId = it.userId.value,
                     name = it.name,
-                    imageUrl = it.imageUrl,
+                    imageUrl = it.imageId,
                 )
             },
     )

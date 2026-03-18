@@ -48,6 +48,9 @@ value class UserImageId(
 ) {
     init {
         require(value.isNotBlank()) { "User image id must not be blank" }
+        require(value.matches(ImageType.fileNameRegex)) {
+            "User image id must match the pattern: [a-zA-Z0-9_-]+.(${ImageType.extensionPattern})"
+        }
     }
 }
 
@@ -77,3 +80,25 @@ fun generateId(): String = UUID.randomUUID().toString()
 fun String.toLocalDateTime(): LocalDateTime = LocalDateTime.parse(this, DateTimeFormatter.ISO_DATE_TIME)
 
 fun LocalDateTime.toISOString(): String = this.format(DateTimeFormatter.ISO_DATE_TIME)
+
+enum class ImageType(val mimeType: String, val extension: String) {
+    PNG("image/png", "png"),
+    JPEG("image/jpeg", "jpeg"),
+    JPG("image/jpeg", "jpg"),
+    WEBP("image/webp", "webp"),
+    SVG("image/svg", "svg"),
+    ;
+
+    companion object {
+        val extensionPattern: String = entries.joinToString("|") { it.extension }
+        val fileNameRegex: Regex = Regex("^[a-zA-Z0-9_-]+\\.($extensionPattern)$")
+        val allowedMimeTypes: Set<String> = entries.map { it.mimeType }.toSet()
+
+        fun fromMimeType(mimeType: String): ImageType =
+            entries.firstOrNull { it.mimeType == mimeType }
+                ?: throw IllegalArgumentException("Unsupported content type: $mimeType")
+
+        fun fromExtension(extension: String): ImageType? =
+            entries.firstOrNull { it.extension == extension.lowercase() }
+    }
+}

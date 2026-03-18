@@ -30,12 +30,12 @@ class GroupNameListMongoDBTest : AbstractMongoTest() {
                             GroupNameListEntry(
                                 userId = UserId("player1"),
                                 name = "Max",
-                                imageUrl = "https://example.com/image1.jpg",
+                                imageId = "https://example.com/image1.jpg",
                             ),
                             GroupNameListEntry(
                                 userId = UserId("player2"),
                                 name = "Melanie",
-                                imageUrl = "https://example.com/image2.jpg",
+                                imageId = "https://example.com/image2.jpg",
                             ),
                         ),
                 )

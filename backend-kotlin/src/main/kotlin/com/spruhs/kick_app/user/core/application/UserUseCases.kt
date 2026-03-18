@@ -2,6 +2,7 @@ package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.common.types.ImageType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserApi
@@ -50,10 +51,8 @@ class UserCommandsPort(
         userId: UserId,
         image: UserImageUpload,
     ): UserImageId {
-        val allowedTypes = setOf("image/jpeg", "image/png", "image/webp", "image/svg")
         val type = image.contentType
-
-        require(type in allowedTypes) { "Dateityp nicht erlaubt" }
+        require(type in ImageType.allowedMimeTypes) { "Dateityp nicht erlaubt" }
 
         val stream = image.bytes.inputStream()
 

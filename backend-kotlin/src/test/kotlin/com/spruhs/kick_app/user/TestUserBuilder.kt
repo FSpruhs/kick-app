@@ -52,7 +52,7 @@ class TestUserBuilder {
             id = id,
             nickName = nickName,
             email = email,
-            imageId = imageId,
+            imageUrl = imageId,
         )
 
     fun buildProjection(): UserProjection =

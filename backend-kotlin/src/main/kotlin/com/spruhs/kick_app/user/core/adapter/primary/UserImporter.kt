@@ -4,6 +4,7 @@ import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.helper.SampleDataImporter
 import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.common.types.Email
+import com.spruhs.kick_app.common.types.ImageType
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import com.spruhs.kick_app.user.core.application.UserImageUpload
@@ -68,14 +69,10 @@ class UserImporter(
         userCommandsPort.updateUserImage(userId, UserImageUpload(bytes = bytes, contentType = contentType))
     }
 
-    private fun resolveContentType(fileName: String): String? =
-        when (fileName.substringAfterLast('.', missingDelimiterValue = "").lowercase()) {
-            "jpg", "jpeg" -> "image/jpeg"
-            "png" -> "image/png"
-            "webp" -> "image/webp"
-            "svg" -> "image/svg"
-            else -> null
-        }
+    private fun resolveContentType(fileName: String): String? {
+        val extension = fileName.substringAfterLast('.', missingDelimiterValue = "")
+        return ImageType.fromExtension(extension)?.mimeType
+    }
 }
 
 private val defaultUsers =

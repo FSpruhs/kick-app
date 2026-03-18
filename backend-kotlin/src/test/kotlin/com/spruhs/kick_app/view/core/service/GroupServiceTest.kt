@@ -235,7 +235,7 @@ class GroupServiceTest {
                             GroupNameListEntry(
                                 userId = UserId("player1"),
                                 name = "Max",
-                                imageUrl = "testUrl",
+                                imageId = "testUrl",
                             ),
                         ),
                 )
@@ -343,7 +343,7 @@ class GroupServiceTest {
                     groupNameList.copy(
                         players =
                             listOf(
-                                groupNameList.players.first().copy(imageUrl = event.imageId.value),
+                                groupNameList.players.first().copy(imageId = event.imageId.value),
                             ),
                     ),
                 )

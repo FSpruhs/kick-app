@@ -2,6 +2,7 @@ package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.helper.MinioUrlService
 import com.spruhs.kick_app.common.types.PlayerRole
 import com.spruhs.kick_app.common.types.PlayerStatusType
 import com.spruhs.kick_app.common.types.UserId
@@ -20,6 +21,7 @@ import java.time.LocalDateTime
 class UserViewRestController(
     private val userService: UserService,
     private val jwtParser: JWTParser,
+    private val minioUrlService: MinioUrlService
 ) {
     @GetMapping("/{userId}")
     suspend fun getUser(
@@ -31,13 +33,31 @@ class UserViewRestController(
         }
         return userService.getUser(UserId(userId)).toMessage()
     }
+
+    private fun UserProjection.toMessage() =
+        UserMessage(
+            id = this.id.value,
+            nickName = this.nickName,
+            email = this.email,
+            imageUrl = minioUrlService.toUrl(this.userImageId),
+            groups =
+                this.groups.map { group ->
+                    GroupInfoMessage(
+                        id = group.id.value,
+                        name = group.name,
+                        userStatus = group.userStatus,
+                        userRole = group.userRole,
+                        lastMatch = group.lastMatch,
+                    )
+                },
+        )
 }
 
 data class UserMessage(
     val id: String,
     val nickName: String,
     val email: String,
-    val imageId: String? = null,
+    val imageUrl: String? = null,
     val groups: List<GroupInfoMessage> = emptyList(),
 )
 
@@ -48,21 +68,3 @@ data class GroupInfoMessage(
     val userRole: PlayerRole,
     val lastMatch: LocalDateTime? = null,
 )
-
-private fun UserProjection.toMessage() =
-    UserMessage(
-        id = this.id.value,
-        nickName = this.nickName,
-        email = this.email,
-        imageId = this.userImageId?.value,
-        groups =
-            this.groups.map { group ->
-                GroupInfoMessage(
-                    id = group.id.value,
-                    name = group.name,
-                    userStatus = group.userStatus,
-                    userRole = group.userRole,
-                    lastMatch = group.lastMatch,
-                )
-            },
-    )

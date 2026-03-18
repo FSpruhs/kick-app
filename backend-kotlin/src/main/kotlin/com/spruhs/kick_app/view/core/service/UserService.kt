@@ -133,7 +133,7 @@ class UserService(
 
     private suspend fun handleGroupNameChanged(event: GroupNameChangedEvent) {
         val groupId = GroupId(event.aggregateId)
-        repository.findByGroupId(groupId).map { user ->
+        repository.findByGroupId(groupId).forEach { user ->
             fetchUserGroup(user, groupId)?.name = event.name
             repository.save(user)
         }
@@ -174,7 +174,7 @@ class UserApiService(
 
     override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email)
 
-    override suspend fun findUserByEmail(email: Email): UserData? = repository.findByEmail(email)?.toData()
+    override suspend fun findUserIdByEmail(email: Email): UserId? = repository.findByEmail(email)?.id
 }
 
 interface UserProjectionRepository {

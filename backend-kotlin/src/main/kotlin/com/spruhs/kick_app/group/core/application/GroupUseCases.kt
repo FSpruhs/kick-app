@@ -74,11 +74,11 @@ class GroupCommandPort(
     }
 
     suspend fun inviteUser(command: InviteUserCommand) {
-        val user = userApi.findUserByEmail(command.email) ?: throw IllegalStateException("User not found")
+        val userId = userApi.findUserIdByEmail(command.email) ?: throw IllegalStateException("User not found")
         aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
             it.inviteUser(
                 inviterId = command.inviterId,
-                inviteeId = user.id,
+                inviteeId = userId,
             )
             aggregateStore.save(it)
         }

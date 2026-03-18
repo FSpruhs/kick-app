@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.view.core.controller.rest
 
 import com.spruhs.kick_app.common.helper.JWTParser
+import com.spruhs.kick_app.common.helper.MinioUrlService
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.view.core.service.GroupNameListEntry
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController
 class GroupViewRestController(
     private val jwtParser: JWTParser,
     private val groupService: GroupService,
+    private val minioUrlService: MinioUrlService
 ) {
     @GetMapping("/{groupId}")
     suspend fun getGroup(
@@ -44,6 +46,22 @@ class GroupViewRestController(
         groupService
             .getGroupNameList(GroupId(groupId), jwtParser.getUserId(jwt))
             .map { it.toMessage() }
+
+    private fun GroupProjection.toMessage(): GroupMessage =
+        GroupMessage(
+            groupId = id.value,
+            name = name,
+            players = players.map { player -> player.toMessage() },
+        )
+
+    private fun PlayerProjection.toMessage(): GroupPlayerMessage =
+        GroupPlayerMessage(
+            userId = id.value,
+            role = role.name,
+            status = status.name,
+            email = email,
+            avatarUrl = minioUrlService.toUrl(this.imageId)
+        )
 }
 
 data class GroupMessage(
@@ -71,17 +89,3 @@ private fun GroupNameListEntry.toMessage(): GroupNameEntryMessage =
         name = name,
     )
 
-private fun GroupProjection.toMessage(): GroupMessage =
-    GroupMessage(
-        groupId = id.value,
-        name = name,
-        players = players.map { player -> player.toMessage() },
-    )
-
-private fun PlayerProjection.toMessage(): GroupPlayerMessage =
-    GroupPlayerMessage(
-        userId = id.value,
-        role = role.name,
-        status = status.name,
-        email = email,
-    )

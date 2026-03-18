@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.adapter.secondary
 
 import com.spruhs.kick_app.common.configs.MinIOProperties
+import com.spruhs.kick_app.common.types.ImageType
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.user.core.domain.UserImagePort
@@ -18,7 +19,7 @@ class MinIOUserImageAdapter(
         inputStream: InputStream,
         contentType: String,
     ): UserImageId {
-        val newId = generateId()
+        val newId = newId(contentType)
 
         minioClient.putObject(
             PutObjectArgs
@@ -30,5 +31,11 @@ class MinIOUserImageAdapter(
                 .build(),
         )
         return UserImageId(newId)
+    }
+
+    private fun newId(contentType: String): String {
+        val newId = generateId()
+        val extension = ImageType.fromMimeType(contentType).extension
+        return "$newId.$extension"
     }
 }

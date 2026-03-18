@@ -110,7 +110,7 @@ data class PlanMatchCommand(
     val requesterId: UserId,
     val groupId: GroupId,
     val start: LocalDateTime,
-    val playground: Playground,
+    val playground: Playground? = null,
     val playerCount: PlayerCount,
 )
 

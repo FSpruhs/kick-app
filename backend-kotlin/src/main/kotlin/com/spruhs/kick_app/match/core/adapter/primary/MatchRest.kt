@@ -139,7 +139,7 @@ data class PlayerMatchResult(
 data class PlanMatchRequest(
     val groupId: String,
     val start: LocalDateTime,
-    val playground: String,
+    val playground: String? = null,
     val maxPlayer: Int,
     val minPlayer: Int,
 )
@@ -149,7 +149,7 @@ private fun PlanMatchRequest.toCommand(requestingUserId: UserId) =
         requesterId = requestingUserId,
         groupId = GroupId(groupId),
         start = start,
-        playground = Playground(playground),
+        playground = playground?.let { Playground(playground) },
         playerCount = PlayerCount(MinPlayer(minPlayer), MaxPlayer(maxPlayer)),
     )
 

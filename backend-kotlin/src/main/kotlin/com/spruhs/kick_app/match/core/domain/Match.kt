@@ -205,7 +205,7 @@ class MatchAggregate(
     fun planMatch(
         groupId: GroupId,
         start: LocalDateTime,
-        playground: Playground,
+        playground: Playground?,
         playerCount: PlayerCount,
     ) {
         apply(
@@ -213,7 +213,7 @@ class MatchAggregate(
                 aggregateId,
                 groupId,
                 start,
-                playground.value,
+                playground?.value,
                 playerCount.maxPlayer.value,
                 playerCount.minPlayer.value,
             ),

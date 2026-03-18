@@ -1,5 +1,10 @@
 package com.spruhs.kick_app.common.helper
 
+import com.spruhs.kick_app.common.configs.MinIOProperties
+import io.minio.BucketExistsArgs
+import io.minio.ListObjectsArgs
+import io.minio.MinioClient
+import io.minio.RemoveObjectArgs
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile
@@ -71,5 +76,46 @@ class PostgreSQLCleaner(
         client.sql("TRUNCATE TABLE kick_app.snapshots RESTART IDENTITY CASCADE;").then().block()
 
         log.info("PostgreSQL tables cleaned!")
+    }
+}
+
+@Component
+@Profile("dev")
+class MinIOCleaner(
+    private val minioClient: MinioClient,
+    private val minIOProperties: MinIOProperties,
+) : DatabaseCleaner {
+    private val log = getLogger(this::class.java)
+
+    override suspend fun clean() {
+        val bucket = minIOProperties.bucket
+        val bucketExists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucket).build())
+
+        if (!bucketExists) {
+            log.info("MinIO bucket '{}' does not exist yet - skipping cleanup.", bucket)
+            return
+        }
+
+        log.info("Cleaning MinIO bucket '{}'...", bucket)
+        val objects =
+            minioClient.listObjects(
+                ListObjectsArgs
+                    .builder()
+                    .bucket(bucket)
+                    .recursive(true)
+                    .build(),
+            )
+        objects.forEach { result ->
+            val item = result.get()
+            minioClient.removeObject(
+                RemoveObjectArgs
+                    .builder()
+                    .bucket(bucket)
+                    .`object`(item.objectName())
+                    .build(),
+            )
+        }
+
+        log.info("MinIO bucket '{}' cleaned!", bucket)
     }
 }

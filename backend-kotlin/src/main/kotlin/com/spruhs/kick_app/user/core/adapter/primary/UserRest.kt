@@ -8,10 +8,13 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.user.core.application.ChangeUserNickNameCommand
 import com.spruhs.kick_app.user.core.application.RegisterUserCommand
 import com.spruhs.kick_app.user.core.application.UserCommandsPort
+import com.spruhs.kick_app.user.core.application.UserImageUpload
 import com.spruhs.kick_app.user.core.domain.CreateUserIdentityProviderException
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
+import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -67,8 +70,17 @@ class UserRestController(
             throw UserNotAuthorizedException(UserId(userId))
         }
 
-        return userCommandsPort.updateUserImage(UserId(userId), file).value
+        return userCommandsPort.updateUserImage(UserId(userId), file.toUserImageUpload()).value
     }
+}
+
+private suspend fun FilePart.toUserImageUpload(): UserImageUpload {
+    val contentType = requireNotNull(headers().contentType?.toString()) { "Content-Type fehlt" }
+    val dataBuffer = DataBufferUtils.join(content()).awaitSingle()
+    val bytes = ByteArray(dataBuffer.readableByteCount())
+    dataBuffer.read(bytes)
+    DataBufferUtils.release(dataBuffer)
+    return UserImageUpload(bytes = bytes, contentType = contentType)
 }
 
 @ControllerAdvice

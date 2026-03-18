@@ -11,8 +11,6 @@ import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
-import kotlinx.coroutines.reactive.awaitSingle
-import org.springframework.http.codec.multipart.FilePart
 import org.springframework.stereotype.Service
 
 @Service
@@ -50,18 +48,14 @@ class UserCommandsPort(
 
     suspend fun updateUserImage(
         userId: UserId,
-        image: FilePart,
+        image: UserImageUpload,
     ): UserImageId {
         val allowedTypes = setOf("image/jpeg", "image/png", "image/webp", "image/svg")
-        val type = "${image.headers().contentType?.type}/${image.headers().contentType?.subtype}"
+        val type = image.contentType
 
         require(type in allowedTypes) { "Dateityp nicht erlaubt" }
 
-        val stream =
-            image
-                .content()
-                .map { it.asInputStream() }
-                .awaitSingle()
+        val stream = image.bytes.inputStream()
 
         val imageId = userImagePort.save(stream, type)
 
@@ -73,6 +67,11 @@ class UserCommandsPort(
         return imageId
     }
 }
+
+data class UserImageUpload(
+    val bytes: ByteArray,
+    val contentType: String,
+)
 
 data class RegisterUserCommand(
     var nickName: NickName,

@@ -19,7 +19,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://admin:password123@localhost:6000/kick_app?authSource=admin
+      uri: mongodb://admin:password123@localhost:27017/kick_app?authSource=admin
       database: kick_app
 
   security:

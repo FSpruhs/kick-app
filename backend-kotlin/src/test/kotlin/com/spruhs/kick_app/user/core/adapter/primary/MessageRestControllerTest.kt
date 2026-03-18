@@ -63,7 +63,7 @@ class MessageRestControllerTest {
                 id = message.id.value,
                 userId = message.user.value,
                 text = message.text,
-                timeStamp = message.timeStamp.toString(),
+                timeStamp = message.timeStamp,
                 type = message.type,
                 isRead = message.isRead,
                 variables = message.variables,

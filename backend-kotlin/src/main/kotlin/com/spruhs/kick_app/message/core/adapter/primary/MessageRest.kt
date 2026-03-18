@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/api/v1/message")
@@ -62,7 +63,7 @@ data class MessageResponse(
     val id: String,
     val userId: String,
     val text: String,
-    val timeStamp: String,
+    val timeStamp: LocalDateTime,
     val type: MessageType,
     val isRead: Boolean,
     val variables: Map<String, String>,
@@ -73,7 +74,7 @@ private fun Message.toResponse() =
         id = id.value,
         userId = user.value,
         text = text,
-        timeStamp = timeStamp.toString(),
+        timeStamp = timeStamp,
         isRead = isRead,
         variables = variables,
         type = type,

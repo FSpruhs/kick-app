@@ -3,10 +3,12 @@ package com.spruhs.kick_app.match.core.domain
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
+import com.spruhs.kick_app.match.api.PlayerResult
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
@@ -94,6 +96,49 @@ class MatchAggregateTest {
 
             // Then
         }.isInstanceOf(MatchStartTimeException::class.java)
+    }
+
+    @Test
+    fun `enterResult should throw exception if match has player double`() {
+        // Given
+        val matchAggregate = MatchAggregate("matchId")
+        matchAggregate.start = LocalDateTime.now().minusDays(1)
+
+        val participatingPlayers =
+            listOf(
+                ParticipatingPlayer(
+                    userId = UserId("player 1"),
+                    playerResult = PlayerResult.WIN,
+                    team = MatchTeam.A,
+                ),
+                ParticipatingPlayer(
+                    userId = UserId("player 2"),
+                    playerResult = PlayerResult.WIN,
+                    team = MatchTeam.A,
+                ),
+                ParticipatingPlayer(
+                    userId = UserId("player 3"),
+                    playerResult = PlayerResult.LOSS,
+                    team = MatchTeam.B,
+                ),
+                ParticipatingPlayer(
+                    userId = UserId("player 4"),
+                    playerResult = PlayerResult.LOSS,
+                    team = MatchTeam.B,
+                ),
+                ParticipatingPlayer(
+                    userId = UserId("player 1"),
+                    playerResult = PlayerResult.WIN,
+                    team = MatchTeam.A,
+                ),
+            )
+
+        assertThatThrownBy {
+            // When
+            matchAggregate.enterResult(participatingPlayers)
+
+            // Then
+        }.isInstanceOf(IllegalArgumentException::class.java)
     }
 
     @Test

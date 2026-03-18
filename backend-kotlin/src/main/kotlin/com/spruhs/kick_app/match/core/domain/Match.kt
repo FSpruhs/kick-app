@@ -258,13 +258,9 @@ class MatchAggregate(
     private fun validateParticipatingPlayersInput(participatingPlayers: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
         require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
-        require(participatingPlayers.size >= 2) {
-            "At least two players must participate."
-        }
-
-        require(participatingPlayers.map { it.team }.toSet().size == 2) {
-            "Both teams must be present in the result."
-        }
+        require(arePlayersUnique(participatingPlayers))
+        require(participatingPlayers.size >= 2) { "At least two players must participate." }
+        require(participatingPlayers.map { it.team }.toSet().size == 2) { "Both teams must be present in the result." }
 
         val results = participatingPlayers.map { it.playerResult }.toSet()
         when {
@@ -286,6 +282,14 @@ class MatchAggregate(
             ),
         )
     }
+
+    private fun arePlayersUnique(participatingPlayers: List<ParticipatingPlayer>): Boolean =
+        participatingPlayers
+            .groupBy {
+                it.userId
+            }.values
+            .first { it.size > 1 }
+            .isEmpty()
 
     private fun handleFirstRegistration(
         userId: UserId,

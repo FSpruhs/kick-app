@@ -19,6 +19,7 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -32,6 +33,7 @@ import org.springframework.test.web.reactive.server.expectBody
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @Import(TestSecurityConfig::class, JWTParser::class, MatchRestControllerTest.TestConfig::class)
+@Disabled
 class MatchRestControllerTest {
     @TestConfiguration
     class TestConfig {

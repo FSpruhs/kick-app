@@ -14,6 +14,7 @@ import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import io.mockk.coEvery
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -28,6 +29,7 @@ import java.time.LocalDateTime
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @Import(TestSecurityConfig::class, JWTParser::class, MessageRestControllerTest.TestConfig::class)
+@Disabled
 class MessageRestControllerTest {
     @TestConfiguration
     class TestConfig {

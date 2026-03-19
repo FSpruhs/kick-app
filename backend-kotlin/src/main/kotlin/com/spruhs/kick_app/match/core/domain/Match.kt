@@ -283,13 +283,14 @@ class MatchAggregate(
         )
     }
 
-    private fun arePlayersUnique(participatingPlayers: List<ParticipatingPlayer>): Boolean =
-        participatingPlayers
+    private fun arePlayersUnique(participatingPlayers: List<ParticipatingPlayer>): Boolean {
+        val result = participatingPlayers
             .groupBy {
                 it.userId
             }.values
-            .first { it.size > 1 }
-            .isEmpty()
+            .find { it.size > 1 }
+        return result == null
+    }
 
     private fun handleFirstRegistration(
         userId: UserId,

@@ -337,6 +337,7 @@ class GroupServiceTest {
                     imageId = UserImageId("newImageId.svg"),
                 )
 
+            coEvery { repository.findByUserId(groupNameList.players.first().userId) } returns emptyList()
             coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)
             coEvery {
                 groupNameListRepository.save(
@@ -378,7 +379,8 @@ class GroupServiceTest {
                     userRole = group.players.first().role,
                 )
 
-            coEvery { repository.save(group) } returns Unit
+            coEvery { repository.findByUserId(group.players.first().id) } returns emptyList()
+            coEvery { repository.save(any()) } returns Unit
             coEvery { userApi.findUserById(event.userId) } returns
                 UserData(
                     id = group.players.first().id,
@@ -488,7 +490,9 @@ class GroupServiceTest {
                     .withPlayers(listOf(data.player))
                     .buildProjection()
 
+            coEvery { repository.findByUserId(group.players.first().id) } returns emptyList()
             coEvery { repository.findById(group.id) } returns group
+            coEvery { repository.save(any()) } returns Unit
             coEvery {
                 repository.save(
                     group.copy(
@@ -520,6 +524,8 @@ class GroupServiceTest {
                     .withPlayers(listOf(data.player))
                     .buildProjection()
 
+            coEvery { repository.findByUserId(group.players.first().id) } returns emptyList()
+            coEvery { repository.save(any()) } returns Unit
             coEvery { repository.findById(group.id) } returns group
             coEvery {
                 repository.save(

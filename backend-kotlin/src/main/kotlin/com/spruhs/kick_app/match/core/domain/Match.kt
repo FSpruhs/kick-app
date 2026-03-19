@@ -284,11 +284,12 @@ class MatchAggregate(
     }
 
     private fun arePlayersUnique(participatingPlayers: List<ParticipatingPlayer>): Boolean {
-        val result = participatingPlayers
-            .groupBy {
-                it.userId
-            }.values
-            .find { it.size > 1 }
+        val result =
+            participatingPlayers
+                .groupBy {
+                    it.userId
+                }.values
+                .find { it.size > 1 }
         return result == null
     }
 

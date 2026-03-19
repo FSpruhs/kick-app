@@ -334,7 +334,7 @@ class GroupServiceTest {
                         groupNameList.players
                             .first()
                             .userId.value,
-                    imageId = UserImageId("newImageId"),
+                    imageId = UserImageId("newImageId.svg"),
                 )
 
             coEvery { groupNameListRepository.findByUserId(groupNameList.players.first().userId) } returns listOf(groupNameList)

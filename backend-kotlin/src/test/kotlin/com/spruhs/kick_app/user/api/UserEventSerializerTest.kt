@@ -29,7 +29,7 @@ class UserEventSerializerTest {
             listOf(
                 UserCreatedEvent("userId", "email", "nickName"),
                 UserNickNameChangedEvent("userId", "newNickName"),
-                UserImageUpdatedEvent("userId", UserImageId("imageId")),
+                UserImageUpdatedEvent("userId", UserImageId("imageId.svg")),
             )
     }
 }

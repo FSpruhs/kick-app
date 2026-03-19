@@ -45,7 +45,7 @@ class UserAggregateTest {
         // Given
         val userId = "user-123"
         val userAggregate = UserAggregate(userId)
-        val imageId = UserImageId("image-123")
+        val imageId = UserImageId("image-123.svg")
 
         // When
         userAggregate.updateUserImage(imageId)

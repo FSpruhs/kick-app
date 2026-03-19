@@ -115,7 +115,7 @@ class UserServiceTest {
             val event =
                 UserImageUpdatedEvent(
                     aggregateId = user.id.value,
-                    imageId = UserImageId("newImaGgeId"),
+                    imageId = UserImageId("newImaGgeId.svg"),
                 )
 
             coEvery { repository.getUser(user.id) } returns user

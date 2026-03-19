@@ -19,7 +19,7 @@ class TestUserBuilder {
     var id = "testUserId"
     var nickName = "testNickName"
     var email = "test@testen.com"
-    var imageId: String? = "testImageId"
+    var imageId: String? = "testImageId.svg"
     var groups =
         listOf(
             UserGroupProjection(

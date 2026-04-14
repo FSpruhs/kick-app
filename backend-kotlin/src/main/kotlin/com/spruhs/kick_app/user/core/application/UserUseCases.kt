@@ -7,7 +7,6 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.core.domain.NickName
-import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service
 @Service
 class UserCommandsPort(
     private val aggregateStore: AggregateStore,
-    private val userIdentityProviderPort: UserIdentityProviderPort,
     private val userImagePort: UserImagePort,
     private val userApi: UserApi,
 ) {
@@ -26,9 +24,7 @@ class UserCommandsPort(
             throw UserWithEmailAlreadyExistsException(command.email)
         }
 
-        val newId = userIdentityProviderPort.save(command.email, command.nickName, command.password)
-
-        return UserAggregate(newId.value).also {
+        return UserAggregate(command.userId.value).also {
             it.createUser(
                 email = command.email,
                 nickName = command.nickName,
@@ -39,7 +35,6 @@ class UserCommandsPort(
 
     suspend fun changeNickName(command: ChangeUserNickNameCommand) {
         aggregateStore.load(command.userId.value, UserAggregate::class.java).let {
-            userIdentityProviderPort.changeNickName(command.userId, command.nickName)
             it.changeNickName(
                 nickName = command.nickName,
             )
@@ -74,9 +69,9 @@ data class UserImageUpload(
 )
 
 data class RegisterUserCommand(
+    val userId: UserId,
     var nickName: NickName,
     var email: Email,
-    var password: Password? = null,
 )
 
 data class ChangeUserNickNameCommand(

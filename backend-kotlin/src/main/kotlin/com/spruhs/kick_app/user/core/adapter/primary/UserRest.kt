@@ -99,14 +99,14 @@ class UserExceptionHandler {
 }
 
 data class RegisterUserRequest(
+    val userId: String,
     val nickName: String,
     val email: String,
-    val password: String?,
 )
 
 private fun RegisterUserRequest.toCommand() =
     RegisterUserCommand(
         nickName = NickName(this.nickName),
         email = Email(this.email),
-        password = this.password?.let { Password.fromPlaintext(it) },
+        userId = UserId(this.userId),
     )

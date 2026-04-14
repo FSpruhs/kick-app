@@ -1,10 +1,15 @@
 package com.spruhs.kick_app.common.configs
 
+import com.google.auth.oauth2.ServiceAccountCredentials
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.spruhs.kick_app.common.helper.getLogger
 import com.spruhs.kick_app.common.types.UserId
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import jakarta.annotation.PostConstruct
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
@@ -33,6 +38,8 @@ import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
+import org.springframework.core.io.ResourceLoader
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -106,6 +113,59 @@ class JwtSecurityConfig(
     ) = JwtUtil(secret)
 }
 
+@Profile("firebase")
+@Configuration
+class FirebaseSecurityConfig(
+    @Value("\${firebase.credentials-path}")
+    private val credentialsPath: String,
+    @Value("\${firebase.use-emulator:false}")
+    private val useEmulator: Boolean,
+    private val corsConfigurationSource: CorsConfigurationSource,
+    private val resourceLoader: ResourceLoader,
+) {
+    @Bean
+    fun firebaseApp(): FirebaseApp {
+
+        if (useEmulator) {
+            System.setProperty(
+                "FIREBASE_AUTH_EMULATOR_HOST",
+                "localhost:9099"
+            )
+        }
+
+        val options = FirebaseOptions.builder()
+            .setCredentials(
+                ServiceAccountCredentials.fromStream(
+                    resourceLoader.getResource(credentialsPath).inputStream
+                )
+            )
+            .build()
+
+        return FirebaseApp.initializeApp(options)
+    }
+
+    @Bean
+    fun securityFilterChain(
+        http: ServerHttpSecurity,
+    ): SecurityWebFilterChain =
+        http
+            .csrf { it.disable() }
+            .cors { it.configurationSource(corsConfigurationSource) }
+            .authorizeExchange { exchanges ->
+                exchanges
+                    .pathMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                    ).permitAll()
+                    .anyExchange()
+                    .authenticated()
+            }.addFilterAt(FirebaseAuthFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+            .build()
+}
+
 @Configuration
 class CorsConfiguration {
     @Bean
@@ -138,6 +198,38 @@ class JwtAuthenticationWebFilter(
         } else {
             chain.filter(exchange)
         }
+    }
+
+    private fun extractToken(request: ServerHttpRequest): String? {
+        val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return null
+        return if (authHeader.startsWith("Bearer ")) authHeader.substring(7) else null
+    }
+}
+
+class FirebaseAuthFilter : WebFilter {
+
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: WebFilterChain,
+    ): Mono<Void> {
+        val token = extractToken(exchange.request) ?: return chain.filter(exchange)
+
+
+        return Mono.fromCallable {
+            FirebaseAuth.getInstance().verifyIdToken(token)
+        }.subscribeOn(Schedulers.boundedElastic())
+            .flatMap { decodedToken ->
+                val auth = UsernamePasswordAuthenticationToken(decodedToken, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
+
+                val context = SecurityContextImpl(auth)
+
+                chain.filter(exchange)
+                    .contextWrite(
+                        ReactiveSecurityContextHolder.withSecurityContext(
+                            Mono.just(context)
+                        )
+                    )
+            }
     }
 
     private fun extractToken(request: ServerHttpRequest): String? {

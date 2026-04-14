@@ -33,6 +33,7 @@ class LoginRestController(
     ): AuthResponse = authUseCases.refresh(refreshToken).toResponse()
 }
 
+@Profile("jwtSecurity")
 @ControllerAdvice
 class LoginExceptionHandler {
     @ExceptionHandler

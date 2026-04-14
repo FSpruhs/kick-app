@@ -1,0 +1,3 @@
+firebase:
+    credentials-path: "classpath:secrets/service-account.json"
+    use-emulator: false

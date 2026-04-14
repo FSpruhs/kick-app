@@ -117,11 +117,13 @@ data class AuthUser(
     val password: Password,
 )
 
-fun interface UserImagePort {
+interface UserImagePort {
     fun save(
         inputStream: InputStream,
         contentType: String,
     ): UserImageId
+
+    fun delete(imageId: UserImageId)
 }
 
 data class UserWithEmailAlreadyExistsException(

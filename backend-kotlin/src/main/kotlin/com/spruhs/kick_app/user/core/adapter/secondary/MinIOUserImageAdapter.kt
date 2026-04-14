@@ -7,6 +7,7 @@ import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import io.minio.MinioClient
 import io.minio.PutObjectArgs
+import io.minio.RemoveObjectArgs
 import org.springframework.stereotype.Service
 import java.io.InputStream
 
@@ -31,6 +32,16 @@ class MinIOUserImageAdapter(
                 .build(),
         )
         return UserImageId(newId)
+    }
+
+    override fun delete(imageId: UserImageId) {
+        minioClient.removeObject(
+            RemoveObjectArgs
+                .builder()
+                .bucket(properties.bucket)
+                .`object`(imageId.value)
+                .build(),
+        )
     }
 
     private fun newId(contentType: String): String {

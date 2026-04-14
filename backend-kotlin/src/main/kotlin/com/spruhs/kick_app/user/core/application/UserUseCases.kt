@@ -59,6 +59,7 @@ class UserCommandsPort(
         val imageId = userImagePort.save(stream, type)
 
         aggregateStore.load(userId.value, UserAggregate::class.java).apply {
+            this.userImageId?.let { userImagePort.delete(it) }
             updateUserImage(imageId)
             aggregateStore.save(this)
         }

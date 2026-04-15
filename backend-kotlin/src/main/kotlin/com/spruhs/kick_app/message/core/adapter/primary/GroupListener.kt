@@ -1,10 +1,13 @@
 package com.spruhs.kick_app.message.core.adapter.primary
 
 import com.spruhs.kick_app.common.configs.EventExecutionStrategy
+import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.group.api.PlayerDowngradedEvent
+import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.group.api.PlayerInvitedEvent
 import com.spruhs.kick_app.group.api.PlayerPromotedEvent
+import com.spruhs.kick_app.group.api.PlayerRejectedGroupEvent
 import com.spruhs.kick_app.group.api.PlayerRemovedEvent
 import com.spruhs.kick_app.message.core.application.MessageParams
 import com.spruhs.kick_app.message.core.application.MessageUseCases
@@ -42,6 +45,19 @@ class GroupListener(
     fun onEvent(event: PlayerDowngradedEvent) {
         eventExecutionStrategy.execute {
             messageUseCases.send(MessageType.USER_DOWNGRADED, event.toMessageParams())
+        }
+    }
+
+    @EventListener(PlayerRejectedGroupEvent::class, PlayerEnteredGroupEvent::class)
+    fun onEvent(event: BaseEvent) {
+        val userId = when (event) {
+            is PlayerRejectedGroupEvent -> event.userId
+            is PlayerEnteredGroupEvent -> event.userId
+            else -> throw IllegalArgumentException("Unsupported event type: ${event::class}")
+        }
+
+        eventExecutionStrategy.execute {
+            messageUseCases.delete(MessageType.USER_INVITED_TO_GROUP, userId, event.aggregateId)
         }
     }
 }

@@ -28,6 +28,10 @@ class MessageUseCases(
         }
     }
 
+    suspend fun delete(messageType: MessageType, userId: UserId, groupId: String) {
+        messagePersistencePort.deleteByTypeAndUser(messageType, userId, groupId)
+    }
+
     suspend fun getByUser(userId: UserId): List<Message> = messagePersistencePort.findByUser(userId)
 
     suspend fun markAsRead(command: MarkAsReadCommand) {

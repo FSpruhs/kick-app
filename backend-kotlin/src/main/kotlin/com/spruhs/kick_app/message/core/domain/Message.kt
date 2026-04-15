@@ -42,4 +42,6 @@ interface MessagePersistencePort {
     suspend fun findById(messageId: MessageId): Message?
 
     suspend fun findByUser(userId: UserId): List<Message>
+
+    suspend fun deleteByTypeAndUser(type: MessageType, userId: UserId, groupId: String)
 }

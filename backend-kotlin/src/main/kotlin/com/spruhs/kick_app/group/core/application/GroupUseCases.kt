@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.group.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.helper.KeyedMutex
 import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.PlayerRole
@@ -53,6 +54,7 @@ data class UpdatePlayerStatusCommand(
 class GroupCommandPort(
     private val aggregateStore: AggregateStore,
     private val userApi: UserApi,
+    private val mutex: KeyedMutex<GroupId> = KeyedMutex(),
 ) {
     suspend fun createGroup(command: CreateGroupCommand): GroupAggregate =
         GroupAggregate(generateId()).also {
@@ -63,56 +65,61 @@ class GroupCommandPort(
             aggregateStore.save(it)
         }
 
-    suspend fun changeGroupName(command: ChangeGroupNameCommand) {
-        aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.changeGroupName(
+    suspend fun changeGroupName(command: ChangeGroupNameCommand) =
+        handle(command.groupId) { group ->
+            group.changeGroupName(
                 userId = command.userId,
                 newName = command.newName,
             )
-            aggregateStore.save(it)
         }
-    }
 
     suspend fun inviteUser(command: InviteUserCommand) {
         val userId = userApi.findUserIdByEmail(command.email) ?: throw IllegalStateException("User not found")
-        aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.inviteUser(
+        handle(command.groupId) { group ->
+            group.inviteUser(
                 inviterId = command.inviterId,
                 inviteeId = userId,
             )
-            aggregateStore.save(it)
         }
     }
 
-    suspend fun inviteUserResponse(command: InviteUserResponseCommand) {
-        aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.inviteUserResponse(
+    suspend fun inviteUserResponse(command: InviteUserResponseCommand) =
+        handle(command.groupId) { group ->
+            group.inviteUserResponse(
                 userId = command.userId,
                 response = command.response,
             )
-            aggregateStore.save(it)
         }
-    }
 
-    suspend fun updatePlayerStatus(command: UpdatePlayerStatusCommand) {
-        aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.updatePlayerStatus(
+    suspend fun updatePlayerStatus(command: UpdatePlayerStatusCommand) =
+        handle(command.groupId) { group ->
+            group.updatePlayerStatus(
                 userId = command.userId,
                 updatingUserId = command.updatingUserId,
                 newStatus = command.newStatus,
             )
-            aggregateStore.save(it)
         }
-    }
 
-    suspend fun updatePlayerRole(command: UpdatePlayerRoleCommand) {
-        aggregateStore.load(command.groupId.value, GroupAggregate::class.java).also {
-            it.updatePlayerRole(
+    suspend fun updatePlayerRole(command: UpdatePlayerRoleCommand) =
+        handle(command.groupId) { group ->
+            group.updatePlayerRole(
                 userId = command.userId,
                 updatingUserId = command.updatingUserId,
                 newRole = command.newRole,
             )
-            aggregateStore.save(it)
+        }
+
+    private suspend fun loadGroup(groupId: GroupId): GroupAggregate = aggregateStore.load(groupId.value, GroupAggregate::class.java)
+
+    private suspend inline fun handle(
+        id: GroupId,
+        crossinline block: (GroupAggregate) -> Unit,
+    ) {
+        mutex.withKeyLock(id) {
+            loadGroup(id).also {
+                block(it)
+                aggregateStore.save(it)
+            }
         }
     }
 }

@@ -9,7 +9,6 @@ import com.spruhs.kick_app.common.types.UserId
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
-import jakarta.annotation.PostConstruct
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.Keycloak
 import org.keycloak.admin.client.KeycloakBuilder
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
+import org.springframework.core.io.ResourceLoader
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.server.reactive.ServerHttpRequest
@@ -39,7 +39,6 @@ import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import org.springframework.core.io.ResourceLoader
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -125,29 +124,27 @@ class FirebaseSecurityConfig(
 ) {
     @Bean
     fun firebaseApp(): FirebaseApp {
-
         if (useEmulator) {
             System.setProperty(
                 "FIREBASE_AUTH_EMULATOR_HOST",
-                "localhost:9099"
+                "localhost:9099",
             )
         }
 
-        val options = FirebaseOptions.builder()
-            .setCredentials(
-                ServiceAccountCredentials.fromStream(
-                    resourceLoader.getResource(credentialsPath).inputStream
-                )
-            )
-            .build()
+        val options =
+            FirebaseOptions
+                .builder()
+                .setCredentials(
+                    ServiceAccountCredentials.fromStream(
+                        resourceLoader.getResource(credentialsPath).inputStream,
+                    ),
+                ).build()
 
         return FirebaseApp.initializeApp(options)
     }
 
     @Bean
-    fun securityFilterChain(
-        http: ServerHttpSecurity,
-    ): SecurityWebFilterChain =
+    fun securityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain =
         http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource) }
@@ -207,16 +204,16 @@ class JwtAuthenticationWebFilter(
 }
 
 class FirebaseAuthFilter : WebFilter {
-
     override fun filter(
         exchange: ServerWebExchange,
         chain: WebFilterChain,
     ): Mono<Void> {
         val token = extractToken(exchange.request) ?: return chain.filter(exchange)
 
-        return Mono.fromCallable {
-            FirebaseAuth.getInstance().verifyIdToken(token)
-        }.subscribeOn(Schedulers.boundedElastic())
+        return Mono
+            .fromCallable {
+                FirebaseAuth.getInstance().verifyIdToken(token)
+            }.subscribeOn(Schedulers.boundedElastic())
             .flatMap { decodedToken ->
                 val auth = UsernamePasswordAuthenticationToken(decodedToken, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
 
@@ -229,11 +226,12 @@ class FirebaseAuthFilter : WebFilter {
 
                 val context = SecurityContextImpl(auth)
 
-                chain.filter(exchange)
+                chain
+                    .filter(exchange)
                     .contextWrite(
                         ReactiveSecurityContextHolder.withSecurityContext(
-                            Mono.just(context)
-                        )
+                            Mono.just(context),
+                        ),
                     )
             }
     }

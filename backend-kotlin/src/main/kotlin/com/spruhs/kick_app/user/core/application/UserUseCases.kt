@@ -1,6 +1,7 @@
 package com.spruhs.kick_app.user.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.helper.KeyedMutex
 import com.spruhs.kick_app.common.types.Email
 import com.spruhs.kick_app.common.types.ImageType
 import com.spruhs.kick_app.common.types.UserId
@@ -8,7 +9,6 @@ import com.spruhs.kick_app.common.types.UserImageId
 import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
-import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
 import org.springframework.stereotype.Service
@@ -18,6 +18,7 @@ class UserCommandsPort(
     private val aggregateStore: AggregateStore,
     private val userImagePort: UserImagePort,
     private val userApi: UserApi,
+    private val mutex: KeyedMutex<UserId> = KeyedMutex(),
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
         require(userApi.existsByEmail(command.email).not()) {
@@ -33,14 +34,10 @@ class UserCommandsPort(
         }
     }
 
-    suspend fun changeNickName(command: ChangeUserNickNameCommand) {
-        aggregateStore.load(command.userId.value, UserAggregate::class.java).let {
-            it.changeNickName(
-                nickName = command.nickName,
-            )
-            aggregateStore.save(it)
+    suspend fun changeNickName(command: ChangeUserNickNameCommand) =
+        handle(command.userId) { user ->
+            user.changeNickName(command.nickName)
         }
-    }
 
     suspend fun updateUserImage(
         userId: UserId,
@@ -49,17 +46,28 @@ class UserCommandsPort(
         val type = image.contentType
         require(type in ImageType.allowedMimeTypes) { "Dateityp nicht erlaubt" }
 
-        val stream = image.bytes.inputStream()
+        val imageId = userImagePort.save(image.bytes.inputStream(), type)
 
-        val imageId = userImagePort.save(stream, type)
-
-        aggregateStore.load(userId.value, UserAggregate::class.java).apply {
-            this.userImageId?.let { userImagePort.delete(it) }
-            updateUserImage(imageId)
-            aggregateStore.save(this)
+        handle(userId) { user ->
+            user.userImageId?.let { userImagePort.delete(it) }
+            user.updateUserImage(imageId)
         }
 
         return imageId
+    }
+
+    private suspend fun loadUser(userId: UserId): UserAggregate = aggregateStore.load(userId.value, UserAggregate::class.java)
+
+    private suspend fun handle(
+        id: UserId,
+        block: suspend (UserAggregate) -> Unit,
+    ) {
+        mutex.withKeyLock(id) {
+            loadUser(id).also {
+                block(it)
+                aggregateStore.save(it)
+            }
+        }
     }
 }
 

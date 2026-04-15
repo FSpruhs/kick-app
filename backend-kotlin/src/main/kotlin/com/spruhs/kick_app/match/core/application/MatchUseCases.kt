@@ -2,6 +2,7 @@ package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
+import com.spruhs.kick_app.common.helper.KeyedMutex
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
@@ -19,6 +20,7 @@ import java.time.LocalDateTime
 class MatchCommandPort(
     private val aggregateStore: AggregateStore,
     private val groupApi: GroupApi,
+    private val mutex: KeyedMutex<MatchId> = KeyedMutex(),
 ) {
     suspend fun plan(command: PlanMatchCommand): MatchAggregate {
         require(groupApi.isActiveMember(command.groupId, command.requesterId)) {
@@ -36,23 +38,35 @@ class MatchCommandPort(
         }
     }
 
-    suspend fun cancelMatch(command: CancelMatchCommand) {
-        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
-            throw UserNotAuthorizedException(command.userId)
+    suspend fun cancelMatch(command: CancelMatchCommand) =
+        handle(command.matchId) { match ->
+            require(groupApi.isActiveCoach(match.groupId, command.userId)) {
+                throw UserNotAuthorizedException(command.userId)
+            }
+            match.cancelMatch()
         }
-        match.cancelMatch()
-        aggregateStore.save(match)
-    }
 
-    suspend fun changePlayground(command: ChangePlaygroundCommand) {
-        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
-            throw UserNotAuthorizedException(command.userId)
+    suspend fun changePlayground(command: ChangePlaygroundCommand) =
+        handle(command.matchId) { match ->
+            require(groupApi.isActiveCoach(match.groupId, command.userId)) {
+                throw UserNotAuthorizedException(command.userId)
+            }
+            match.changePlayground(command.playground)
         }
-        match.changePlayground(command.playground)
-        aggregateStore.save(match)
-    }
+
+    suspend fun addRegistration(command: AddRegistrationCommand) =
+        handle(command.matchId) { match ->
+            validateRegistrationRequest(command, match)
+            match.addRegistration(command.updatedUser, command.status)
+        }
+
+    suspend fun enterResult(command: EnterResultCommand) =
+        handle(command.matchId) { match ->
+            require(groupApi.isActiveCoach(match.groupId, command.userId)) {
+                throw UserNotAuthorizedException(command.userId)
+            }
+            match.enterResult(command.players)
+        }
 
     private suspend fun validateRegistrationRequest(
         command: AddRegistrationCommand,
@@ -67,7 +81,6 @@ class MatchCommandPort(
                     throw UserNotAuthorizedException(command.updatingUser)
                 }
             }
-
             RegistrationStatusType.CANCELLED, RegistrationStatusType.ADDED -> {
                 require(groupApi.isActiveCoach(match.groupId, command.updatingUser)) {
                     throw UserNotAuthorizedException(command.updatingUser)
@@ -76,22 +89,18 @@ class MatchCommandPort(
         }
     }
 
-    suspend fun addRegistration(command: AddRegistrationCommand) {
-        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        validateRegistrationRequest(command, match)
-        match.addRegistration(command.updatedUser, command.status)
-        aggregateStore.save(match)
-    }
+    private suspend fun loadMatch(matchId: MatchId): MatchAggregate = aggregateStore.load(matchId.value, MatchAggregate::class.java)
 
-    suspend fun enterResult(command: EnterResultCommand) {
-        val match = aggregateStore.load(command.matchId.value, MatchAggregate::class.java)
-        require(groupApi.isActiveCoach(match.groupId, command.userId)) {
-            throw UserNotAuthorizedException(command.userId)
+    private suspend fun handle(
+        id: MatchId,
+        block: suspend (MatchAggregate) -> Unit,
+    ) {
+        mutex.withKeyLock(id) {
+            loadMatch(id).also {
+                block(it)
+                aggregateStore.save(it)
+            }
         }
-
-        match.enterResult(command.players)
-
-        aggregateStore.save(match)
     }
 }
 

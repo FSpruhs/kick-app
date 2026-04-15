@@ -11,7 +11,6 @@ import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import com.spruhs.kick_app.user.core.application.UserImageUpload
 import com.spruhs.kick_app.user.core.domain.CreateUserIdentityProviderException
 import com.spruhs.kick_app.user.core.domain.NickName
-import com.spruhs.kick_app.user.core.domain.Password
 import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.core.io.buffer.DataBufferUtils

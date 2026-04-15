@@ -214,12 +214,18 @@ class FirebaseAuthFilter : WebFilter {
     ): Mono<Void> {
         val token = extractToken(exchange.request) ?: return chain.filter(exchange)
 
-
         return Mono.fromCallable {
             FirebaseAuth.getInstance().verifyIdToken(token)
         }.subscribeOn(Schedulers.boundedElastic())
             .flatMap { decodedToken ->
                 val auth = UsernamePasswordAuthenticationToken(decodedToken, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
+
+                val path = exchange.request.path.value()
+                if (!(path == "/api/v1/user" && exchange.request.method == HttpMethod.POST)) {
+                    if (!decodedToken.isEmailVerified) {
+                        return@flatMap chain.filter(exchange)
+                    }
+                }
 
                 val context = SecurityContextImpl(auth)
 

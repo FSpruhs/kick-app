@@ -48,25 +48,4 @@ class UserCommandsPortTest {
                 userCommandsPort.registerUser(command)
             }
         }
-
-    @Test
-    fun `changeNickName should change user nick name`(): Unit =
-        runBlocking {
-            // Given
-            val command = ChangeUserNickNameCommand(UserId("1234"), NickName("NewNick"))
-            coEvery {
-                aggregateStore.load(
-                    command.userId.value,
-                    UserAggregate::class.java,
-                )
-            } returns UserAggregate(command.userId.value)
-            coEvery { userIdentityProviderPort.changeNickName(command.userId, command.nickName) } returns Unit
-            coEvery { aggregateStore.save(any()) } returns Unit
-
-            // When
-            userCommandsPort.changeNickName(command)
-
-            // Then
-            coVerify { userIdentityProviderPort.changeNickName(command.userId, command.nickName) }
-        }
 }

@@ -29,4 +29,8 @@ class TestMessageBuilder {
     fun withId(id: MessageId) = this.apply { this.id = id }
 
     fun withUserId(userId: UserId) = this.apply { this.user = userId }
+
+    fun withType(type: MessageType) = this.apply { this.type = type }
+
+    fun withVariables(variables: Map<String, String>) = this.apply { this.variables = variables }
 }

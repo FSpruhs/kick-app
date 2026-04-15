@@ -40,7 +40,7 @@ class UserCommandsPortTest {
     fun `registerUser should throw exception if email exists`(): Unit =
         runBlocking {
             // Given
-            val command = RegisterUserCommand(NickName("Test"), Email("test@testen.com"))
+            val command = RegisterUserCommand(UserId("testUserId"), NickName("Test"), Email("test@testen.com"))
             coEvery { userApi.existsByEmail(command.email) } returns true
 
             // When + Then

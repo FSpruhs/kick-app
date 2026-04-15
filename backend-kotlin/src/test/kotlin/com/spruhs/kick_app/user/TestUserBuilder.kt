@@ -66,9 +66,9 @@ class TestUserBuilder {
 
     fun buildRegisterUserRequest(): RegisterUserRequest =
         RegisterUserRequest(
+            userId = id,
             nickName = nickName,
             email = email,
-            password = null,
         )
 
     fun withId(id: String) = this.apply { this.id = id }

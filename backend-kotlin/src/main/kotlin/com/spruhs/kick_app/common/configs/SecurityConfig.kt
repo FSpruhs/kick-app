@@ -75,6 +75,38 @@ class OAuth2SecurityConfig(
             .build()
 }
 
+@Profile("dev")
+@Configuration
+class DevSecurityConfig(
+    private val corsConfigurationSource: CorsConfigurationSource,
+) {
+    @Bean
+    fun securityFilterChain(
+        http: ServerHttpSecurity,
+        jwtUtil: JwtUtil,
+    ): SecurityWebFilterChain =
+        http
+            .csrf { it.disable() }
+            .cors { it.configurationSource(corsConfigurationSource) }
+            .authorizeExchange { exchanges ->
+                exchanges
+                    .pathMatchers(
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/swagger-resources/**",
+                        "/webjars/**",
+                    ).permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/user")
+                    .permitAll()
+                    .pathMatchers(HttpMethod.POST, "/api/v1/auth/**")
+                    .permitAll()
+                    .anyExchange()
+                    .authenticated()
+            }.addFilterAt(DevAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
+            .build()
+}
+
 @Profile("jwtSecurity")
 @Configuration
 class JwtSecurityConfig(
@@ -175,6 +207,33 @@ class CorsConfiguration {
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)
         return source
+    }
+}
+
+class DevAuthenticationWebFilter() : WebFilter {
+
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: WebFilterChain
+    ): Mono<Void?> {
+        val token = extractToken(exchange.request)
+
+        if (token == null) {
+            return chain.filter(exchange)
+        }
+
+        val auth = UsernamePasswordAuthenticationToken(token, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
+        val context = SecurityContextImpl(auth)
+
+        return chain.filter(exchange)
+            .contextWrite(
+                ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context))
+            )
+    }
+
+    private fun extractToken(request: ServerHttpRequest): String? {
+        val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION) ?: return null
+        return if (authHeader.startsWith("Bearer ")) authHeader.substring(7) else null
     }
 }
 

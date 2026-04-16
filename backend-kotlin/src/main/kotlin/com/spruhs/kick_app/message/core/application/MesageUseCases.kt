@@ -28,7 +28,11 @@ class MessageUseCases(
         }
     }
 
-    suspend fun delete(messageType: MessageType, userId: UserId, groupId: String) {
+    suspend fun delete(
+        messageType: MessageType,
+        userId: UserId,
+        groupId: String,
+    ) {
         messagePersistencePort.deleteByTypeAndUser(messageType, userId, groupId)
     }
 

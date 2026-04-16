@@ -50,11 +50,12 @@ class GroupListener(
 
     @EventListener(PlayerRejectedGroupEvent::class, PlayerEnteredGroupEvent::class)
     fun onEvent(event: BaseEvent) {
-        val userId = when (event) {
-            is PlayerRejectedGroupEvent -> event.userId
-            is PlayerEnteredGroupEvent -> event.userId
-            else -> throw IllegalArgumentException("Unsupported event type: ${event::class}")
-        }
+        val userId =
+            when (event) {
+                is PlayerRejectedGroupEvent -> event.userId
+                is PlayerEnteredGroupEvent -> event.userId
+                else -> throw IllegalArgumentException("Unsupported event type: ${event::class}")
+            }
 
         eventExecutionStrategy.execute {
             messageUseCases.delete(MessageType.USER_INVITED_TO_GROUP, userId, event.aggregateId)

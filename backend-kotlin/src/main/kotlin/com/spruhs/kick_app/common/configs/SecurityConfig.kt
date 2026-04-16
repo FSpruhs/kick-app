@@ -210,11 +210,10 @@ class CorsConfiguration {
     }
 }
 
-class DevAuthenticationWebFilter() : WebFilter {
-
+class DevAuthenticationWebFilter : WebFilter {
     override fun filter(
         exchange: ServerWebExchange,
-        chain: WebFilterChain
+        chain: WebFilterChain,
     ): Mono<Void?> {
         val token = extractToken(exchange.request)
 
@@ -225,9 +224,10 @@ class DevAuthenticationWebFilter() : WebFilter {
         val auth = UsernamePasswordAuthenticationToken(token, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
         val context = SecurityContextImpl(auth)
 
-        return chain.filter(exchange)
+        return chain
+            .filter(exchange)
             .contextWrite(
-                ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context))
+                ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)),
             )
     }
 

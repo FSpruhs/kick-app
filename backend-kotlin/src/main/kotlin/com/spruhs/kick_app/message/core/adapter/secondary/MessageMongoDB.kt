@@ -36,13 +36,13 @@ class MessagePersistenceAdapter(
             }.collectList()
             .awaitSingle()
 
-
     override suspend fun deleteByTypeAndUser(
         type: MessageType,
         userId: UserId,
         groupId: String,
     ) {
-        messageRepository.findByTypeAndUserId(type.toString(), userId.value)
+        messageRepository
+            .findByTypeAndUserId(type.toString(), userId.value)
             .filter { message -> message.variables["groupId"] == groupId }
             .collectList()
             .awaitSingle()
@@ -53,7 +53,11 @@ class MessagePersistenceAdapter(
 @Repository
 interface MessageRepository : ReactiveMongoRepository<MessageDocument, String> {
     fun findByUserId(userId: String): Flux<MessageDocument>
-    fun findByTypeAndUserId(type: String, userId: String): Flux<MessageDocument>
+
+    fun findByTypeAndUserId(
+        type: String,
+        userId: String,
+    ): Flux<MessageDocument>
 }
 
 @Document(collection = "messages")

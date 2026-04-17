@@ -10,7 +10,7 @@ data class MatchOverviewEntry(
     val matchId: MatchId,
     val matchNumber: Int,
     val start: LocalDateTime,
-    val state: MatchState
+    val state: MatchState,
 )
 
 enum class MatchState {
@@ -22,9 +22,12 @@ enum class MatchState {
 class MatchOverview(
     private val groupId: GroupId,
     private val entries: MutableList<MatchOverviewEntry>,
-    private val events: MutableList<BaseEvent>
+    private val events: MutableList<BaseEvent>,
 ) {
-    fun add(matchId: MatchId, start: LocalDateTime): Int {
+    fun add(
+        matchId: MatchId,
+        start: LocalDateTime,
+    ): Int {
         require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
         val newNumber = nextMatchNumber(start)
         entries.replaceAll { entry ->
@@ -32,8 +35,9 @@ class MatchOverview(
                 val newMatchId = entry.matchNumber + 1
                 events.add(MatchNumberChangedEvent(entry.matchId.value, newMatchId))
                 entry.copy(matchNumber = newMatchId)
-
-            } else entry
+            } else {
+                entry
+            }
         }
         entries.add(MatchOverviewEntry(matchId, newNumber, start, MatchState.PLANNED))
         entries.sortBy { it.start }
@@ -51,17 +55,21 @@ class MatchOverview(
                 val newMatchNumber = e.matchNumber - 1
                 events.add(MatchNumberChangedEvent(e.matchId.value, newMatchNumber))
                 e.copy(matchNumber = newMatchNumber)
-            } else e
+            } else {
+                e
+            }
         }
     }
 
     fun resultEntered(matchId: MatchId) {
-        val entry = entries.find { it.matchId == matchId }
-            ?: throw IllegalArgumentException("Match with id ${matchId.value} not found")
+        val entry =
+            entries.find { it.matchId == matchId }
+                ?: throw IllegalArgumentException("Match with id ${matchId.value} not found")
 
         val priorEntries = entries.filter { it.matchNumber < entry.matchNumber }
 
-        priorEntries.filter { it.state == MatchState.PLANNED }
+        priorEntries
+            .filter { it.state == MatchState.PLANNED }
             .forEach { planned ->
                 entries.replaceAll { e ->
                     if (e.matchId == planned.matchId) e.copy(state = MatchState.FINISHED) else e

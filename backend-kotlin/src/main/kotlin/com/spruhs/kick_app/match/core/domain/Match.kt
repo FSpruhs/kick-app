@@ -91,7 +91,9 @@ value class MinPlayer(
 }
 
 @JvmInline
-value class MatchNumber(val value: Int) {
+value class MatchNumber(
+    val value: Int,
+) {
     init {
         require(value >= 0) { "Match number must be greater equal than 0" }
     }

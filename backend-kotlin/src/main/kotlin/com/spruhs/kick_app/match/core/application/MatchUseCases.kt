@@ -10,6 +10,7 @@ import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
+import com.spruhs.kick_app.match.core.domain.MatchNumber
 import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
@@ -27,12 +28,15 @@ class MatchCommandPort(
             throw UserNotAuthorizedException(command.requesterId)
         }
 
+        val lastMatchNumber = MatchNumber(0)
+
         return MatchAggregate(generateId()).also {
             it.planMatch(
                 groupId = command.groupId,
                 start = command.start,
                 playground = command.playground,
                 playerCount = command.playerCount,
+                lastMatchNumber = lastMatchNumber,
             )
             aggregateStore.save(it)
         }

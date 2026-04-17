@@ -90,6 +90,13 @@ value class MinPlayer(
     }
 }
 
+@JvmInline
+value class MatchNumber(val value: Int) {
+    init {
+        require(value >= 0) { "Match number must be greater equal than 0" }
+    }
+}
+
 data class MatchStartTimeException(
     val matchId: MatchId,
 ) : RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
@@ -103,6 +110,7 @@ class MatchAggregate(
 ) : AggregateRoot(aggregateId, TYPE) {
     var groupId: GroupId = GroupId("default")
     var start: LocalDateTime = LocalDateTime.now()
+    var matchNumber: MatchNumber = MatchNumber(0)
     var isCanceled: Boolean = false
     var playground: Playground? = null
     var playerCount: PlayerCount = PlayerCount(MinPlayer(4), MaxPlayer(8))
@@ -152,6 +160,7 @@ class MatchAggregate(
         this.start = event.start
         this.playground = event.playground?.let { Playground(it) }
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
+        this.matchNumber = MatchNumber(event.matchNumber)
     }
 
     private fun findPlayerRegistration(userId: UserId): RegisteredPlayer.MainPlayer? =
@@ -207,6 +216,7 @@ class MatchAggregate(
         start: LocalDateTime,
         playground: Playground?,
         playerCount: PlayerCount,
+        lastMatchNumber: MatchNumber,
     ) {
         apply(
             MatchPlannedEvent(
@@ -216,6 +226,7 @@ class MatchAggregate(
                 playground?.value,
                 playerCount.maxPlayer.value,
                 playerCount.minPlayer.value,
+                lastMatchNumber.value + 1,
             ),
         )
     }
@@ -386,10 +397,10 @@ class MatchAggregate(
             repeat(guestsToRemove) {
                 if (waitingBenchGuests.isNotEmpty()) {
                     val guestToRemove = waitingBenchGuests.first()
-                    apply { PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId) }
+                    apply(PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId))
                 } else if (cadreGuests.isNotEmpty()) {
                     val guestToRemove = cadreGuests.first()
-                    apply { PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId) }
+                    apply(PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId))
                 }
             }
         } else if (guests > totalGuests) {

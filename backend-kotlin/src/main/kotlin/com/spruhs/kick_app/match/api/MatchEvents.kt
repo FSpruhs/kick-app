@@ -18,6 +18,7 @@ data class MatchPlannedEvent(
     val playground: String? = null,
     val maxPlayer: Int,
     val minPlayer: Int,
+    val matchNumber: Int,
 ) : BaseEvent(aggregateId)
 
 data class PlayerAddedToCadreEvent(
@@ -60,6 +61,11 @@ data class MatchResultEnteredEvent(
     val groupId: GroupId,
     val players: List<ParticipatingPlayer>,
     val start: LocalDateTime,
+) : BaseEvent(aggregateId)
+
+data class MatchNumberChangedEvent(
+    override val aggregateId: String,
+    val newMatchNumber: Int,
 ) : BaseEvent(aggregateId)
 
 enum class MatchEvents {

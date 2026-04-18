@@ -22,23 +22,26 @@ class MatchCommandPort(
     private val aggregateStore: AggregateStore,
     private val groupApi: GroupApi,
     private val mutex: KeyedMutex<MatchId> = KeyedMutex(),
+    private val matchOverviewService: MatchOverviewService,
 ) {
     suspend fun plan(command: PlanMatchCommand): MatchAggregate {
         require(groupApi.isActiveMember(command.groupId, command.requesterId)) {
             throw UserNotAuthorizedException(command.requesterId)
         }
+        val matchId = generateId()
+        val matchOverview = matchOverviewService.getMatchHistory(command.groupId)
+        val lastMatchNumber = matchOverview.add(MatchId(matchId), command.start)
 
-        val lastMatchNumber = MatchNumber(0)
-
-        return MatchAggregate(generateId()).also {
+        return MatchAggregate(matchId).also {
             it.planMatch(
                 groupId = command.groupId,
                 start = command.start,
                 playground = command.playground,
                 playerCount = command.playerCount,
-                lastMatchNumber = lastMatchNumber,
+                lastMatchNumber = MatchNumber(lastMatchNumber),
             )
             aggregateStore.save(it)
+            matchOverviewService.save(matchOverview)
         }
     }
 

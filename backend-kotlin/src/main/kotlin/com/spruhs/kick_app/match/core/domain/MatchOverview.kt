@@ -20,9 +20,9 @@ enum class MatchState {
 }
 
 class MatchOverview(
-    private val groupId: GroupId,
-    private val entries: MutableList<MatchOverviewEntry>,
-    private val events: MutableList<BaseEvent>,
+    val groupId: GroupId,
+    val entries: MutableList<MatchOverviewEntry> = mutableListOf(),
+    val events: MutableList<BaseEvent> = mutableListOf(),
 ) {
     fun add(
         matchId: MatchId,
@@ -94,4 +94,9 @@ class MatchOverview(
             prevNumber + 1
         }
     }
+}
+
+interface MatchOverviewPersistencePort {
+    suspend fun getOverview(groupId: GroupId): MatchOverview?
+    suspend fun save(overview: MatchOverview)
 }

@@ -98,5 +98,6 @@ class MatchOverview(
 
 interface MatchOverviewPersistencePort {
     suspend fun getOverview(groupId: GroupId): MatchOverview?
+
     suspend fun save(overview: MatchOverview)
 }

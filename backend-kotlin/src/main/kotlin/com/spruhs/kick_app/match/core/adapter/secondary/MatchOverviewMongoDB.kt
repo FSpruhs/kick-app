@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
-
 @Service
 class MatchOverviewPersistenceAdapter(
     private val matchOverviewRepository: MatchOverviewRepository,

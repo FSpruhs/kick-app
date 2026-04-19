@@ -29,7 +29,7 @@ class MatchEventSerializerTest {
         @JvmStatic
         fun data() =
             listOf(
-                MatchPlannedEvent("matchId", GroupId("groupId"), LocalDateTime.now(), "playground", 10, 5),
+                MatchPlannedEvent("matchId", GroupId("groupId"), LocalDateTime.now(), "playground", 10, 5, 0),
                 PlayerAddedToCadreEvent("matchId", UserId("userId"), "status"),
                 PlayerDeregisteredEvent("matchId", UserId("userId"), "status"),
                 PlayerPlacedOnWaitingBenchEvent("matchId", UserId("userId"), "status"),

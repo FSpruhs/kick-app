@@ -80,6 +80,7 @@ class MatchImporter(
                 start = start,
                 maxPlayer = 14,
                 minPlayer = 8,
+                matchNumber = 1,
             ),
         )
         return match
@@ -98,6 +99,7 @@ class MatchImporter(
                 start = start,
                 maxPlayer = 14,
                 minPlayer = 8,
+                matchNumber = 2,
             ),
         )
         match.apply(
@@ -134,6 +136,7 @@ class MatchImporter(
                 start = start,
                 maxPlayer = 12,
                 minPlayer = 8,
+                matchNumber = 3,
             ),
         )
         match.apply(
@@ -266,6 +269,7 @@ class MatchImporter(
                 start = start,
                 maxPlayer = 14,
                 minPlayer = 8,
+                matchNumber = 0,
             ),
         )
         match.apply(

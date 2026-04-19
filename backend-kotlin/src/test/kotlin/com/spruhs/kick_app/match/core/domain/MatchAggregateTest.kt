@@ -33,6 +33,7 @@ class MatchAggregateTest {
             start = start,
             playground = playground,
             playerCount = playerCount,
+            lastMatchNumber = MatchNumber(0),
         )
 
         // Then

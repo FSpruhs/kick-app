@@ -29,6 +29,7 @@ class MatchOverview(
         start: LocalDateTime,
     ): Int {
         require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
+        require(entries.map { it.matchId }.none { it == matchId }) { "Match with id ${matchId.value} already exists" }
         val newNumber = nextMatchNumber(start)
         entries.replaceAll { entry ->
             if (entry.matchNumber >= newNumber) {

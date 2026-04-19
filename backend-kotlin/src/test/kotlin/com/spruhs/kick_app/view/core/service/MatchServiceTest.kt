@@ -154,6 +154,7 @@ class MatchServiceTest {
                     playground = match.playground,
                     maxPlayer = match.maxPlayer,
                     minPlayer = match.minPlayer,
+                    matchNumber = 1,
                 )
 
             coEvery { repository.save(any()) } returns Unit

@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MatchNumber
@@ -95,6 +96,11 @@ class MatchCommandPort(
             }
         }
     }
+
+    suspend fun changeMatchNumber(event: MatchNumberChangedEvent) =
+        handle(MatchId(event.aggregateId)) { match ->
+            match.apply(MatchNumberChangedEvent(event.aggregateId, event.newMatchNumber))
+        }
 
     private suspend fun loadMatch(matchId: MatchId): MatchAggregate = aggregateStore.load(matchId.value, MatchAggregate::class.java)
 

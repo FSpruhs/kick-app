@@ -65,7 +65,7 @@ class MatchOverview(
     fun resultEntered(matchId: MatchId) {
         val entry =
             entries.find { it.matchId == matchId }
-                ?: throw IllegalArgumentException("Match with id ${matchId.value} not found")
+                ?: return
 
         val priorEntries = entries.filter { it.matchNumber < entry.matchNumber }
 

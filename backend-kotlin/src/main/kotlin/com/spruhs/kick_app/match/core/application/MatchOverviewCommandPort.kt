@@ -37,11 +37,10 @@ class MatchOverviewCommandPort(
     private suspend inline fun handle(
         groupId: GroupId,
         crossinline block: (MatchOverview) -> Unit,
-    ) =
-        mutex.withKeyLock(groupId) {
-            matchOverviewService.getMatchHistory(groupId).also {
-                block(it)
-                matchOverviewService.save(it)
-            }
+    ) = mutex.withKeyLock(groupId) {
+        matchOverviewService.getMatchHistory(groupId).also {
+            block(it)
+            matchOverviewService.save(it)
         }
+    }
 }

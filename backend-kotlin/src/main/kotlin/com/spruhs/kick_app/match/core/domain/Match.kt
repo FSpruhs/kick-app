@@ -240,7 +240,7 @@ class MatchAggregate(
                 playerCount.maxPlayer.value,
                 playerCount.minPlayer.value,
                 lastMatchNumber.value + 1,
-                playerPriorityStrategyType
+                playerPriorityStrategyType,
             ),
         )
     }

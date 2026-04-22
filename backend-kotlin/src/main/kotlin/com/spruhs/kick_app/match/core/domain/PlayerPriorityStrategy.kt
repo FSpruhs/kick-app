@@ -19,18 +19,18 @@ import java.time.LocalDateTime
     JsonSubTypes.Type(value = AttendanceBased::class, name = "ATTENDANCE_BASED"),
 )
 interface PlayerPriorityStrategy {
-
-    fun addRegistration(userId: UserId,
-                        registrationStatusType: RegistrationStatusType,
-                        guests: Int = 0,
-                        match: MatchAggregate,
-                        apply: (BaseEvent) -> Unit): List<BaseEvent>
+    fun addRegistration(
+        userId: UserId,
+        registrationStatusType: RegistrationStatusType,
+        guests: Int = 0,
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit,
+    ): List<BaseEvent>
 
     fun type(): PlayerPriorityStrategyType
 }
 
 class FirstComeFirstServe : PlayerPriorityStrategy {
-
     private val events: MutableList<BaseEvent> = mutableListOf()
 
     override fun addRegistration(
@@ -38,7 +38,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
         startAddingRegistration(userId, registrationStatusType, guests, match) {
@@ -53,7 +53,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         require(match.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
@@ -78,11 +78,14 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         handleNewStatus(currentPlayer, newStatus, guests, match, apply)
 
         if (shouldFillCadreFromWaitingBench(newStatus, match)) {
-            fillCadreFromWaitingBench(match,apply)
+            fillCadreFromWaitingBench(match, apply)
         }
     }
 
-    private fun fillCadreFromWaitingBench(match: MatchAggregate,apply: (BaseEvent) -> Unit) {
+    private fun fillCadreFromWaitingBench(
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit,
+    ) {
         match.waitingBench.sortBy { it.registrationTime }
         val openCadre = match.playerCount.maxPlayer.value - match.cadre.size
         for (registration in match.waitingBench
@@ -116,7 +119,10 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         }
     }
 
-    private fun shouldFillCadreFromWaitingBench(newStatus: RegistrationStatus, match: MatchAggregate): Boolean =
+    private fun shouldFillCadreFromWaitingBench(
+        newStatus: RegistrationStatus,
+        match: MatchAggregate,
+    ): Boolean =
         newStatus.getType() in listOf(RegistrationStatusType.DEREGISTERED, RegistrationStatusType.CANCELLED) &&
             !isCadreFull(match) &&
             isPlayerWaiting(match)
@@ -128,7 +134,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         newStatus: RegistrationStatus,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         when (newStatus) {
             is RegistrationStatus.Registered ->
@@ -137,7 +143,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
                     RegistrationStatusType.REGISTERED,
                     guests,
                     match,
-                    apply
+                    apply,
                 )
 
             is RegistrationStatus.Deregistered ->
@@ -145,7 +151,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
                     currentPlayer.userId,
                     RegistrationStatusType.DEREGISTERED,
                     match,
-                    apply
+                    apply,
                 )
 
             is RegistrationStatus.Cancelled -> handlePlayerCancelled(currentPlayer.userId, RegistrationStatusType.CANCELLED, match, apply)
@@ -157,7 +163,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         userId: UserId,
         status: RegistrationStatusType,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, userId, status.name))
         val cadreGuests = match.cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
@@ -173,7 +179,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         status: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         apply(PlayerAddedToCadreEvent(match.aggregateId, userId, status.name, guests))
 
@@ -190,7 +196,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         guests: Int,
         status: RegistrationStatus,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         if (status != RegistrationStatus.Registered) return
 
@@ -240,7 +246,10 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
 
     private fun isCadreFull(match: MatchAggregate): Boolean = match.cadre.size >= match.playerCount.maxPlayer.value
 
-    private fun findPlayerRegistration(userId: UserId, match: MatchAggregate): RegisteredPlayer.MainPlayer? =
+    private fun findPlayerRegistration(
+        userId: UserId,
+        match: MatchAggregate,
+    ): RegisteredPlayer.MainPlayer? =
         (match.cadre + match.waitingBench + match.deregistered)
             .filterIsInstance<RegisteredPlayer.MainPlayer>()
             .find { it.userId == userId }
@@ -250,7 +259,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         when (registrationStatusType) {
             RegistrationStatusType.DEREGISTERED ->
@@ -258,7 +267,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
                     userId,
                     RegistrationStatusType.DEREGISTERED,
                     match,
-                    apply
+                    apply,
                 )
 
             RegistrationStatusType.REGISTERED ->
@@ -273,7 +282,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         userId: UserId,
         status: RegistrationStatusType,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         apply(PlayerDeregisteredEvent(match.aggregateId, userId, status.name))
 
@@ -290,7 +299,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         status: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ) {
         val totalPlayers = 1 + guests
         var matchCapacity = match.playerCount.maxPlayer.value - match.cadre.size
@@ -322,8 +331,7 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
 
     private fun matchContainsGuests(match: MatchAggregate): Boolean = match.cadre.any { it is RegisteredPlayer.GuestPlayer }
 
-    override fun type(): PlayerPriorityStrategyType =
-        PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE
+    override fun type(): PlayerPriorityStrategyType = PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE
 }
 
 class RoundRobin : PlayerPriorityStrategy {
@@ -332,13 +340,12 @@ class RoundRobin : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         TODO("Not yet implemented")
     }
 
-    override fun type(): PlayerPriorityStrategyType =
-        PlayerPriorityStrategyType.ROUND_ROBIN
+    override fun type(): PlayerPriorityStrategyType = PlayerPriorityStrategyType.ROUND_ROBIN
 }
 
 class AttendanceBased : PlayerPriorityStrategy {
@@ -347,7 +354,7 @@ class AttendanceBased : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        apply: (BaseEvent) -> Unit
+        apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         TODO("Not yet implemented")
     }

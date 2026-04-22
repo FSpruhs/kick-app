@@ -121,28 +121,31 @@ class MatchOverviewTest {
     @Test
     fun `cancel should remove match`() {
         // Given
-        val overview = MatchOverview(
-            groupId = GroupId("groupId"),
-            entries = mutableListOf(
-                MatchOverviewEntry(
-                    matchId = MatchId("match1"),
-                    matchNumber = 1,
-                    start = LocalDateTime.now().plusDays(1),
-                    state = MatchState.PLANNED,
-                ),
-                MatchOverviewEntry(
-                    matchId = MatchId("match2"),
-                    matchNumber = 2,
-                    start = LocalDateTime.now().plusDays(2),
-                    state = MatchState.PLANNED,
-                ),
-                MatchOverviewEntry(
-                    matchId = MatchId("match3"),
-                    matchNumber = 3,
-                    start = LocalDateTime.now().plusDays(3),
-                    state = MatchState.PLANNED,)
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = 1,
+                            start = LocalDateTime.now().plusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match2"),
+                            matchNumber = 2,
+                            start = LocalDateTime.now().plusDays(2),
+                            state = MatchState.PLANNED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match3"),
+                            matchNumber = 3,
+                            start = LocalDateTime.now().plusDays(3),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
             )
-        )
 
         // When
         overview.cancel(MatchId("match2"))
@@ -157,15 +160,18 @@ class MatchOverviewTest {
     @Test
     fun `cancel should do nothing when match not found`() {
         // Given
-        val overview = MatchOverview(
-            groupId = GroupId("groupId"),
-            entries = mutableListOf(
-                MatchOverviewEntry(
-                    matchId = MatchId("match1"),
-                    matchNumber = 1,
-                    start = LocalDateTime.now().plusDays(1),
-                    state = MatchState.PLANNED,
-                ),)
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = 1,
+                            start = LocalDateTime.now().plusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
             )
 
         // When
@@ -179,16 +185,19 @@ class MatchOverviewTest {
     @Test
     fun `cancel should throw exception when match already started`() {
         // Given
-        val overview = MatchOverview(
-            groupId = GroupId("groupId"),
-            entries = mutableListOf(
-                MatchOverviewEntry(
-                    matchId = MatchId("match1"),
-                    matchNumber = 1,
-                    start = LocalDateTime.now().minusDays(1),
-                    state = MatchState.PLANNED,
-                ),)
-        )
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = 1,
+                            start = LocalDateTime.now().minusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
+            )
 
         // When + Then
         assertThatThrownBy { overview.cancel(MatchId("match1")) }
@@ -198,22 +207,25 @@ class MatchOverviewTest {
     @Test
     fun `resultEntered should enter result and delete last item`() {
         // Given
-        val overview = MatchOverview(
-            groupId = GroupId("groupId"),
-            entries = mutableListOf(
-                MatchOverviewEntry(
-                    matchId = MatchId("match0"),
-                    matchNumber = 1,
-                    start = LocalDateTime.now().minusDays(2),
-                    state = MatchState.RESULT_ENTERED,
-                ),
-                MatchOverviewEntry(
-                    matchId = MatchId("match1"),
-                    matchNumber = 2,
-                    start = LocalDateTime.now().minusDays(1),
-                    state = MatchState.PLANNED,
-                ),)
-        )
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match0"),
+                            matchNumber = 1,
+                            start = LocalDateTime.now().minusDays(2),
+                            state = MatchState.RESULT_ENTERED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = 2,
+                            start = LocalDateTime.now().minusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
+            )
 
         // When
         overview.resultEntered(MatchId("match1"))
@@ -227,28 +239,31 @@ class MatchOverviewTest {
     @Test
     fun `resultEntered should enter result and keep last item`() {
         // Given
-        val overview = MatchOverview(
-            groupId = GroupId("groupId"),
-            entries = mutableListOf(
-                MatchOverviewEntry(
-                    matchId = MatchId("match0"),
-                    matchNumber = 1,
-                    start = LocalDateTime.now().minusDays(3),
-                    state = MatchState.RESULT_ENTERED,
-                ),
-                MatchOverviewEntry(
-                    matchId = MatchId("match1"),
-                    matchNumber = 2,
-                    start = LocalDateTime.now().minusDays(2),
-                    state = MatchState.PLANNED,
-                ),
-                MatchOverviewEntry(
-                    matchId = MatchId("match2"),
-                    matchNumber = 2,
-                    start = LocalDateTime.now().minusDays(1),
-                    state = MatchState.PLANNED,
-                ),)
-        )
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match0"),
+                            matchNumber = 1,
+                            start = LocalDateTime.now().minusDays(3),
+                            state = MatchState.RESULT_ENTERED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = 2,
+                            start = LocalDateTime.now().minusDays(2),
+                            state = MatchState.PLANNED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match2"),
+                            matchNumber = 2,
+                            start = LocalDateTime.now().minusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
+            )
 
         // When
         overview.resultEntered(MatchId("match2"))
@@ -258,5 +273,4 @@ class MatchOverviewTest {
         assertThat(overview.events).hasSize(0)
         assertThat(overview.entries.map { it.matchId }).containsExactlyInAnyOrder(MatchId("match1"), MatchId("match2"))
     }
-
 }

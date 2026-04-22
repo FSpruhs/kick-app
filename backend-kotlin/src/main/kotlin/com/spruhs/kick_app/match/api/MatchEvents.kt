@@ -19,6 +19,7 @@ data class MatchPlannedEvent(
     val maxPlayer: Int,
     val minPlayer: Int,
     val matchNumber: Int,
+    val playerPriorityStrategyType: PlayerPriorityStrategyType? = null,
 ) : BaseEvent(aggregateId)
 
 data class PlayerAddedToCadreEvent(
@@ -214,3 +215,9 @@ data class ParticipatingPlayer(
     val playerResult: PlayerResult,
     val team: MatchTeam,
 )
+
+enum class PlayerPriorityStrategyType {
+    FIRST_COME_FIRST_SERVE,
+    ROUND_ROBIN,
+    ATTENDANCE_BASED,
+}

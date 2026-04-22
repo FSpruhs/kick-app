@@ -6,7 +6,6 @@ import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -14,6 +13,7 @@ import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
+import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import java.time.LocalDateTime
@@ -119,6 +119,7 @@ class MatchAggregate(
     val cadre = mutableListOf<RegisteredPlayer>()
     val waitingBench = mutableListOf<RegisteredPlayer>()
     val deregistered = mutableListOf<RegisteredPlayer>()
+    var playerPriorityStrategy: PlayerPriorityStrategy = FirstComeFirstServe()
 
     override fun whenEvent(event: BaseEvent) {
         when (event) {
@@ -163,7 +164,16 @@ class MatchAggregate(
         this.playground = event.playground?.let { Playground(it) }
         this.playerCount = PlayerCount(MinPlayer(event.minPlayer), MaxPlayer(event.maxPlayer))
         this.matchNumber = MatchNumber(event.matchNumber)
+        this.playerPriorityStrategy = addPlayerPriorityStrategyType(event.playerPriorityStrategyType)
     }
+
+    private fun addPlayerPriorityStrategyType(playerPriorityStrategyType: PlayerPriorityStrategyType?): PlayerPriorityStrategy =
+        when (playerPriorityStrategyType) {
+            PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE -> FirstComeFirstServe()
+            PlayerPriorityStrategyType.ROUND_ROBIN -> RoundRobin()
+            PlayerPriorityStrategyType.ATTENDANCE_BASED -> AttendanceBased()
+            null -> FirstComeFirstServe()
+        }
 
     private fun findPlayerRegistration(userId: UserId): RegisteredPlayer.MainPlayer? =
         (cadre + waitingBench + deregistered)
@@ -219,6 +229,7 @@ class MatchAggregate(
         playground: Playground?,
         playerCount: PlayerCount,
         lastMatchNumber: MatchNumber,
+        playerPriorityStrategyType: PlayerPriorityStrategyType? = null,
     ) {
         apply(
             MatchPlannedEvent(
@@ -229,6 +240,7 @@ class MatchAggregate(
                 playerCount.maxPlayer.value,
                 playerCount.minPlayer.value,
                 lastMatchNumber.value + 1,
+                playerPriorityStrategyType
             ),
         )
     }
@@ -306,251 +318,12 @@ class MatchAggregate(
         return result == null
     }
 
-    private fun handleFirstRegistration(
-        userId: UserId,
-        registrationStatusType: RegistrationStatusType,
-        guests: Int,
-    ) {
-        when (registrationStatusType) {
-            RegistrationStatusType.DEREGISTERED ->
-                handlePlayerDeregistration(
-                    userId,
-                    RegistrationStatusType.DEREGISTERED,
-                )
-
-            RegistrationStatusType.REGISTERED ->
-                handlePlayerRegistration(userId, RegistrationStatusType.REGISTERED, guests)
-
-            RegistrationStatusType.CANCELLED -> return
-            RegistrationStatusType.ADDED -> return
-        }
-    }
-
-    private fun handleNewStatus(
-        currentPlayer: RegisteredPlayer.MainPlayer,
-        newStatus: RegistrationStatus,
-        guests: Int,
-    ) {
-        when (newStatus) {
-            is RegistrationStatus.Registered ->
-                handlePlayerRegistration(
-                    currentPlayer.userId,
-                    RegistrationStatusType.REGISTERED,
-                    guests,
-                )
-
-            is RegistrationStatus.Deregistered ->
-                handlePlayerDeregistration(
-                    currentPlayer.userId,
-                    RegistrationStatusType.DEREGISTERED,
-                )
-
-            is RegistrationStatus.Cancelled -> handlePlayerCancelled(currentPlayer.userId, RegistrationStatusType.CANCELLED)
-            is RegistrationStatus.Added -> handlePlayerAdded(currentPlayer.userId, RegistrationStatusType.ADDED, guests)
-        }
-    }
-
     fun addRegistration(
         userId: UserId,
         registrationStatusType: RegistrationStatusType,
         guests: Int = 0,
     ) {
-        require(this.start.isAfter(LocalDateTime.now())) {
-            throw MatchStartTimeException(MatchId(this.aggregateId))
-        }
-        require(guests >= 0 && guests <= playerCount.maxPlayer.value / 2) {
-            "Guest must be between 0 and ${playerCount.maxPlayer.value / 2}"
-        }
-        val currentPlayer = findPlayerRegistration(userId)
-        if (currentPlayer == null) {
-            handleFirstRegistration(userId, registrationStatusType, guests)
-            return
-        }
-
-        val newStatus = currentPlayer.status.updateStatus(registrationStatusType)
-        if (newStatus == currentPlayer.status) {
-            if (currentPlayer.guests != guests) {
-                updateJustGuests(userId, guests, newStatus)
-            }
-            return
-        }
-
-        handleNewStatus(currentPlayer, newStatus, guests)
-
-        if (shouldFillCadreFromWaitingBench(newStatus)) {
-            fillCadreFromWaitingBench()
-        }
-    }
-
-    private fun updateJustGuests(
-        userId: UserId,
-        guests: Int,
-        status: RegistrationStatus,
-    ) {
-        if (status != RegistrationStatus.Registered) return
-
-        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-        val waitingBenchGuests =
-            waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-
-        val totalGuests = cadreGuests.size + waitingBenchGuests.size
-        if (guests < totalGuests) {
-            val guestsToRemove = totalGuests - guests
-            repeat(guestsToRemove) {
-                if (waitingBenchGuests.isNotEmpty()) {
-                    val guestToRemove = waitingBenchGuests.first()
-                    apply(PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId))
-                } else if (cadreGuests.isNotEmpty()) {
-                    val guestToRemove = cadreGuests.first()
-                    apply(PlayerDeregisteredEvent(aggregateId, UserId(guestToRemove.guestId), status.getType().name, 0, userId))
-                }
-            }
-        } else if (guests > totalGuests) {
-            val guestsToAdd = guests - totalGuests
-            repeat(guestsToAdd) {
-                if (!isCadreFull()) {
-                    apply(
-                        PlayerAddedToCadreEvent(
-                            aggregateId,
-                            UserId(generateId()),
-                            RegistrationStatusType.REGISTERED.name,
-                            0,
-                            userId,
-                        ),
-                    )
-                } else {
-                    apply(
-                        PlayerPlacedOnWaitingBenchEvent(
-                            aggregateId,
-                            UserId(generateId()),
-                            RegistrationStatusType.REGISTERED.name,
-                            0,
-                            userId,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-
-    private fun shouldFillCadreFromWaitingBench(newStatus: RegistrationStatus): Boolean =
-        newStatus.getType() in listOf(RegistrationStatusType.DEREGISTERED, RegistrationStatusType.CANCELLED) &&
-            !isCadreFull() &&
-            isPlayerWaiting()
-
-    private fun fillCadreFromWaitingBench() {
-        waitingBench.sortBy { it.registrationTime }
-        val openCadre = playerCount.maxPlayer.value - cadre.size
-        for (registration in waitingBench
-            .filter { it.status.getType() == RegistrationStatusType.REGISTERED }
-            .filterIsInstance<RegisteredPlayer.MainPlayer>()
-            .take(openCadre)) {
-            apply(
-                PlayerAddedToCadreEvent(
-                    aggregateId,
-                    registration.userId,
-                    registration.status.getType().name,
-                    registration.guests,
-                ),
-            )
-        }
-
-        val newOpenCadre = playerCount.maxPlayer.value - cadre.size
-        for (registration in waitingBench
-            .filter { it.status.getType() == RegistrationStatusType.REGISTERED }
-            .filterIsInstance<RegisteredPlayer.GuestPlayer>()
-            .take(newOpenCadre)) {
-            apply(
-                PlayerAddedToCadreEvent(
-                    aggregateId,
-                    UserId(registration.guestId),
-                    registration.status.getType().name,
-                    0,
-                    registration.guestOf,
-                ),
-            )
-        }
-    }
-
-    private fun isPlayerWaiting(): Boolean = waitingBench.any { it.status.getType() == RegistrationStatusType.REGISTERED }
-
-    private fun isCadreFull(): Boolean = cadre.size >= playerCount.maxPlayer.value
-
-    private fun matchContainsGuests(): Boolean = cadre.any { it is RegisteredPlayer.GuestPlayer }
-
-    private fun handlePlayerRegistration(
-        userId: UserId,
-        status: RegistrationStatusType,
-        guests: Int,
-    ) {
-        val totalPlayers = 1 + guests
-        var matchCapacity = playerCount.maxPlayer.value - cadre.size
-
-        if (matchCapacity == 0 && matchContainsGuests()) {
-            cadre.sortBy { it.registrationTime }
-            val lastGuest = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().last()
-            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(lastGuest.guestId), status.name, 0, lastGuest.guestOf))
-            matchCapacity += 1
-        }
-
-        val cadreSlots = totalPlayers.coerceAtMost(matchCapacity).coerceAtLeast(0)
-        var benchSlots = totalPlayers - cadreSlots
-
-        if (cadreSlots > 0) {
-            apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name, guests))
-        } else {
-            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name, guests))
-            benchSlots -= 1
-        }
-
-        repeat(cadreSlots - 1) {
-            apply(PlayerAddedToCadreEvent(aggregateId, UserId(generateId()), status.name, 0, userId))
-        }
-        repeat(benchSlots) {
-            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(generateId()), status.name, 0, userId))
-        }
-    }
-
-    private fun handlePlayerDeregistration(
-        userId: UserId,
-        status: RegistrationStatusType,
-    ) {
-        apply(PlayerDeregisteredEvent(aggregateId, userId, status.name))
-
-        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-
-        (cadreGuests + waitingBenchGuests).forEach { guest ->
-            apply(PlayerDeregisteredEvent(aggregateId, UserId(guest.guestId), status.name, 0, userId))
-        }
-    }
-
-    private fun handlePlayerAdded(
-        userId: UserId,
-        status: RegistrationStatusType,
-        guests: Int,
-    ) {
-        apply(PlayerAddedToCadreEvent(aggregateId, userId, status.name, guests))
-
-        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-
-        (cadreGuests + waitingBenchGuests).forEach { guest ->
-            apply(PlayerAddedToCadreEvent(aggregateId, UserId(guest.guestId), status.name, 0, userId))
-        }
-    }
-
-    private fun handlePlayerCancelled(
-        userId: UserId,
-        status: RegistrationStatusType,
-    ) {
-        apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, userId, status.name))
-        val cadreGuests = cadre.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-        val waitingBenchGuests = waitingBench.filterIsInstance<RegisteredPlayer.GuestPlayer>().filter { it.guestOf == userId }
-
-        (cadreGuests + waitingBenchGuests).forEach { guest ->
-            apply(PlayerPlacedOnWaitingBenchEvent(aggregateId, UserId(guest.guestId), status.name, 0, userId))
-        }
+        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, this) { apply(it) }
     }
 
     companion object {

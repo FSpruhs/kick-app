@@ -89,6 +89,7 @@ enum class MatchEvents {
     PLAYGROUND_CHANGED_V1,
     MATCH_RESULT_ENTERED_V1,
     MATCH_NUMBER_CHANGED_V1,
+    MATCH_RESULT_UPDATED_V1,
 }
 
 @Component
@@ -156,6 +157,13 @@ class MatchEventSerializer : Serializer {
                     data,
                     event.metadata,
                 )
+            is MatchResultUpdatedEvent ->
+                Event(
+                    aggregate,
+                    MatchEvents.MATCH_RESULT_UPDATED_V1.name,
+                    data,
+                    event.metadata,
+                )
 
             else -> throw UnknownEventTypeException(event)
         }
@@ -202,6 +210,11 @@ class MatchEventSerializer : Serializer {
                 EventSourcingUtils.readValue(
                     event.data,
                     MatchNumberChangedEvent::class.java,
+                )
+            MatchEvents.MATCH_RESULT_UPDATED_V1.name ->
+                EventSourcingUtils.readValue(
+                    event.data,
+                    MatchResultUpdatedEvent::class.java,
                 )
 
             else -> throw UnknownEventTypeException(event)

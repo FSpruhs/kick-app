@@ -12,6 +12,7 @@ import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.group.api.GroupCreatedEvent
 import com.spruhs.kick_app.group.api.PlayerEnteredGroupEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerResult
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service
 @Service
 class StatisticService(
     private val statisticRepository: StatisticProjectionRepository,
-    private val resultRepository: ResultProjectionRepository,
     private val groupApi: GroupApi,
 ) {
     suspend fun whenEvent(event: BaseEvent) {
@@ -30,8 +30,50 @@ class StatisticService(
             is GroupCreatedEvent -> handleNewPlayer(GroupId(event.aggregateId), event.userId)
             is PlayerEnteredGroupEvent -> handleNewPlayer(GroupId(event.aggregateId), event.userId)
             is MatchResultEnteredEvent -> handleResultEntered(event)
+            is MatchResultUpdatedEvent -> handleMatchResultUpdated(event)
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    private suspend fun handleMatchResultUpdated(event: MatchResultUpdatedEvent) {
+        val statistic = findPlayerStatisticOrCreateNew(event.groupId, event.user)
+
+        when {
+            event.oldResult == null && event.newResult != null -> {
+                statistic.totalMatches += 1
+                when (event.newResult) {
+                    PlayerResult.WIN -> statistic.wins += 1
+                    PlayerResult.LOSS -> statistic.losses += 1
+                    PlayerResult.DRAW -> statistic.draws += 1
+                }
+            }
+
+            event.oldResult != null && event.newResult == null -> {
+                statistic.totalMatches -= 1
+                when (event.oldResult) {
+                    PlayerResult.WIN -> statistic.wins -= 1
+                    PlayerResult.LOSS -> statistic.losses -= 1
+                    PlayerResult.DRAW -> statistic.draws -= 1
+                }
+            }
+
+            event.oldResult != null && event.newResult != null && event.oldResult != event.newResult -> {
+                when (event.oldResult) {
+                    PlayerResult.WIN -> statistic.wins -= 1
+                    PlayerResult.LOSS -> statistic.losses -= 1
+                    PlayerResult.DRAW -> statistic.draws -= 1
+                }
+                when (event.newResult) {
+                    PlayerResult.WIN -> statistic.wins += 1
+                    PlayerResult.LOSS -> statistic.losses += 1
+                    PlayerResult.DRAW -> statistic.draws += 1
+                }
+            }
+
+            else -> return
+        }
+
+        statisticRepository.save(statistic)
     }
 
     private suspend fun handleNewPlayer(
@@ -85,114 +127,8 @@ class StatisticService(
         }
     }
 
-    private suspend fun findPlayerStatisticOrThrow(
-        groupId: GroupId,
-        userId: UserId,
-    ): PlayerStatisticProjection =
-        statisticRepository.findByPlayer(groupId, userId)
-            ?: throw PlayerNotFoundException(userId)
-
-    private suspend fun handelOldPlayerResultInOldMatch(
-        player: ParticipatingPlayer,
-        oldPlayer: PlayerResultProjection,
-        groupId: GroupId,
-    ) {
-        if (player.playerResult != oldPlayer.matchResult) {
-            findPlayerStatisticOrThrow(groupId, player.userId).apply {
-                when (player.playerResult) {
-                    PlayerResult.WIN -> this.wins += 1
-                    PlayerResult.LOSS -> this.losses += 1
-                    PlayerResult.DRAW -> this.draws += 1
-                }
-                when (oldPlayer.matchResult) {
-                    PlayerResult.WIN -> this.wins -= 1
-                    PlayerResult.LOSS -> this.losses -= 1
-                    PlayerResult.DRAW -> this.draws -= 1
-                }
-                statisticRepository.save(this)
-            }
-        }
-    }
-
-    private suspend fun handelPlayerInEnteredResult(
-        event: MatchResultEnteredEvent,
-        oldResult: ResultProjection,
-    ) = coroutineScope {
-        event.players.forEach { player ->
-            launch {
-                val oldPlayer = oldResult.players[player.userId]
-                if (oldPlayer == null) {
-                    handelNewPlayerEnteredOldMatch(event.groupId, player)
-                } else {
-                    handelOldPlayerResultInOldMatch(player, oldPlayer, event.groupId)
-                }
-            }
-        }
-    }
-
-    private suspend fun updateLeavedPlayer(
-        oldPlayer: UserId,
-        oldResult: ResultProjection,
-        newResult: Map<UserId, PlayerResultProjection>,
-        groupId: GroupId,
-    ) {
-        val player = newResult[oldPlayer]
-        if (player == null) {
-            findPlayerStatisticOrThrow(groupId, oldPlayer).apply {
-                this.totalMatches -= 1
-                when (oldResult.players[oldPlayer]?.matchResult) {
-                    PlayerResult.WIN -> this.wins -= 1
-                    PlayerResult.LOSS -> this.losses -= 1
-                    PlayerResult.DRAW -> this.draws -= 1
-                    else -> throw IllegalStateException("Player ${oldPlayer.value} not found in old result")
-                }
-                statisticRepository.save(this)
-            }
-        }
-    }
-
-    private suspend fun handelPlayerNoLongerInResult(
-        event: MatchResultEnteredEvent,
-        oldResult: ResultProjection,
-    ) = coroutineScope {
-        val newResult = event.toPlayerMap()
-        oldResult.players.keys.forEach { oldPlayer ->
-            launch {
-                updateLeavedPlayer(oldPlayer, oldResult, newResult, event.groupId)
-            }
-        }
-    }
-
-    private suspend fun handleAnotherResultEntered(
-        event: MatchResultEnteredEvent,
-        oldResult: ResultProjection,
-    ) {
-        handelPlayerInEnteredResult(event, oldResult)
-        handelPlayerNoLongerInResult(event, oldResult)
-        saveResult(event, oldResult.id)
-    }
-
-    private suspend fun saveResult(
-        event: MatchResultEnteredEvent,
-        id: String = generateId(),
-    ) {
-        resultRepository.save(
-            ResultProjection(
-                id = id,
-                matchId = MatchId(event.aggregateId),
-                players = event.toPlayerMap(),
-            ),
-        )
-    }
-
     private suspend fun handleResultEntered(event: MatchResultEnteredEvent) {
-        val oldResult = resultRepository.findByMatchId(MatchId(event.aggregateId))
-        if (oldResult == null) {
             handleFirstResultEntered(event)
-            saveResult(event)
-        } else {
-            handleAnotherResultEntered(event, oldResult)
-        }
     }
 
     suspend fun getPlayerStatistics(
@@ -217,12 +153,6 @@ interface StatisticProjectionRepository {
     suspend fun save(statistic: PlayerStatisticProjection)
 }
 
-interface ResultProjectionRepository {
-    suspend fun findByMatchId(matchId: MatchId): ResultProjection?
-
-    suspend fun save(result: ResultProjection)
-}
-
 data class PlayerStatisticProjection(
     val id: String,
     val groupId: GroupId,
@@ -243,6 +173,3 @@ data class PlayerResultProjection(
     val matchResult: PlayerResult,
     val team: MatchTeam,
 )
-
-private fun MatchResultEnteredEvent.toPlayerMap(): Map<UserId, PlayerResultProjection> =
-    this.players.associate { it.userId to PlayerResultProjection(it.playerResult, it.team) }

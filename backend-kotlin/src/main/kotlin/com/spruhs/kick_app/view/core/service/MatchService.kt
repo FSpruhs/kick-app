@@ -11,6 +11,7 @@ import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
@@ -35,6 +36,7 @@ class MatchService(
             is MatchCanceledEvent -> handleMatchCanceledEvent(event)
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
+            is MatchResultUpdatedEvent -> handleMatchResultUpdatedEvent(event)
             else -> throw UnknownEventTypeException(event)
         }
     }
@@ -104,6 +106,28 @@ class MatchService(
         findMatch(MatchId(event.aggregateId)).also {
             it.result = event.players
             repository.save(it)
+        }
+    }
+
+    private suspend fun handleMatchResultUpdatedEvent(event: MatchResultUpdatedEvent) {
+        findMatch(MatchId(event.aggregateId)).also { match ->
+            val updatedResult = match.result.toMutableList()
+            when {
+                event.oldResult == null && event.newResult != null && event.newTeam != null -> {
+                    updatedResult.add(ParticipatingPlayer(event.user, event.newResult, event.newTeam))
+                }
+                event.newResult == null && event.newTeam == null -> {
+                    updatedResult.removeIf { it.userId == event.user }
+                }
+                event.newResult != null && event.newTeam != null -> {
+                    val index = updatedResult.indexOfFirst { it.userId == event.user }
+                    if (index >= 0) {
+                        updatedResult[index] = ParticipatingPlayer(event.user, event.newResult, event.newTeam)
+                    }
+                }
+            }
+            match.result = updatedResult
+            repository.save(match)
         }
     }
 

@@ -156,12 +156,29 @@ class MatchAggregate(
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
             is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
+            is MatchResultUpdatedEvent -> handleMatchResultUpdatedEvent(event)
             else -> throw UnknownEventTypeException(event)
         }
     }
 
     private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
-        this.result  = event.players
+        this.result = event.players
+    }
+
+    private fun handleMatchResultUpdatedEvent(event: MatchResultUpdatedEvent) {
+        val updatedList = this.result.toMutableList()
+        if (event.newTeam != null && event.newResult != null) {
+            val index = updatedList.indexOfFirst { it.userId == event.user }
+            val updated = ParticipatingPlayer(event.user, event.newResult, event.newTeam)
+            if (index >= 0) {
+                updatedList[index] = updated
+            } else {
+                updatedList.add(updated)
+            }
+        } else {
+            updatedList.removeIf { it.userId == event.user }
+        }
+        this.result = updatedList
     }
 
     private fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
@@ -335,7 +352,7 @@ class MatchAggregate(
                     newTeam = participatingPlayer.team,
                     newResult = participatingPlayer.playerResult
                 ))
-            } else {
+            } else if (player.team != participatingPlayer.team || player.playerResult != participatingPlayer.playerResult) {
                 apply(MatchResultUpdatedEvent(
                     aggregateId = aggregateId,
                     groupId = this.groupId,

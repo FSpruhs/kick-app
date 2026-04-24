@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
@@ -22,7 +23,7 @@ class MatchListener(
     private val matchService: MatchService,
     private val statisticService: StatisticService,
 ) {
-    @EventListener(MatchResultEnteredEvent::class)
+    @EventListener(MatchResultEnteredEvent::class, MatchResultUpdatedEvent::class)
     fun onStatisticRelevantEvent(event: MatchResultEnteredEvent) {
         eventExecutionStrategy.execute {
             statisticService.whenEvent(event)
@@ -38,6 +39,7 @@ class MatchListener(
 
     @EventListener(
         MatchResultEnteredEvent::class,
+        MatchResultUpdatedEvent::class,
         MatchCanceledEvent::class,
         PlayerAddedToCadreEvent::class,
         MatchPlannedEvent::class,

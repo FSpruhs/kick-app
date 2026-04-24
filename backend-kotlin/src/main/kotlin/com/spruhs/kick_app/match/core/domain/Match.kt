@@ -9,6 +9,7 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
+import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
@@ -120,6 +121,7 @@ class MatchAggregate(
     val waitingBench = mutableListOf<RegisteredPlayer>()
     val deregistered = mutableListOf<RegisteredPlayer>()
     var playerPriorityStrategy: PlayerPriorityStrategy = FirstComeFirstServe()
+    var result: List<ParticipatingPlayer> = emptyList()
 
     override fun whenEvent(event: BaseEvent) {
         when (event) {
@@ -153,9 +155,13 @@ class MatchAggregate(
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
             is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
-            is MatchResultEnteredEvent -> {}
+            is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
+        this.result  = event.players
     }
 
     private fun handleMatchPlannedEvent(event: MatchPlannedEvent) {
@@ -295,17 +301,69 @@ class MatchAggregate(
         }
     }
 
-    fun enterResult(participatingPlayers: List<ParticipatingPlayer>) {
+    fun enterResult(participatingPlayers: List<ParticipatingPlayer>): EnterResultResponse {
         validateParticipatingPlayersInput(participatingPlayers)
 
-        apply(
-            MatchResultEnteredEvent(
-                aggregateId = aggregateId,
-                groupId = groupId,
-                start = start,
-                players = participatingPlayers,
-            ),
-        )
+        return if (this.result.isEmpty()) {
+            apply(
+                MatchResultEnteredEvent(
+                    aggregateId = aggregateId,
+                    groupId = groupId,
+                    start = start,
+                    players = participatingPlayers,
+                ),
+            )
+
+            EnterResultResponse.FirstEntry
+        } else {
+            updateResult(participatingPlayers)
+            EnterResultResponse.ResultUpdated
+        }
+    }
+
+    private fun updateResult(participatingPlayers: List<ParticipatingPlayer>) {
+        participatingPlayers.forEach { participatingPlayer ->
+            val player = result.find { it.userId == participatingPlayer.userId }
+            if (player == null) {
+                apply(MatchResultUpdatedEvent(
+                    aggregateId = aggregateId,
+                    groupId = this.groupId,
+                    user = participatingPlayer.userId,
+                    matchNumber = this.matchNumber.value,
+                    oldTeam = null,
+                    oldResult = null,
+                    newTeam = participatingPlayer.team,
+                    newResult = participatingPlayer.playerResult
+                ))
+            } else {
+                apply(MatchResultUpdatedEvent(
+                    aggregateId = aggregateId,
+                    groupId = this.groupId,
+                    user = participatingPlayer.userId,
+                    matchNumber = this.matchNumber.value,
+                    oldTeam = player.team,
+                    oldResult = player.playerResult,
+                    newTeam = participatingPlayer.team,
+                    newResult = participatingPlayer.playerResult
+                ))
+            }
+        }
+
+        this.result.forEach { participatingPlayer ->
+            val player = participatingPlayers.find { it.userId == participatingPlayer.userId }
+            if (player == null) {
+                apply(MatchResultUpdatedEvent(
+                    aggregateId = aggregateId,
+                    groupId = this.groupId,
+                    user = participatingPlayer.userId,
+                    matchNumber = this.matchNumber.value,
+                    oldTeam = participatingPlayer.team,
+                    oldResult = participatingPlayer.playerResult,
+                    newTeam = null,
+                    newResult = null
+                ))
+            }
+        }
     }
 
     private fun arePlayersUnique(participatingPlayers: List<ParticipatingPlayer>): Boolean {
@@ -329,6 +387,11 @@ class MatchAggregate(
     companion object {
         const val TYPE = "Match"
     }
+}
+
+sealed interface EnterResultResponse {
+    object FirstEntry : EnterResultResponse
+    object ResultUpdated : EnterResultResponse
 }
 
 sealed class RegistrationStatus {

@@ -69,6 +69,17 @@ data class MatchNumberChangedEvent(
     val newMatchNumber: Int,
 ) : BaseEvent(aggregateId)
 
+data class MatchResultUpdatedEvent(
+    override val aggregateId: String,
+    val groupId: GroupId,
+    val user: UserId,
+    val matchNumber: Int,
+    val oldTeam: MatchTeam? = null,
+    val oldResult: PlayerResult? = null,
+    val newTeam: MatchTeam? = null,
+    val newResult: PlayerResult? = null,
+) : BaseEvent(aggregateId)
+
 enum class MatchEvents {
     MATCH_PLANNED_V1,
     PLAYER_ADDED_TO_CADRE_V1,

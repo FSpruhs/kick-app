@@ -20,9 +20,9 @@ class PlayerOverviewPersistenceAdapter(
     private val playerOverviewRepository: PlayerOverviewRepository,
 ) : PlayerOverviewPersistencePort {
 
-    override suspend fun getOverview(groupId: GroupId): PlayerOverview =
+    override suspend fun getOverview(groupId: GroupId): PlayerOverview? =
         playerOverviewRepository.findByGroupId(groupId.value).awaitFirstOrNull()?.toDomain()
-            ?: PlayerOverview(groupId = groupId, entries = emptyList())
+
 
     override suspend fun save(overview: PlayerOverview) {
         playerOverviewRepository.save(overview.toDocument()).awaitSingle()

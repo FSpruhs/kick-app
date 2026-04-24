@@ -25,6 +25,8 @@ class MatchCommandPort(
     private val groupApi: GroupApi,
     private val mutex: KeyedMutex<MatchId> = KeyedMutex(),
     private val matchOverviewService: MatchOverviewService,
+    private val playerOverviewService: PlayerOverviewService,
+
 ) {
     suspend fun plan(command: PlanMatchCommand): MatchAggregate {
         require(groupApi.isActiveMember(command.groupId, command.requesterId)) {
@@ -75,9 +77,14 @@ class MatchCommandPort(
                 throw UserNotAuthorizedException(command.userId)
             }
             val result = match.enterResult(command.players)
-            if (result is EnterResultResponse.FirstEntry) {
-
-            }
+                playerOverviewService.getOverview(match.groupId).also { overview ->
+                    if (result is EnterResultResponse.FirstEntry) {
+                        overview.enterResult(match)
+                    } else {
+                        overview.updateResult(match)
+                    }
+                    playerOverviewService.save(overview)
+                }
         }
 
     private suspend fun validateRegistrationRequest(

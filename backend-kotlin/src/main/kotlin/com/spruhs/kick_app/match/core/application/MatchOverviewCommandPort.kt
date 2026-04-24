@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.match.core.application
 
+import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.helper.KeyedMutex
 import com.spruhs.kick_app.common.types.GroupId
@@ -14,7 +15,7 @@ class MatchOverviewCommandPort(
     private val matchOverviewService: MatchOverviewService,
     private val mutex: KeyedMutex<GroupId> = KeyedMutex(),
 ) {
-    suspend fun onEvent(event: Any) {
+    suspend fun onEvent(event: BaseEvent) {
         when (event) {
             is MatchCanceledEvent -> onMatchCanceled(event)
             is MatchResultEnteredEvent -> onMatchResultEntered(event)

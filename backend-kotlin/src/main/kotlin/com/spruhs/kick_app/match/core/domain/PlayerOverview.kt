@@ -4,9 +4,9 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 
-class PlayerMatchOverview(
-    private val groupId: GroupId,
-    private val entries: List<PlayerMatchOverviewEntry>,
+class PlayerOverview(
+    val groupId: GroupId,
+    val entries: List<PlayerOverviewEntry>,
     ) {
 
     fun processMatchResult(match: MatchAggregate, participatingPlayers: List<ParticipatingPlayer>): Int {
@@ -14,8 +14,14 @@ class PlayerMatchOverview(
     }
 }
 
-data class PlayerMatchOverviewEntry(
+data class PlayerOverviewEntry(
     val userId: UserId,
     val attendancePoints: Int,
-    val lastWaitingBenchMatchNumber: MatchNumber
+    val lastWaitingBenchMatchNumber: MatchNumber,
 )
+
+interface PlayerOverviewPersistencePort {
+    suspend fun getOverview(groupId: GroupId): PlayerOverview
+
+    suspend fun save(overview: PlayerOverview)
+}

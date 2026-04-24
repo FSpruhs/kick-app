@@ -10,6 +10,7 @@ import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.core.domain.EnterResultResponse
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MatchNumber
 import com.spruhs.kick_app.match.core.domain.PlayerCount
@@ -73,7 +74,10 @@ class MatchCommandPort(
             require(groupApi.isActiveCoach(match.groupId, command.userId)) {
                 throw UserNotAuthorizedException(command.userId)
             }
-            match.enterResult(command.players)
+            val result = match.enterResult(command.players)
+            if (result is EnterResultResponse.FirstEntry) {
+
+            }
         }
 
     private suspend fun validateRegistrationRequest(

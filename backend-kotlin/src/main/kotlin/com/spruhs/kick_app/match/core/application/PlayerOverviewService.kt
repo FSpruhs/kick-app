@@ -16,4 +16,3 @@ class PlayerOverviewService(
         playerOverviewPersistencePort.save(overview)
     }
 }
-

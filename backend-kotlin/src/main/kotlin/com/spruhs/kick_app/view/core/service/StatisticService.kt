@@ -128,7 +128,7 @@ class StatisticService(
     }
 
     private suspend fun handleResultEntered(event: MatchResultEnteredEvent) {
-            handleFirstResultEntered(event)
+        handleFirstResultEntered(event)
     }
 
     suspend fun getPlayerStatistics(

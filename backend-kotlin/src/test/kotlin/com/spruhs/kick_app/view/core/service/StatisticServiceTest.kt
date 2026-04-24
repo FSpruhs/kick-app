@@ -35,9 +35,6 @@ class StatisticServiceTest {
     lateinit var statisticRepository: StatisticProjectionRepository
 
     @MockK
-    lateinit var resultRepository: ResultProjectionRepository
-
-    @MockK
     lateinit var groupApi: GroupApi
 
     @InjectMockKs
@@ -211,8 +208,6 @@ class StatisticServiceTest {
                     start = LocalDateTime.now().minusDays(1),
                 )
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns null
-            coEvery { resultRepository.save(any()) } returns Unit
             coEvery {
                 statisticRepository.findByPlayer(
                     event.groupId,
@@ -284,10 +279,8 @@ class StatisticServiceTest {
 
             val slot = slot<PlayerStatisticProjection>()
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns null
             coEvery { statisticRepository.findByPlayer(event.groupId, event.players[0].userId) } returns null
             coEvery { statisticRepository.save(capture(slot)) } returns Unit
-            coEvery { resultRepository.save(any()) } returns Unit
 
             // When
             statisticService.whenEvent(event)
@@ -338,8 +331,6 @@ class StatisticServiceTest {
                     players = mapOf(),
                 )
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
-            coEvery { resultRepository.save(any()) } returns Unit
             coEvery {
                 statisticRepository.findByPlayer(
                     event.groupId,
@@ -417,10 +408,8 @@ class StatisticServiceTest {
 
             val slot = slot<PlayerStatisticProjection>()
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
             coEvery { statisticRepository.findByPlayer(event.groupId, event.players[0].userId) } returns null
             coEvery { statisticRepository.save(capture(slot)) } returns Unit
-            coEvery { resultRepository.save(any()) } returns Unit
 
             // When
             statisticService.whenEvent(event)
@@ -477,10 +466,8 @@ class StatisticServiceTest {
 
             val slot = slot<PlayerStatisticProjection>()
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
             coEvery { statisticRepository.findByPlayer(event.groupId, event.players[0].userId) } returns oldPlayer
             coEvery { statisticRepository.save(capture(slot)) } returns Unit
-            coEvery { resultRepository.save(any()) } returns Unit
 
             // When
             statisticService.whenEvent(event)
@@ -524,7 +511,6 @@ class StatisticServiceTest {
                         ),
                 )
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
             coEvery { statisticRepository.findByPlayer(event.groupId, event.players[0].userId) } returns null
 
             // When
@@ -559,9 +545,7 @@ class StatisticServiceTest {
                         ),
                 )
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
             coEvery { statisticRepository.findByPlayer(event.groupId, event.players[0].userId) } returns TestStatisticBuilder().build()
-            coEvery { resultRepository.save(any()) } returns Unit
 
             // When
             statisticService.whenEvent(event)
@@ -593,8 +577,6 @@ class StatisticServiceTest {
                         ),
                 )
 
-            coEvery { resultRepository.findByMatchId(MatchId(event.aggregateId)) } returns result
-            coEvery { resultRepository.save(any()) } returns Unit
             coEvery { statisticRepository.findByPlayer(event.groupId, UserId("userId1")) } returns TestStatisticBuilder().build()
             coEvery { statisticRepository.findByPlayer(event.groupId, UserId("userId2")) } returns TestStatisticBuilder().build()
             coEvery { statisticRepository.findByPlayer(event.groupId, UserId("userId3")) } returns TestStatisticBuilder().build()

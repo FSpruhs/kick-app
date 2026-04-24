@@ -19,10 +19,8 @@ import reactor.core.publisher.Mono
 class PlayerOverviewPersistenceAdapter(
     private val playerOverviewRepository: PlayerOverviewRepository,
 ) : PlayerOverviewPersistencePort {
-
     override suspend fun getOverview(groupId: GroupId): PlayerOverview? =
         playerOverviewRepository.findByGroupId(groupId.value).awaitFirstOrNull()?.toDomain()
-
 
     override suspend fun save(overview: PlayerOverview) {
         playerOverviewRepository.save(overview.toDocument()).awaitSingle()
@@ -44,7 +42,7 @@ data class PlayerOverviewDocument(
 data class PlayerOverviewEntryDocument(
     val userId: String,
     val attendancePoints: Int,
-    val lastWaitingBenchMatchNumber: Int,
+    val lastWaitingBenchMatchNumber: Int?,
 )
 
 private fun PlayerOverview.toDocument() =
@@ -57,20 +55,18 @@ private fun PlayerOverviewEntry.toDocument() =
     PlayerOverviewEntryDocument(
         userId = userId.value,
         attendancePoints = attendancePoints,
-        lastWaitingBenchMatchNumber = lastWaitingBenchMatchNumber.value,
+        lastWaitingBenchMatchNumber = lastWaitingBenchMatchNumber?.value,
     )
 
 private fun PlayerOverviewDocument.toDomain() =
     PlayerOverview(
         groupId = GroupId(groupId),
-        entries = entries.map { it.toDomain() },
+        entries = entries.map { it.toDomain() }.toMutableList(),
     )
 
 private fun PlayerOverviewEntryDocument.toDomain() =
     PlayerOverviewEntry(
         userId = UserId(userId),
         attendancePoints = attendancePoints,
-        lastWaitingBenchMatchNumber = MatchNumber(lastWaitingBenchMatchNumber),
+        lastWaitingBenchMatchNumber = lastWaitingBenchMatchNumber?.let { MatchNumber(it) },
     )
-
-

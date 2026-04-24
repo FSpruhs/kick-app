@@ -342,43 +342,49 @@ class MatchAggregate(
         participatingPlayers.forEach { participatingPlayer ->
             val player = result.find { it.userId == participatingPlayer.userId }
             if (player == null) {
-                apply(MatchResultUpdatedEvent(
-                    aggregateId = aggregateId,
-                    groupId = this.groupId,
-                    user = participatingPlayer.userId,
-                    matchNumber = this.matchNumber.value,
-                    oldTeam = null,
-                    oldResult = null,
-                    newTeam = participatingPlayer.team,
-                    newResult = participatingPlayer.playerResult
-                ))
+                apply(
+                    MatchResultUpdatedEvent(
+                        aggregateId = aggregateId,
+                        groupId = this.groupId,
+                        user = participatingPlayer.userId,
+                        matchNumber = this.matchNumber.value,
+                        oldTeam = null,
+                        oldResult = null,
+                        newTeam = participatingPlayer.team,
+                        newResult = participatingPlayer.playerResult,
+                    ),
+                )
             } else if (player.team != participatingPlayer.team || player.playerResult != participatingPlayer.playerResult) {
-                apply(MatchResultUpdatedEvent(
-                    aggregateId = aggregateId,
-                    groupId = this.groupId,
-                    user = participatingPlayer.userId,
-                    matchNumber = this.matchNumber.value,
-                    oldTeam = player.team,
-                    oldResult = player.playerResult,
-                    newTeam = participatingPlayer.team,
-                    newResult = participatingPlayer.playerResult
-                ))
+                apply(
+                    MatchResultUpdatedEvent(
+                        aggregateId = aggregateId,
+                        groupId = this.groupId,
+                        user = participatingPlayer.userId,
+                        matchNumber = this.matchNumber.value,
+                        oldTeam = player.team,
+                        oldResult = player.playerResult,
+                        newTeam = participatingPlayer.team,
+                        newResult = participatingPlayer.playerResult,
+                    ),
+                )
             }
         }
 
         this.result.forEach { participatingPlayer ->
             val player = participatingPlayers.find { it.userId == participatingPlayer.userId }
             if (player == null) {
-                apply(MatchResultUpdatedEvent(
-                    aggregateId = aggregateId,
-                    groupId = this.groupId,
-                    user = participatingPlayer.userId,
-                    matchNumber = this.matchNumber.value,
-                    oldTeam = participatingPlayer.team,
-                    oldResult = participatingPlayer.playerResult,
-                    newTeam = null,
-                    newResult = null
-                ))
+                apply(
+                    MatchResultUpdatedEvent(
+                        aggregateId = aggregateId,
+                        groupId = this.groupId,
+                        user = participatingPlayer.userId,
+                        matchNumber = this.matchNumber.value,
+                        oldTeam = participatingPlayer.team,
+                        oldResult = participatingPlayer.playerResult,
+                        newTeam = null,
+                        newResult = null,
+                    ),
+                )
             }
         }
     }
@@ -408,6 +414,7 @@ class MatchAggregate(
 
 sealed interface EnterResultResponse {
     object FirstEntry : EnterResultResponse
+
     object ResultUpdated : EnterResultResponse
 }
 

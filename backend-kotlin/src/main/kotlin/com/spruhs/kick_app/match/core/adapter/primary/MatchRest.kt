@@ -86,6 +86,7 @@ class MatchRestController(
         @PathVariable matchId: String,
         @PathVariable userId: String,
         @RequestParam status: String,
+        @RequestParam guests: Int = 0,
         @AuthenticationPrincipal jwt: Jwt,
     ) {
         matchCommandPort.addRegistration(
@@ -94,6 +95,7 @@ class MatchRestController(
                 updatingUser = jwtParser.getUserId(jwt),
                 matchId = MatchId(matchId),
                 status = RegistrationStatusType.valueOf(status),
+                guests = guests,
             ),
         )
     }

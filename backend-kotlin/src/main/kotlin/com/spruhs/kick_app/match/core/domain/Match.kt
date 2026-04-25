@@ -22,20 +22,24 @@ import java.time.LocalDateTime
 sealed class RegisteredPlayer(
     val registrationTime: LocalDateTime,
     val status: RegistrationStatus,
+    val attendancePoints: Int,
 ) {
     data class MainPlayer(
         val userId: UserId,
         val guests: Int,
         val registeredAt: LocalDateTime,
         val registrationStatus: RegistrationStatus,
-    ) : RegisteredPlayer(registeredAt, registrationStatus)
+        val points: Int,
+        val lastWaitingBenchMatchNumber: MatchNumber? = null,
+    ) : RegisteredPlayer(registeredAt, registrationStatus, points)
 
     data class GuestPlayer(
         val guestId: String,
         val guestOf: UserId,
         val registeredAt: LocalDateTime,
         val registrationStatus: RegistrationStatus,
-    ) : RegisteredPlayer(registeredAt, registrationStatus)
+        val points: Int,
+    ) : RegisteredPlayer(registeredAt, registrationStatus, points)
 }
 
 data class PlayerCount(
@@ -133,6 +137,7 @@ class MatchAggregate(
                     cadre,
                     event.guests,
                     event.guestOf,
+                    event.attendancePoints
                 )
 
             is PlayerDeregisteredEvent ->
@@ -142,6 +147,7 @@ class MatchAggregate(
                     deregistered,
                     event.guests,
                     event.guestOf,
+                    0,
                 )
 
             is PlayerPlacedOnWaitingBenchEvent ->
@@ -151,6 +157,7 @@ class MatchAggregate(
                     waitingBench,
                     event.guests,
                     event.guestOf,
+                    event.attendancePoints
                 )
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
@@ -214,11 +221,12 @@ class MatchAggregate(
         targetList: MutableList<RegisteredPlayer>,
         guests: Int,
         guestOf: UserId? = null,
+        attendancePoints: Int = 0,
     ) {
         if (guestOf == null) {
             val playerRegistration = findPlayerRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus()))
+                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints))
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -228,7 +236,7 @@ class MatchAggregate(
         } else {
             val playerRegistration = findGuestRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(), status.toRegistrationStatus()))
+                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints))
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -403,9 +411,12 @@ class MatchAggregate(
         userId: UserId,
         registrationStatusType: RegistrationStatusType,
         guests: Int = 0,
+        playerOverview: PlayerOverviewEntry? = null
     ) {
-        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, this) { apply(it) }
+        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this) { apply(it) }
     }
+
+    fun cadreCapacity() = playerCount.maxPlayer.value - cadre.size
 
     companion object {
         const val TYPE = "Match"

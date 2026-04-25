@@ -10,12 +10,15 @@ import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.core.domain.AttendanceBased
 import com.spruhs.kick_app.match.core.domain.EnterResultResponse
+import com.spruhs.kick_app.match.core.domain.FirstComeFirstServe
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MatchNumber
 import com.spruhs.kick_app.match.core.domain.PlayerCount
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
+import com.spruhs.kick_app.match.core.domain.RoundRobin
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -67,7 +70,15 @@ class MatchCommandPort(
     suspend fun addRegistration(command: AddRegistrationCommand) =
         handle(command.matchId) { match ->
             validateRegistrationRequest(command, match)
-            match.addRegistration(command.updatedUser, command.status)
+            val playerOverview = if (match.playerPriorityStrategy is RoundRobin || match.playerPriorityStrategy is AttendanceBased) {
+                playerOverviewService.getOverviewEntry(match.groupId, command.updatedUser)
+            } else null
+            match.addRegistration(
+                userId = command.updatedUser,
+                registrationStatusType = command.status,
+                guests = command.guests,
+                playerOverview = playerOverview
+            )
         }
 
     suspend fun enterResult(command: EnterResultCommand) =
@@ -92,6 +103,9 @@ class MatchCommandPort(
     ) {
         require(groupApi.isActiveMember(match.groupId, command.updatedUser)) {
             throw UserNotAuthorizedException(command.updatingUser)
+        }
+        require(command.guests >= 0) {
+            throw IllegalArgumentException("Guests cannot be negative")
         }
         when (command.status) {
             RegistrationStatusType.REGISTERED, RegistrationStatusType.DEREGISTERED -> {
@@ -151,6 +165,7 @@ data class AddRegistrationCommand(
     val updatedUser: UserId,
     val matchId: MatchId,
     val status: RegistrationStatusType,
+    val guests: Int,
 )
 
 data class ChangePlaygroundCommand(

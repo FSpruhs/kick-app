@@ -150,8 +150,8 @@ class PlayerOverview(
 
 data class PlayerOverviewEntry(
     val userId: UserId,
-    val attendancePoints: Int,
-    val lastWaitingBenchMatchNumber: MatchNumber?,
+    val attendancePoints: Int = 0,
+    val lastWaitingBenchMatchNumber: MatchNumber? = null,
 )
 
 interface PlayerOverviewPersistencePort {

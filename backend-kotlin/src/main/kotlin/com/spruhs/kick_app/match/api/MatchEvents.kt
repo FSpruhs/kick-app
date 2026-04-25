@@ -28,6 +28,7 @@ data class PlayerAddedToCadreEvent(
     val status: String,
     val guests: Int = 0,
     val guestOf: UserId? = null,
+    val attendancePoints: Int = 0
 ) : BaseEvent(aggregateId)
 
 data class PlayerDeregisteredEvent(
@@ -44,6 +45,7 @@ data class PlayerPlacedOnWaitingBenchEvent(
     val status: String,
     val guests: Int = 0,
     val guestOf: UserId? = null,
+    val attendancePoints: Int = 0
 ) : BaseEvent(aggregateId)
 
 data class MatchCanceledEvent(

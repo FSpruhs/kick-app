@@ -28,7 +28,8 @@ data class PlayerAddedToCadreEvent(
     val status: String,
     val guests: Int = 0,
     val guestOf: UserId? = null,
-    val attendancePoints: Int = 0
+    val attendancePoints: Int = 0,
+    val lastWaitingBenchMatchNumber: MatchNumber? = null,
 ) : BaseEvent(aggregateId)
 
 data class PlayerDeregisteredEvent(
@@ -45,7 +46,8 @@ data class PlayerPlacedOnWaitingBenchEvent(
     val status: String,
     val guests: Int = 0,
     val guestOf: UserId? = null,
-    val attendancePoints: Int = 0
+    val attendancePoints: Int = 0,
+    val lastWaitingBenchMatchNumber: MatchNumber? = null,
 ) : BaseEvent(aggregateId)
 
 data class MatchCanceledEvent(
@@ -68,8 +70,13 @@ data class MatchResultEnteredEvent(
 
 data class MatchNumberChangedEvent(
     override val aggregateId: String,
-    val newMatchNumber: Int,
+    val newMatchNumber: MatchNumber,
 ) : BaseEvent(aggregateId)
+
+data class PlayerOverviewUpdatedEvent(
+    override val aggregateId: String,
+    val players: List<PlayerOverviewEntry>
+    ) : BaseEvent(aggregateId)
 
 data class MatchResultUpdatedEvent(
     override val aggregateId: String,
@@ -92,6 +99,7 @@ enum class MatchEvents {
     MATCH_RESULT_ENTERED_V1,
     MATCH_NUMBER_CHANGED_V1,
     MATCH_RESULT_UPDATED_V1,
+    PLAYER_OVERVIEW_UPDATED_V1,
 }
 
 @Component
@@ -166,6 +174,13 @@ class MatchEventSerializer : Serializer {
                     data,
                     event.metadata,
                 )
+            is PlayerOverviewUpdatedEvent ->
+                Event(
+                    aggregate,
+                    MatchEvents.PLAYER_OVERVIEW_UPDATED_V1.name,
+                    data,
+                    event.metadata,
+                )
 
             else -> throw UnknownEventTypeException(event)
         }
@@ -218,6 +233,11 @@ class MatchEventSerializer : Serializer {
                     event.data,
                     MatchResultUpdatedEvent::class.java,
                 )
+            MatchEvents.PLAYER_OVERVIEW_UPDATED_V1.name ->
+                EventSourcingUtils.readValue(
+                    event.data,
+                    PlayerOverviewUpdatedEvent::class.java,
+                )
 
             else -> throw UnknownEventTypeException(event)
         }
@@ -247,3 +267,18 @@ enum class PlayerPriorityStrategyType {
     ROUND_ROBIN,
     ATTENDANCE_BASED,
 }
+
+@JvmInline
+value class MatchNumber(
+    val value: Int,
+) {
+    init {
+        require(value >= 0) { "Match number must be greater equal than 0" }
+    }
+}
+
+data class PlayerOverviewEntry(
+    val userId: UserId,
+    val attendancePoints: Int = 0,
+    val lastWaitingBenchMatchNumber: MatchNumber? = null,
+)

@@ -2,7 +2,9 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 
 class PlayerOverview(
     val groupId: GroupId,
@@ -147,12 +149,6 @@ class PlayerOverview(
         entries.addAll(updatedEntries)
     }
 }
-
-data class PlayerOverviewEntry(
-    val userId: UserId,
-    val attendancePoints: Int = 0,
-    val lastWaitingBenchMatchNumber: MatchNumber? = null,
-)
 
 interface PlayerOverviewPersistencePort {
     suspend fun getOverview(groupId: GroupId): PlayerOverview?

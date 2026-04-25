@@ -1,6 +1,8 @@
 package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.helper.KeyedMutex
 import com.spruhs.kick_app.common.types.GroupId
@@ -8,14 +10,15 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.match.api.MatchApi
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.core.domain.AttendanceBased
 import com.spruhs.kick_app.match.core.domain.EnterResultResponse
-import com.spruhs.kick_app.match.core.domain.FirstComeFirstServe
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
-import com.spruhs.kick_app.match.core.domain.MatchNumber
 import com.spruhs.kick_app.match.core.domain.PlayerCount
+import com.spruhs.kick_app.match.core.domain.PlayerOverview
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.match.core.domain.RoundRobin
@@ -29,6 +32,7 @@ class MatchCommandPort(
     private val mutex: KeyedMutex<MatchId> = KeyedMutex(),
     private val matchOverviewService: MatchOverviewService,
     private val playerOverviewService: PlayerOverviewService,
+    private val matchApi: MatchApi,
 ) {
     suspend fun plan(command: PlanMatchCommand): MatchAggregate {
         require(groupApi.isActiveMember(command.groupId, command.requesterId)) {
@@ -81,21 +85,36 @@ class MatchCommandPort(
             )
         }
 
-    suspend fun enterResult(command: EnterResultCommand) =
+    suspend fun enterResult(command: EnterResultCommand) {
+        var overview: PlayerOverview? = null
+        var groupId: GroupId? = null
+
         handle(command.matchId) { match ->
             require(groupApi.isActiveCoach(match.groupId, command.userId)) {
                 throw UserNotAuthorizedException(command.userId)
             }
+            groupId = match.groupId
             val result = match.enterResult(command.players)
-            playerOverviewService.getOverview(match.groupId).also { overview ->
+            overview = playerOverviewService.getOverview(match.groupId).also { ov ->
                 if (result is EnterResultResponse.FirstEntry) {
-                    overview.enterResult(match)
+                    ov.enterResult(match)
                 } else {
-                    overview.updateResult(match)
+                    ov.updateResult(match)
                 }
-                playerOverviewService.save(overview)
+                playerOverviewService.save(ov)
             }
         }
+
+        if (overview == null || groupId == null) {
+            return
+        }
+
+        matchApi.findPlanningMatchIds(groupId).forEach { matchId ->
+            handle(matchId) { match ->
+                match.updatePlayerOverview(overview)
+            }
+        }
+    }
 
     private suspend fun validateRegistrationRequest(
         command: AddRegistrationCommand,
@@ -121,10 +140,17 @@ class MatchCommandPort(
         }
     }
 
-    suspend fun changeMatchNumber(event: MatchNumberChangedEvent) =
+    private suspend fun handleChangeMatchNumber(event: MatchNumberChangedEvent) =
         handle(MatchId(event.aggregateId)) { match ->
             match.apply(MatchNumberChangedEvent(event.aggregateId, event.newMatchNumber))
         }
+
+    suspend fun onEvent(event: BaseEvent) {
+        when (event) {
+            is MatchNumberChangedEvent -> handleChangeMatchNumber(event)
+            else -> throw UnknownEventTypeException(event)
+        }
+    }
 
     private suspend fun loadMatch(matchId: MatchId): MatchAggregate = aggregateStore.load(matchId.value, MatchAggregate::class.java)
 

@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.api.GroupApi
+import com.spruhs.kick_app.match.api.MatchApi
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
@@ -158,10 +159,24 @@ class MatchService(
         }
 }
 
+@Service
+class MatchApiService(
+    private val repository: MatchProjectionRepository,
+) : MatchApi {
+    override suspend fun findPlanningMatchIds(groupId: GroupId): List<MatchId> {
+        return repository.findAllByGroupIdAndStartAfter(groupId, LocalDateTime.now())
+    }
+}
+
 interface MatchProjectionRepository {
     suspend fun save(matchProjection: MatchProjection)
 
     suspend fun findById(matchId: MatchId): MatchProjection?
+
+    suspend fun findAllByGroupIdAndStartAfter(
+        groupId: GroupId,
+        after: LocalDateTime,
+    ): List<MatchId>
 
     suspend fun findAllByGroupId(
         groupId: GroupId,

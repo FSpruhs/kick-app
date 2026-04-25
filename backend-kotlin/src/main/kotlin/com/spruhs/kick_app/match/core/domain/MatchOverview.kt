@@ -3,6 +3,7 @@ package com.spruhs.kick_app.match.core.domain
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import java.time.LocalDateTime
 
@@ -34,7 +35,7 @@ class MatchOverview(
         entries.replaceAll { entry ->
             if (entry.matchNumber >= newNumber) {
                 val newMatchId = entry.matchNumber + 1
-                events.add(MatchNumberChangedEvent(entry.matchId.value, newMatchId))
+                events.add(MatchNumberChangedEvent(entry.matchId.value, MatchNumber(newMatchId)))
                 entry.copy(matchNumber = newMatchId)
             } else {
                 entry
@@ -54,7 +55,7 @@ class MatchOverview(
         entries.replaceAll { e ->
             if (e.matchNumber > entry.matchNumber) {
                 val newMatchNumber = e.matchNumber - 1
-                events.add(MatchNumberChangedEvent(e.matchId.value, newMatchNumber))
+                events.add(MatchNumberChangedEvent(e.matchId.value, MatchNumber(newMatchNumber)))
                 e.copy(matchNumber = newMatchNumber)
             } else {
                 e

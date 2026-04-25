@@ -7,12 +7,14 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
@@ -95,15 +97,6 @@ value class MinPlayer(
     }
 }
 
-@JvmInline
-value class MatchNumber(
-    val value: Int,
-) {
-    init {
-        require(value >= 0) { "Match number must be greater equal than 0" }
-    }
-}
-
 data class MatchStartTimeException(
     val matchId: MatchId,
 ) : RuntimeException("Could not perform action with this match start time of: ${matchId.value}")
@@ -137,7 +130,8 @@ class MatchAggregate(
                     cadre,
                     event.guests,
                     event.guestOf,
-                    event.attendancePoints
+                    event.attendancePoints,
+                    event.lastWaitingBenchMatchNumber,
                 )
 
             is PlayerDeregisteredEvent ->
@@ -157,7 +151,8 @@ class MatchAggregate(
                     waitingBench,
                     event.guests,
                     event.guestOf,
-                    event.attendancePoints
+                    event.attendancePoints,
+                    event.lastWaitingBenchMatchNumber,
                 )
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
@@ -222,11 +217,12 @@ class MatchAggregate(
         guests: Int,
         guestOf: UserId? = null,
         attendancePoints: Int = 0,
+        lastWaitingBenchMatchNumber: MatchNumber? = null,
     ) {
         if (guestOf == null) {
             val playerRegistration = findPlayerRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints))
+                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints, lastWaitingBenchMatchNumber))
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -274,6 +270,10 @@ class MatchAggregate(
                 playerPriorityStrategyType,
             ),
         )
+    }
+
+    fun updatePlayerOverview(overview: PlayerOverview) {
+        TODO("Not yet implemented")
     }
 
     fun cancelMatch() {

@@ -6,8 +6,10 @@ import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import java.time.LocalDateTime
@@ -27,6 +29,11 @@ interface PlayerPriorityStrategy {
         match: MatchAggregate,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent>
+
+    fun reevaluateRegistration(
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit,
+    )
 
     fun type(): PlayerPriorityStrategyType
 }
@@ -48,6 +55,13 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
             apply(it)
         }
         return events.toList().also { events.clear() }
+    }
+
+    override fun reevaluateRegistration(
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit
+    ) {
+        TODO("Not yet implemented")
     }
 
     private fun startAddingRegistration(
@@ -234,6 +248,13 @@ class RoundRobin : PlayerPriorityStrategy {
         return events.toList().also { events.clear() }
     }
 
+    override fun reevaluateRegistration(
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit
+    ) {
+        TODO("Not yet implemented")
+    }
+
     private fun startAddingRegistration(
         userId: UserId,
         registrationStatusType: RegistrationStatusType,
@@ -381,7 +402,7 @@ class RoundRobin : PlayerPriorityStrategy {
                 cadreMainPlayers.maxByOrNull { it.lastWaitingBenchMatchNumber?.value ?: Int.MIN_VALUE }
             }
             if (displaced != null) {
-                apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, displaced.userId, status.name, 0, null, displaced.attendancePoints))
+                apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, displaced.userId, status.name, 0, null, displaced.attendancePoints, displaced.lastWaitingBenchMatchNumber))
                 matchCapacity += 1
             }
         }
@@ -389,7 +410,7 @@ class RoundRobin : PlayerPriorityStrategy {
         if (matchCapacity == 0 && cadreContainsPlayerWithLessPoints(match, playerOverview.attendancePoints)) {
             match.cadre.sortByDescending { it.attendancePoints }
             val lastPlayer = match.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().last()
-            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, lastPlayer.userId, status.name, 0, null, lastPlayer.attendancePoints))
+            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, lastPlayer.userId, status.name, 0, null, lastPlayer.attendancePoints, lastPlayer.lastWaitingBenchMatchNumber))
             matchCapacity += 1
         }
 
@@ -397,17 +418,17 @@ class RoundRobin : PlayerPriorityStrategy {
         var benchSlots = totalPlayers - cadreSlots
 
         if (cadreSlots > 0) {
-            apply(PlayerAddedToCadreEvent(match.aggregateId, userId, status.name, guests, attendancePoints = playerOverview.attendancePoints))
+            apply(PlayerAddedToCadreEvent(match.aggregateId, userId, status.name, guests, attendancePoints = playerOverview.attendancePoints, lastWaitingBenchMatchNumber = playerOverview.lastWaitingBenchMatchNumber))
         } else {
-            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, userId, status.name, guests, attendancePoints = playerOverview.attendancePoints))
+            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, userId, status.name, guests, attendancePoints = playerOverview.attendancePoints, lastWaitingBenchMatchNumber = playerOverview.lastWaitingBenchMatchNumber))
             benchSlots -= 1
         }
 
         repeat(cadreSlots - 1) {
-            apply(PlayerAddedToCadreEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints))
+            apply(PlayerAddedToCadreEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints, playerOverview.lastWaitingBenchMatchNumber))
         }
         repeat(benchSlots) {
-            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints))
+            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints, playerOverview.lastWaitingBenchMatchNumber))
         }
     }
 
@@ -438,6 +459,13 @@ class AttendanceBased : PlayerPriorityStrategy {
         }
 
         return events.toList().also { events.clear() }
+    }
+
+    override fun reevaluateRegistration(
+        match: MatchAggregate,
+        apply: (BaseEvent) -> Unit
+    ) {
+        TODO("Not yet implemented")
     }
 
     private fun startAddingRegistration(

@@ -19,6 +19,7 @@ import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
+import java.time.Clock
 import java.time.LocalDateTime
 
 sealed class RegisteredPlayer(
@@ -222,7 +223,7 @@ class MatchAggregate(
         if (guestOf == null) {
             val playerRegistration = findPlayerRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints, lastWaitingBenchMatchNumber))
+                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints, lastWaitingBenchMatchNumber))
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -232,7 +233,7 @@ class MatchAggregate(
         } else {
             val playerRegistration = findGuestRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints))
+                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints))
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -277,7 +278,7 @@ class MatchAggregate(
     }
 
     fun cancelMatch() {
-        require(LocalDateTime.now().isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(LocalDateTime.now(clock).isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         apply(MatchCanceledEvent(aggregateId, this.groupId))
     }
 
@@ -313,7 +314,7 @@ class MatchAggregate(
 
     private fun validateParticipatingPlayersInput(participatingPlayers: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
-        require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(LocalDateTime.now(clock).isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         require(arePlayersUnique(participatingPlayers))
         require(participatingPlayers.size >= 2) { "At least two players must participate." }
         require(participatingPlayers.map { it.team }.toSet().size == 2) { "Both teams must be present in the result." }
@@ -413,7 +414,7 @@ class MatchAggregate(
         guests: Int = 0,
         playerOverview: PlayerOverviewEntry? = null
     ) {
-        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this) { apply(it) }
+        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this, clock) { apply(it) }
     }
 
     fun cadreCapacity() = playerCount.maxPlayer.value - cadre.size

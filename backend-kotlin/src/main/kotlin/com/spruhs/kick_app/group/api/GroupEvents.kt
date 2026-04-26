@@ -89,7 +89,7 @@ enum class GroupEvents {
 }
 
 @Component
-class GroupEventSerializer : Serializer {
+class GroupEventSerializer(private val clock: java.time.Clock) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,
@@ -98,92 +98,37 @@ class GroupEventSerializer : Serializer {
 
         return when (event) {
             is GroupCreatedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.GROUP_CREATED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.GROUP_CREATED_V1.name, data, event.metadata, clock)
 
             is GroupNameChangedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.GROUP_NAME_CHANGED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.GROUP_NAME_CHANGED_V1.name, data, event.metadata, clock)
 
             is PlayerInvitedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_INVITED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_INVITED_V1.name, data, event.metadata, clock)
 
             is PlayerEnteredGroupEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_ENTERED_GROUP_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_ENTERED_GROUP_V1.name, data, event.metadata, clock)
 
             is PlayerRejectedGroupEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_REJECTED_GROUP_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_REJECTED_GROUP_V1.name, data, event.metadata, clock)
 
             is PlayerPromotedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_PROMOTED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_PROMOTED_V1.name, data, event.metadata, clock)
 
             is PlayerDowngradedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_DOWNGRADED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_DOWNGRADED_V1.name, data, event.metadata, clock)
 
             is PlayerActivatedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_ACTIVATED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_ACTIVATED_V1.name, data, event.metadata, clock)
 
             is PlayerDeactivatedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_DEACTIVATED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_DEACTIVATED_V1.name, data, event.metadata, clock)
 
             is PlayerRemovedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_REMOVED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_REMOVED_V1.name, data, event.metadata, clock)
 
             is PlayerLeavedEvent ->
-                Event(
-                    aggregate,
-                    GroupEvents.PLAYER_LEAVED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, GroupEvents.PLAYER_LEAVED_V1.name, data, event.metadata, clock)
 
             else -> throw UnknownEventTypeException(event)
         }

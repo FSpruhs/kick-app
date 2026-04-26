@@ -20,6 +20,7 @@ import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.user.api.UserApi
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
@@ -162,9 +163,10 @@ class MatchService(
 @Service
 class MatchApiService(
     private val repository: MatchProjectionRepository,
+    private val clock: Clock,
 ) : MatchApi {
     override suspend fun findPlanningMatchIds(groupId: GroupId): List<MatchId> {
-        return repository.findAllByGroupIdAndStartAfter(groupId, LocalDateTime.now())
+        return repository.findAllByGroupIdAndStartAfter(groupId, LocalDateTime.now(clock))
     }
 }
 

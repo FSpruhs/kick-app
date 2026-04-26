@@ -23,6 +23,7 @@ import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import com.spruhs.kick_app.match.core.domain.RoundRobin
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
@@ -33,13 +34,14 @@ class MatchCommandPort(
     private val matchOverviewService: MatchOverviewService,
     private val playerOverviewService: PlayerOverviewService,
     private val matchApi: MatchApi,
+    private val clock: Clock,
 ) {
     suspend fun plan(command: PlanMatchCommand): MatchAggregate {
         require(groupApi.isActiveMember(command.groupId, command.requesterId)) {
             throw UserNotAuthorizedException(command.requesterId)
         }
         val matchId = generateId()
-        val matchOverview = matchOverviewService.getMatchHistory(command.groupId)
+        val matchOverview = matchOverviewService.getMatchHistory(command.groupId).also { it.clock = clock }
         val lastMatchNumber = matchOverview.add(MatchId(matchId), command.start)
 
         return MatchAggregate(matchId).also {

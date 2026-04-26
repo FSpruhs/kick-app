@@ -32,7 +32,7 @@ enum class UserEvents {
 }
 
 @Component
-class UserEventSerializer : Serializer {
+class UserEventSerializer(private val clock: java.time.Clock) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,
@@ -41,29 +41,11 @@ class UserEventSerializer : Serializer {
 
         return when (event) {
             is UserCreatedEvent ->
-                Event(
-                    aggregate,
-                    UserEvents.USER_CREATED_V1.name,
-                    data,
-                    event.metadata,
-                )
-
+                Event(aggregate, UserEvents.USER_CREATED_V1.name, data, event.metadata, clock)
             is UserNickNameChangedEvent ->
-                Event(
-                    aggregate,
-                    UserEvents.USER_NICKNAME_CHANGED_V1.name,
-                    data,
-                    event.metadata,
-                )
-
+                Event(aggregate, UserEvents.USER_NICKNAME_CHANGED_V1.name, data, event.metadata, clock)
             is UserImageUpdatedEvent ->
-                Event(
-                    aggregate,
-                    UserEvents.USER_IMAGE_UPDATED_V1.name,
-                    data,
-                    event.metadata,
-                )
-
+                Event(aggregate, UserEvents.USER_IMAGE_UPDATED_V1.name, data, event.metadata, clock)
             else -> throw UnknownEventTypeException(event)
         }
     }

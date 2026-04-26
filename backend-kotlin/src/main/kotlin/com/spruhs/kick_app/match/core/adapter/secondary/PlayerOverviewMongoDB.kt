@@ -2,9 +2,9 @@ package com.spruhs.kick_app.match.core.adapter.secondary
 
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.match.core.domain.MatchNumber
+import com.spruhs.kick_app.match.api.MatchNumber
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.core.domain.PlayerOverview
-import com.spruhs.kick_app.match.core.domain.PlayerOverviewEntry
 import com.spruhs.kick_app.match.core.domain.PlayerOverviewPersistencePort
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle

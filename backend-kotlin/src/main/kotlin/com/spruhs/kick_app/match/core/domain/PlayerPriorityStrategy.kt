@@ -12,6 +12,7 @@ import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
+import java.time.Clock
 import java.time.LocalDateTime
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -27,6 +28,7 @@ interface PlayerPriorityStrategy {
         guests: Int = 0,
         playerOverview: PlayerOverviewEntry? = null,
         match: MatchAggregate,
+        clock: Clock = Clock.systemDefaultZone(),
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent>
 
@@ -47,10 +49,11 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, match) {
+        startAddingRegistration(userId, registrationStatusType, guests, match, clock) {
             events.add(it)
             apply(it)
         }
@@ -69,9 +72,10 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now())) {
+        require(match.start.isAfter(LocalDateTime.now(clock))) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {
@@ -237,10 +241,11 @@ class RoundRobin : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match) {
+        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match, clock) {
             events.add(it)
             apply(it)
         }
@@ -261,9 +266,10 @@ class RoundRobin : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now())) {
+        require(match.start.isAfter(LocalDateTime.now(clock))) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {
@@ -450,10 +456,11 @@ class AttendanceBased : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match) {
+        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match, clock) {
             events.add(it)
             apply(it)
         }
@@ -474,9 +481,10 @@ class AttendanceBased : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry,
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now())) {
+        require(match.start.isAfter(LocalDateTime.now(clock))) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {
@@ -605,7 +613,7 @@ class AttendanceBased : PlayerPriorityStrategy {
         if (matchCapacity == 0 && cadreContainsPlayerWithLessPoints(match, playerOverview.attendancePoints)) {
             match.cadre.sortByDescending { it.attendancePoints }
             val lastPlayer = match.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().last()
-            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, lastPlayer.userId, status.name, 0, null, lastPlayer.attendancePoints))
+            apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, lastPlayer.userId, status.name, 0, null, lastPlayer.attendancePoints, lastPlayer.lastWaitingBenchMatchNumber))
             matchCapacity += 1
         }
 
@@ -625,6 +633,11 @@ class AttendanceBased : PlayerPriorityStrategy {
         repeat(benchSlots) {
             apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints))
         }
+    }
+
+    private fun hasWaitingBenchPriority(match: MatchAggregate, lastWaitingBenchMatchNumber: MatchNumber?): Boolean {
+        if (lastWaitingBenchMatchNumber == null) return false
+        return match.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().any { it.lastWaitingBenchMatchNumber == null || it.lastWaitingBenchMatchNumber.value > lastWaitingBenchMatchNumber.value }
     }
 
     override fun type(): PlayerPriorityStrategyType = PlayerPriorityStrategyType.ATTENDANCE_BASED

@@ -12,18 +12,20 @@ import com.spruhs.kick_app.message.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.message.core.domain.MessageType
 import com.spruhs.kick_app.message.core.domain.messageReadBy
 import org.springframework.stereotype.Service
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
 class MessageUseCases(
     private val messagePersistencePort: MessagePersistencePort,
     private val groupApi: GroupApi,
+    private val clock: Clock,
 ) {
     suspend fun send(
         messageType: MessageType,
         params: MessageParams,
     ) {
-        createMessage(messageType, params).apply {
+        createMessage(messageType, params, clock).apply {
             messagePersistencePort.save(this)
         }
     }
@@ -53,7 +55,7 @@ class MessageUseCases(
     ) {
         groupApi
             .getActivePlayers(groupId)
-            .map { createMessage(messageType, params.copy(userId = it)) }
+            .map { createMessage(messageType, params.copy(userId = it), clock) }
             .toList()
             .let { messagePersistencePort.saveAll(it) }
     }
@@ -79,24 +81,25 @@ data class MessageParams(
 private fun createMessage(
     type: MessageType,
     params: MessageParams,
+    clock: Clock,
 ): Message =
     when (type) {
-        MessageType.USER_INVITED_TO_GROUP -> MessageFactory().createUserInvitedToGroupMessage(params)
-        MessageType.USER_LEAVED_GROUP -> MessageFactory().createUserLeavedGroupMessage(params)
-        MessageType.USER_REMOVED_FROM_GROUP -> MessageFactory().createUserRemovedFromGroupMessage(params)
-        MessageType.MATCH_CREATED -> MessageFactory().createMatchCreatedMessage(params)
-        MessageType.USER_DOWNGRADED -> MessageFactory().createUserDowngradedMessage(params)
-        MessageType.USER_PROMOTED -> MessageFactory().createUserPromotedMessage(params)
-        MessageType.MATCH_CANCELED -> MessageFactory().createMatchCanceledMessage(params)
-        MessageType.PLAYGROUND_CHANGED -> MessageFactory().createPlaygroundChangedMessage(params)
-        MessageType.PLAYER_ADDED_TO_CADRE -> MessageFactory().createPlayerAddedToCadreMessage(params)
-        MessageType.PLAYER_PLACED_ON_WAITING_BENCH -> MessageFactory().createPlayerPlacedOnWaitingBenchMessage(params)
+        MessageType.USER_INVITED_TO_GROUP -> MessageFactory(clock).createUserInvitedToGroupMessage(params)
+        MessageType.USER_LEAVED_GROUP -> MessageFactory(clock).createUserLeavedGroupMessage(params)
+        MessageType.USER_REMOVED_FROM_GROUP -> MessageFactory(clock).createUserRemovedFromGroupMessage(params)
+        MessageType.MATCH_CREATED -> MessageFactory(clock).createMatchCreatedMessage(params)
+        MessageType.USER_DOWNGRADED -> MessageFactory(clock).createUserDowngradedMessage(params)
+        MessageType.USER_PROMOTED -> MessageFactory(clock).createUserPromotedMessage(params)
+        MessageType.MATCH_CANCELED -> MessageFactory(clock).createMatchCanceledMessage(params)
+        MessageType.PLAYGROUND_CHANGED -> MessageFactory(clock).createPlaygroundChangedMessage(params)
+        MessageType.PLAYER_ADDED_TO_CADRE -> MessageFactory(clock).createPlayerAddedToCadreMessage(params)
+        MessageType.PLAYER_PLACED_ON_WAITING_BENCH -> MessageFactory(clock).createPlayerPlacedOnWaitingBenchMessage(params)
     }
 
 private const val GROUP_ID = "groupId"
 private const val MATCH_ID = "matchId"
 
-class MessageFactory {
+class MessageFactory(private val clock: Clock) {
     fun createUserInvitedToGroupMessage(params: MessageParams): Message {
         requireNotNull(params.userId)
         requireNotNull(params.groupId)
@@ -106,7 +109,7 @@ class MessageFactory {
             text = "You have been invited to group ${params.groupName}",
             type = MessageType.USER_INVITED_TO_GROUP,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -121,7 +124,7 @@ class MessageFactory {
             text = "You have leaved group ${params.groupName}",
             type = MessageType.USER_LEAVED_GROUP,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -136,7 +139,7 @@ class MessageFactory {
             text = "You have been removed from group ${params.groupName}",
             type = MessageType.USER_REMOVED_FROM_GROUP,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -151,7 +154,7 @@ class MessageFactory {
             text = "Invented for match on ${params.start}",
             type = MessageType.MATCH_CREATED,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value),
         )
@@ -165,7 +168,7 @@ class MessageFactory {
             text = "You have been downgraded to player.",
             type = MessageType.USER_DOWNGRADED,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -179,7 +182,7 @@ class MessageFactory {
             text = "You have been promoted in to admin",
             type = MessageType.USER_PROMOTED,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -194,7 +197,7 @@ class MessageFactory {
             text = "Match has been canceled",
             type = MessageType.MATCH_CANCELED,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value, MATCH_ID to params.matchId.value),
         )
@@ -209,7 +212,7 @@ class MessageFactory {
             text = "Playground has been changed. New playground is ${params.playground}",
             type = MessageType.PLAYGROUND_CHANGED,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(GROUP_ID to params.groupId.value),
         )
@@ -223,7 +226,7 @@ class MessageFactory {
             text = "You have been added to the cadre.",
             type = MessageType.PLAYER_ADDED_TO_CADRE,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(MATCH_ID to params.matchId.value),
         )
@@ -237,7 +240,7 @@ class MessageFactory {
             text = "You have been placed on waiting bench.",
             type = MessageType.PLAYER_PLACED_ON_WAITING_BENCH,
             user = params.userId,
-            timeStamp = LocalDateTime.now(),
+            timeStamp = LocalDateTime.now(clock),
             isRead = false,
             variables = mapOf(MATCH_ID to params.matchId.value),
         )

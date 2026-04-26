@@ -103,7 +103,7 @@ enum class MatchEvents {
 }
 
 @Component
-class MatchEventSerializer : Serializer {
+class MatchEventSerializer(private val clock: java.time.Clock) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,
@@ -117,70 +117,26 @@ class MatchEventSerializer : Serializer {
                     MatchEvents.MATCH_PLANNED_V1.name,
                     data,
                     event.metadata,
+                    clock,
                 )
             is PlayerAddedToCadreEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.PLAYER_ADDED_TO_CADRE_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.PLAYER_ADDED_TO_CADRE_V1.name, data, event.metadata, clock)
             is PlayerDeregisteredEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.PLAYER_DEREGISTERED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.PLAYER_DEREGISTERED_V1.name, data, event.metadata, clock)
             is PlayerPlacedOnWaitingBenchEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.PLAYER_PLACED_ON_WAITING_BENCH_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.PLAYER_PLACED_ON_WAITING_BENCH_V1.name, data, event.metadata, clock)
             is MatchCanceledEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.MATCH_CANCELED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.MATCH_CANCELED_V1.name, data, event.metadata, clock)
             is PlaygroundChangedEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.PLAYGROUND_CHANGED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.PLAYGROUND_CHANGED_V1.name, data, event.metadata, clock)
             is MatchResultEnteredEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.MATCH_RESULT_ENTERED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.MATCH_RESULT_ENTERED_V1.name, data, event.metadata, clock)
             is MatchNumberChangedEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.MATCH_NUMBER_CHANGED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.MATCH_NUMBER_CHANGED_V1.name, data, event.metadata, clock)
             is MatchResultUpdatedEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.MATCH_RESULT_UPDATED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.MATCH_RESULT_UPDATED_V1.name, data, event.metadata, clock)
             is PlayerOverviewUpdatedEvent ->
-                Event(
-                    aggregate,
-                    MatchEvents.PLAYER_OVERVIEW_UPDATED_V1.name,
-                    data,
-                    event.metadata,
-                )
+                Event(aggregate, MatchEvents.PLAYER_OVERVIEW_UPDATED_V1.name, data, event.metadata, clock)
 
             else -> throw UnknownEventTypeException(event)
         }

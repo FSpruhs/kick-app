@@ -67,14 +67,13 @@ class MatchProjectionMongoDB(
 
     override suspend fun findAllByGroupIdAndStartAfter(
         groupId: GroupId,
-        after: LocalDateTime
-    ): List<MatchId> {
-        return repository
+        after: LocalDateTime,
+    ): List<MatchId> =
+        repository
             .findFilteredMatches(groupId.value, MatchFilter(after = after))
             .map { MatchId(it.id) }
             .collectList()
             .awaitSingle()
-    }
 
     override suspend fun findAllByGroupId(
         groupId: GroupId,

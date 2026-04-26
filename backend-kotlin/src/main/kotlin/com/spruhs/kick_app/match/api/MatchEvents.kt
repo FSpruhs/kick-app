@@ -75,8 +75,8 @@ data class MatchNumberChangedEvent(
 
 data class PlayerOverviewUpdatedEvent(
     override val aggregateId: String,
-    val players: List<PlayerOverviewEntry>
-    ) : BaseEvent(aggregateId)
+    val players: List<PlayerOverviewEntry>,
+) : BaseEvent(aggregateId)
 
 data class MatchResultUpdatedEvent(
     override val aggregateId: String,
@@ -103,7 +103,9 @@ enum class MatchEvents {
 }
 
 @Component
-class MatchEventSerializer(private val clock: java.time.Clock) : Serializer {
+class MatchEventSerializer(
+    private val clock: java.time.Clock,
+) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,

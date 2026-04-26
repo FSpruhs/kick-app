@@ -29,6 +29,7 @@ abstract class AggregateRoot(
 ) {
     val changes: MutableList<BaseEvent> = mutableListOf()
     var version: Int = 0
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     var clock: Clock = Clock.systemDefaultZone()
 
@@ -337,7 +338,10 @@ object EventSourcingUtils {
         valueType: Class<T>,
     ): T = mapper.readValue(src, valueType)
 
-    fun <T : AggregateRoot> snapshotFromAggregate(aggregate: T, clock: Clock = Clock.systemDefaultZone()): Snapshot {
+    fun <T : AggregateRoot> snapshotFromAggregate(
+        aggregate: T,
+        clock: Clock = Clock.systemDefaultZone(),
+    ): Snapshot {
         val dataBytes = mapper.writeValueAsBytes(aggregate)
         return Snapshot(
             id = UUID.randomUUID(),

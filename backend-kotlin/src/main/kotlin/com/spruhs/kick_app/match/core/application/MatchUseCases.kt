@@ -76,14 +76,17 @@ class MatchCommandPort(
     suspend fun addRegistration(command: AddRegistrationCommand) =
         handle(command.matchId) { match ->
             validateRegistrationRequest(command, match)
-            val playerOverview = if (match.playerPriorityStrategy is RoundRobin || match.playerPriorityStrategy is AttendanceBased) {
-                playerOverviewService.getOverviewEntry(match.groupId, command.updatedUser)
-            } else null
+            val playerOverview =
+                if (match.playerPriorityStrategy is RoundRobin || match.playerPriorityStrategy is AttendanceBased) {
+                    playerOverviewService.getOverviewEntry(match.groupId, command.updatedUser)
+                } else {
+                    null
+                }
             match.addRegistration(
                 userId = command.updatedUser,
                 registrationStatusType = command.status,
                 guests = command.guests,
-                playerOverview = playerOverview
+                playerOverview = playerOverview,
             )
         }
 
@@ -97,14 +100,15 @@ class MatchCommandPort(
             }
             groupId = match.groupId
             val result = match.enterResult(command.players)
-            overview = playerOverviewService.getOverview(match.groupId).also { ov ->
-                if (result is EnterResultResponse.FirstEntry) {
-                    ov.enterResult(match)
-                } else {
-                    ov.updateResult(match)
+            overview =
+                playerOverviewService.getOverview(match.groupId).also { ov ->
+                    if (result is EnterResultResponse.FirstEntry) {
+                        ov.enterResult(match)
+                    } else {
+                        ov.updateResult(match)
+                    }
+                    playerOverviewService.save(ov)
                 }
-                playerOverviewService.save(ov)
-            }
         }
 
         if (overview == null || groupId == null) {

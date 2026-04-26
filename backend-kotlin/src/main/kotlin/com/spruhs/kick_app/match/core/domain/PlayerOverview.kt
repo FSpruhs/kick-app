@@ -2,7 +2,6 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
-import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
 import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 

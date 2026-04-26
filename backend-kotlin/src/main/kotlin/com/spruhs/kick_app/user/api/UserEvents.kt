@@ -32,7 +32,9 @@ enum class UserEvents {
 }
 
 @Component
-class UserEventSerializer(private val clock: java.time.Clock) : Serializer {
+class UserEventSerializer(
+    private val clock: java.time.Clock,
+) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,

@@ -165,9 +165,8 @@ class MatchApiService(
     private val repository: MatchProjectionRepository,
     private val clock: Clock,
 ) : MatchApi {
-    override suspend fun findPlanningMatchIds(groupId: GroupId): List<MatchId> {
-        return repository.findAllByGroupIdAndStartAfter(groupId, LocalDateTime.now(clock))
-    }
+    override suspend fun findPlanningMatchIds(groupId: GroupId): List<MatchId> =
+        repository.findAllByGroupIdAndStartAfter(groupId, LocalDateTime.now(clock))
 }
 
 interface MatchProjectionRepository {

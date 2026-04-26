@@ -17,6 +17,8 @@ class PlayerOverviewService(
         playerOverviewPersistencePort.save(overview)
     }
 
-    suspend fun getOverviewEntry(groupId: GroupId, userId: UserId) =
-        getOverview(groupId).entries.firstOrNull { it.userId == userId }
+    suspend fun getOverviewEntry(
+        groupId: GroupId,
+        userId: UserId,
+    ) = getOverview(groupId).entries.firstOrNull { it.userId == userId }
 }

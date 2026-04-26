@@ -19,7 +19,6 @@ import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
-import java.time.Clock
 import java.time.LocalDateTime
 
 sealed class RegisteredPlayer(
@@ -223,7 +222,16 @@ class MatchAggregate(
         if (guestOf == null) {
             val playerRegistration = findPlayerRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.MainPlayer(userId, guests, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints, lastWaitingBenchMatchNumber))
+                targetList.add(
+                    RegisteredPlayer.MainPlayer(
+                        userId,
+                        guests,
+                        LocalDateTime.now(clock),
+                        status.toRegistrationStatus(),
+                        attendancePoints,
+                        lastWaitingBenchMatchNumber,
+                    ),
+                )
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -233,7 +241,9 @@ class MatchAggregate(
         } else {
             val playerRegistration = findGuestRegistration(userId)
             if (playerRegistration == null) {
-                targetList.add(RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints))
+                targetList.add(
+                    RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints),
+                )
             } else {
                 cadre.remove(playerRegistration)
                 waitingBench.remove(playerRegistration)
@@ -412,7 +422,7 @@ class MatchAggregate(
         userId: UserId,
         registrationStatusType: RegistrationStatusType,
         guests: Int = 0,
-        playerOverview: PlayerOverviewEntry? = null
+        playerOverview: PlayerOverviewEntry? = null,
     ) {
         playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this, clock) { apply(it) }
     }

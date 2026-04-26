@@ -89,7 +89,9 @@ enum class GroupEvents {
 }
 
 @Component
-class GroupEventSerializer(private val clock: java.time.Clock) : Serializer {
+class GroupEventSerializer(
+    private val clock: java.time.Clock,
+) : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,

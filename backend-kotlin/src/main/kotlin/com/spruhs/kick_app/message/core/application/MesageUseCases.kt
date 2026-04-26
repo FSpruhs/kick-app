@@ -99,7 +99,9 @@ private fun createMessage(
 private const val GROUP_ID = "groupId"
 private const val MATCH_ID = "matchId"
 
-class MessageFactory(private val clock: Clock) {
+class MessageFactory(
+    private val clock: Clock,
+) {
     fun createUserInvitedToGroupMessage(params: MessageParams): Message {
         requireNotNull(params.userId)
         requireNotNull(params.groupId)

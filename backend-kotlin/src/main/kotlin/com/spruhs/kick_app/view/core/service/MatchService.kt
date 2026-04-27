@@ -20,7 +20,6 @@ import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlaygroundChangedEvent
 import com.spruhs.kick_app.user.api.UserApi
 import org.springframework.stereotype.Service
-import java.time.Clock
 import java.time.LocalDateTime
 
 @Service

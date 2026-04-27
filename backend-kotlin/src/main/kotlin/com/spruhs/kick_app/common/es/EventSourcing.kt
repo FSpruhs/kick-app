@@ -1,6 +1,5 @@
 package com.spruhs.kick_app.common.es
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
-import java.time.Clock
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -332,9 +330,7 @@ object EventSourcingUtils {
         valueType: Class<T>,
     ): T = mapper.readValue(src, valueType)
 
-    fun <T : AggregateRoot> snapshotFromAggregate(
-        aggregate: T,
-    ): Snapshot {
+    fun <T : AggregateRoot> snapshotFromAggregate(aggregate: T): Snapshot {
         val dataBytes = mapper.writeValueAsBytes(aggregate)
         return Snapshot(
             id = UUID.randomUUID(),

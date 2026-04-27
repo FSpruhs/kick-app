@@ -5,7 +5,6 @@ import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
-import java.time.Clock
 import java.time.LocalDateTime
 
 data class MatchOverviewEntry(

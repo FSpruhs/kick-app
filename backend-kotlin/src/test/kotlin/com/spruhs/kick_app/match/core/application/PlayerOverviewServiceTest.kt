@@ -9,18 +9,16 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
-import io.mockk.just
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
 import io.mockk.runs
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 class PlayerOverviewServiceTest {
-
     @MockK
     lateinit var playerOverviewPersistencePort: PlayerOverviewPersistencePort
 
@@ -32,10 +30,11 @@ class PlayerOverviewServiceTest {
         runBlocking {
             val groupId = GroupId("testGroup")
             val userId = UserId("testUser")
-            val overview = PlayerOverview(
-                groupId = groupId,
-                entries = mutableListOf(PlayerOverviewEntry(userId = userId)),
-            )
+            val overview =
+                PlayerOverview(
+                    groupId = groupId,
+                    entries = mutableListOf(PlayerOverviewEntry(userId = userId)),
+                )
 
             coEvery { playerOverviewPersistencePort.getOverview(groupId) } returns overview
 
@@ -77,10 +76,11 @@ class PlayerOverviewServiceTest {
             val groupId = GroupId("testGroup")
             val userId = UserId("testUser")
             val entry = PlayerOverviewEntry(userId = userId, attendancePoints = 10)
-            val overview = PlayerOverview(
-                groupId = groupId,
-                entries = mutableListOf(entry),
-            )
+            val overview =
+                PlayerOverview(
+                    groupId = groupId,
+                    entries = mutableListOf(entry),
+                )
 
             coEvery { playerOverviewPersistencePort.getOverview(groupId) } returns overview
 
@@ -95,10 +95,11 @@ class PlayerOverviewServiceTest {
         runBlocking {
             val groupId = GroupId("testGroup")
             val userId = UserId("unknownUser")
-            val overview = PlayerOverview(
-                groupId = groupId,
-                entries = mutableListOf(PlayerOverviewEntry(userId = UserId("otherUser"))),
-            )
+            val overview =
+                PlayerOverview(
+                    groupId = groupId,
+                    entries = mutableListOf(PlayerOverviewEntry(userId = UserId("otherUser"))),
+                )
 
             coEvery { playerOverviewPersistencePort.getOverview(groupId) } returns overview
 

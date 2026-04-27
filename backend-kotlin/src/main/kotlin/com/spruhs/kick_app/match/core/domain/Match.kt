@@ -172,18 +172,20 @@ class MatchAggregate(
             val cadreIndex = cadre.indexOfFirst { it is RegisteredPlayer.MainPlayer && it.userId == entry.userId }
             if (cadreIndex >= 0) {
                 val existing = cadre[cadreIndex] as RegisteredPlayer.MainPlayer
-                cadre[cadreIndex] = existing.copy(
-                    points = entry.attendancePoints,
-                    lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
-                )
+                cadre[cadreIndex] =
+                    existing.copy(
+                        points = entry.attendancePoints,
+                        lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
+                    )
             } else {
                 val benchIndex = waitingBench.indexOfFirst { it is RegisteredPlayer.MainPlayer && it.userId == entry.userId }
                 if (benchIndex >= 0) {
                     val existing = waitingBench[benchIndex] as RegisteredPlayer.MainPlayer
-                    waitingBench[benchIndex] = existing.copy(
-                        points = entry.attendancePoints,
-                        lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
-                    )
+                    waitingBench[benchIndex] =
+                        existing.copy(
+                            points = entry.attendancePoints,
+                            lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
+                        )
                 }
             }
 

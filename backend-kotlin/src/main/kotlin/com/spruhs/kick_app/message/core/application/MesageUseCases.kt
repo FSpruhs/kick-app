@@ -12,7 +12,6 @@ import com.spruhs.kick_app.message.core.domain.MessagePersistencePort
 import com.spruhs.kick_app.message.core.domain.MessageType
 import com.spruhs.kick_app.message.core.domain.messageReadBy
 import org.springframework.stereotype.Service
-import java.time.Clock
 import java.time.LocalDateTime
 
 @Service

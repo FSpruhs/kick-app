@@ -18,14 +18,12 @@ import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDateTime
 
 @ExtendWith(MockKExtension::class)
 class MatchOverviewServiceTest {
-
     @MockK
     lateinit var matchOverviewPersistencePort: MatchOverviewPersistencePort
 
@@ -39,17 +37,19 @@ class MatchOverviewServiceTest {
     fun `getMatchHistory should return existing overview from persistence`(): Unit =
         runBlocking {
             val groupId = GroupId("testGroup")
-            val overview = MatchOverview(
-                groupId = groupId,
-                entries = mutableListOf(
-                    MatchOverviewEntry(
-                        matchId = MatchId("match1"),
-                        matchNumber = 1,
-                        start = LocalDateTime.now().plusDays(1),
-                        state = MatchState.PLANNED,
-                    ),
-                ),
-            )
+            val overview =
+                MatchOverview(
+                    groupId = groupId,
+                    entries =
+                        mutableListOf(
+                            MatchOverviewEntry(
+                                matchId = MatchId("match1"),
+                                matchNumber = 1,
+                                start = LocalDateTime.now().plusDays(1),
+                                state = MatchState.PLANNED,
+                            ),
+                        ),
+                )
 
             coEvery { matchOverviewPersistencePort.getOverview(groupId) } returns overview
 

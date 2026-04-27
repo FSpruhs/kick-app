@@ -71,12 +71,15 @@ class TestMatchBuilder {
 
     fun withIsCanceled(isCanceled: Boolean) = apply { this.isCanceled = isCanceled }
 
-    fun withPlayerPriorityStrategy(strategyType: PlayerPriorityStrategyType) = apply {
-        this.playerPriorityStrategy = when (strategyType) {
-            PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE -> FirstComeFirstServe()
-            PlayerPriorityStrategyType.ROUND_ROBIN -> RoundRobin()
-            PlayerPriorityStrategyType.ATTENDANCE_BASED -> AttendanceBased()
-        }}
+    fun withPlayerPriorityStrategy(strategyType: PlayerPriorityStrategyType) =
+        apply {
+            this.playerPriorityStrategy =
+                when (strategyType) {
+                    PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE -> FirstComeFirstServe()
+                    PlayerPriorityStrategyType.ROUND_ROBIN -> RoundRobin()
+                    PlayerPriorityStrategyType.ATTENDANCE_BASED -> AttendanceBased()
+                }
+        }
 
     fun build(): MatchAggregate =
         MatchAggregate(matchId).also { match ->

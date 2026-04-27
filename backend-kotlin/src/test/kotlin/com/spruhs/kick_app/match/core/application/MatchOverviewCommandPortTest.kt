@@ -15,7 +15,6 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.LocalDateTime
@@ -23,7 +22,6 @@ import kotlin.test.assertFailsWith
 
 @ExtendWith(MockKExtension::class)
 class MatchOverviewCommandPortTest {
-
     @MockK
     lateinit var matchOverviewService: MatchOverviewService
 
@@ -36,17 +34,19 @@ class MatchOverviewCommandPortTest {
             val groupId = GroupId("testGroup")
             val matchId = "testMatch"
             val event = MatchCanceledEvent(aggregateId = matchId, groupId = groupId)
-            val overview = MatchOverview(
-                groupId = groupId,
-                entries = mutableListOf(
-                    MatchOverviewEntry(
-                        matchId = MatchId(matchId),
-                        matchNumber = 1,
-                        start = LocalDateTime.now().plusDays(1),
-                        state = MatchState.PLANNED,
-                    ),
-                ),
-            )
+            val overview =
+                MatchOverview(
+                    groupId = groupId,
+                    entries =
+                        mutableListOf(
+                            MatchOverviewEntry(
+                                matchId = MatchId(matchId),
+                                matchNumber = 1,
+                                start = LocalDateTime.now().plusDays(1),
+                                state = MatchState.PLANNED,
+                            ),
+                        ),
+                )
 
             coEvery { matchOverviewService.getMatchHistory(groupId) } returns overview
             coEvery { matchOverviewService.save(overview) } returns Unit
@@ -62,23 +62,26 @@ class MatchOverviewCommandPortTest {
         runBlocking {
             val groupId = GroupId("testGroup")
             val matchId = "testMatch"
-            val event = MatchResultEnteredEvent(
-                aggregateId = matchId,
-                groupId = groupId,
-                players = emptyList(),
-                start = LocalDateTime.now().minusDays(1),
-            )
-            val overview = MatchOverview(
-                groupId = groupId,
-                entries = mutableListOf(
-                    MatchOverviewEntry(
-                        matchId = MatchId(matchId),
-                        matchNumber = 1,
-                        start = LocalDateTime.now().minusDays(1),
-                        state = MatchState.PLANNED,
-                    ),
-                ),
-            )
+            val event =
+                MatchResultEnteredEvent(
+                    aggregateId = matchId,
+                    groupId = groupId,
+                    players = emptyList(),
+                    start = LocalDateTime.now().minusDays(1),
+                )
+            val overview =
+                MatchOverview(
+                    groupId = groupId,
+                    entries =
+                        mutableListOf(
+                            MatchOverviewEntry(
+                                matchId = MatchId(matchId),
+                                matchNumber = 1,
+                                start = LocalDateTime.now().minusDays(1),
+                                state = MatchState.PLANNED,
+                            ),
+                        ),
+                )
 
             coEvery { matchOverviewService.getMatchHistory(groupId) } returns overview
             coEvery { matchOverviewService.save(overview) } returns Unit

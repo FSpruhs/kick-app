@@ -139,7 +139,7 @@ class MatchRestControllerTest {
                     userId,
                     matchId,
                     status,
-                    0
+                    0,
                 ),
             )
         }.returns(Unit)

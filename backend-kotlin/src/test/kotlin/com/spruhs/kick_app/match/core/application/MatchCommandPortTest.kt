@@ -12,7 +12,6 @@ import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MatchOverview
 import com.spruhs.kick_app.match.core.domain.PlayerOverview
-import com.spruhs.kick_app.match.core.domain.PlayerPriorityStrategy
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import io.mockk.coEvery
@@ -258,30 +257,33 @@ class MatchCommandPortTest {
         }
 
     @Test
-    fun `addRegistration should add player overview when priority is round robin`(): Unit = runBlocking {
-        val userId = UserId("user")
-        val matchId = MatchId("testMatchId")
-        val match = TestMatchBuilder()
-            .withStart(LocalDateTime.now().plusDays(1))
-            .withGroupId("testGroupId")
-            .withPlayerPriorityStrategy(PlayerPriorityStrategyType.ROUND_ROBIN)
-            .build()
+    fun `addRegistration should add player overview when priority is round robin`(): Unit =
+        runBlocking {
+            val userId = UserId("user")
+            val matchId = MatchId("testMatchId")
+            val match =
+                TestMatchBuilder()
+                    .withStart(LocalDateTime.now().plusDays(1))
+                    .withGroupId("testGroupId")
+                    .withPlayerPriorityStrategy(PlayerPriorityStrategyType.ROUND_ROBIN)
+                    .build()
 
-        val command = AddRegistrationCommand(
-            updatingUser = userId,
-            updatedUser = userId,
-            matchId = matchId,
-            status = RegistrationStatusType.REGISTERED,
-            guests = 0
-        )
+            val command =
+                AddRegistrationCommand(
+                    updatingUser = userId,
+                    updatedUser = userId,
+                    matchId = matchId,
+                    status = RegistrationStatusType.REGISTERED,
+                    guests = 0,
+                )
 
-        coEvery { aggregateStore.load(matchId.value, MatchAggregate::class.java) } returns match
-        coEvery { playerOverviewService.getOverviewEntry(match.groupId, userId) } returns PlayerOverviewEntry(userId)
-        coEvery { groupApi.isActiveMember(match.groupId, userId) } returns true
-        coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { aggregateStore.load(matchId.value, MatchAggregate::class.java) } returns match
+            coEvery { playerOverviewService.getOverviewEntry(match.groupId, userId) } returns PlayerOverviewEntry(userId)
+            coEvery { groupApi.isActiveMember(match.groupId, userId) } returns true
+            coEvery { aggregateStore.save(any()) } returns Unit
 
-        matchCommandPort.addRegistration(command)
-    }
+            matchCommandPort.addRegistration(command)
+        }
 
     @Test
     fun `addRegistration should throw UserNotAuthorizedException when updatedUser is not an active member`(): Unit =
@@ -307,13 +309,14 @@ class MatchCommandPortTest {
             val updatedUser = UserId("updatingUser")
             val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
             val match = builder.build()
-            val command = AddRegistrationCommand(
-                updatingUser = updatingUser,
-                updatedUser = updatedUser,
-                matchId = MatchId(match.aggregateId),
-                status = RegistrationStatusType.REGISTERED,
-                guests = -1,
-            )
+            val command =
+                AddRegistrationCommand(
+                    updatingUser = updatingUser,
+                    updatedUser = updatedUser,
+                    matchId = MatchId(match.aggregateId),
+                    status = RegistrationStatusType.REGISTERED,
+                    guests = -1,
+                )
 
             coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
             coEvery { groupApi.isActiveMember(match.groupId, updatedUser) } returns true

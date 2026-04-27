@@ -103,8 +103,7 @@ enum class MatchEvents {
 }
 
 @Component
-class MatchEventSerializer(
-) : Serializer {
+class MatchEventSerializer : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,

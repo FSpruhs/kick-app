@@ -32,8 +32,7 @@ enum class UserEvents {
 }
 
 @Component
-class UserEventSerializer(
-) : Serializer {
+class UserEventSerializer : Serializer {
     override fun serialize(
         event: Any,
         aggregate: AggregateRoot,

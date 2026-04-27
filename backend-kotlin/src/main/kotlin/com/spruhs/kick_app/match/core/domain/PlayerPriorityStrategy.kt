@@ -12,7 +12,6 @@ import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
-import java.time.Clock
 import java.time.LocalDateTime
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -48,7 +47,6 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
-
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()

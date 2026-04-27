@@ -34,6 +34,7 @@ interface PlayerPriorityStrategy {
 
     fun reevaluateRegistration(
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     )
 
@@ -62,10 +63,9 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
-    ) {
-        TODO("Not yet implemented")
-    }
+    ) {}
 
     private fun startAddingRegistration(
         userId: UserId,
@@ -254,9 +254,27 @@ class RoundRobin : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        TODO("Not yet implemented")
+        match.waitingBench.sortWith(
+            compareByDescending<RegisteredPlayer> { (it as? RegisteredPlayer.MainPlayer)?.lastWaitingBenchMatchNumber != null }
+                .thenBy { (it as? RegisteredPlayer.MainPlayer)?.lastWaitingBenchMatchNumber?.value ?: Int.MAX_VALUE }
+                .thenByDescending { (it as? RegisteredPlayer.MainPlayer)?.attendancePoints ?: 0 },
+        )
+        val snapshotWaitingBench = match.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>().toList()
+
+        snapshotWaitingBench.forEach { registration ->
+            startAddingRegistration(
+                registration.userId,
+                registration.status.getType(),
+                registration.guests,
+                PlayerOverviewEntry(registration.userId, registration.attendancePoints, registration.lastWaitingBenchMatchNumber),
+                match,
+                clock,
+                apply,
+            )
+        }
     }
 
     private fun startAddingRegistration(
@@ -548,9 +566,27 @@ class AttendanceBased : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
+        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        TODO("Not yet implemented")
+        match.waitingBench.sortWith(
+            compareByDescending<RegisteredPlayer> { (it as? RegisteredPlayer.MainPlayer)?.lastWaitingBenchMatchNumber != null }
+                .thenBy { (it as? RegisteredPlayer.MainPlayer)?.lastWaitingBenchMatchNumber?.value ?: Int.MAX_VALUE }
+                .thenByDescending { (it as? RegisteredPlayer.MainPlayer)?.attendancePoints ?: 0 },
+        )
+        val snapshotWaitingBench = match.waitingBench.filterIsInstance<RegisteredPlayer.MainPlayer>().toList()
+
+        snapshotWaitingBench.forEach { registration ->
+            startAddingRegistration(
+                registration.userId,
+                registration.status.getType(),
+                registration.guests,
+                PlayerOverviewEntry(registration.userId, registration.attendancePoints, registration.lastWaitingBenchMatchNumber),
+                match,
+                clock,
+                apply,
+            )
+        }
     }
 
     private fun startAddingRegistration(
@@ -735,17 +771,6 @@ class AttendanceBased : PlayerPriorityStrategy {
         }
         repeat(benchSlots) {
             apply(PlayerPlacedOnWaitingBenchEvent(match.aggregateId, UserId(generateId()), status.name, 0, userId, playerOverview.attendancePoints))
-        }
-    }
-
-    private fun hasWaitingBenchPriority(
-        match: MatchAggregate,
-        lastWaitingBenchMatchNumber: MatchNumber?,
-    ): Boolean {
-        if (lastWaitingBenchMatchNumber == null) return false
-        return match.cadre.filterIsInstance<RegisteredPlayer.MainPlayer>().any {
-            it.lastWaitingBenchMatchNumber == null ||
-                it.lastWaitingBenchMatchNumber.value > lastWaitingBenchMatchNumber.value
         }
     }
 

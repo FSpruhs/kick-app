@@ -15,6 +15,7 @@ import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
 import com.spruhs.kick_app.match.api.PlayerDeregisteredEvent
 import com.spruhs.kick_app.match.api.PlayerOverviewEntry
+import com.spruhs.kick_app.match.api.PlayerOverviewUpdatedEvent
 import com.spruhs.kick_app.match.api.PlayerPlacedOnWaitingBenchEvent
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
@@ -156,18 +157,58 @@ class MatchAggregate(
                 )
 
             is MatchCanceledEvent -> handleMatchCanceledEvent()
-            is PlaygroundChangedEvent -> handlePlaygroundChangedEvent(event)
-            is MatchResultEnteredEvent -> handleMatchResultEnteredEvent(event)
-            is MatchResultUpdatedEvent -> handleMatchResultUpdatedEvent(event)
+            is PlaygroundChangedEvent -> handlePlaygroundChanged(event)
+            is MatchResultEnteredEvent -> handleMatchResultEntered(event)
+            is MatchResultUpdatedEvent -> handleMatchResultUpdated(event)
+            is PlayerOverviewUpdatedEvent -> handlePlayerOverviewUpdated(event)
             else -> throw UnknownEventTypeException(event)
         }
     }
 
-    private fun handleMatchResultEnteredEvent(event: MatchResultEnteredEvent) {
+    private fun handlePlayerOverviewUpdated(event: PlayerOverviewUpdatedEvent) {
+        if (playerPriorityStrategy.type() == PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE) return
+
+        event.players.forEach { entry ->
+            val cadreIndex = cadre.indexOfFirst { it is RegisteredPlayer.MainPlayer && it.userId == entry.userId }
+            if (cadreIndex >= 0) {
+                val existing = cadre[cadreIndex] as RegisteredPlayer.MainPlayer
+                cadre[cadreIndex] = existing.copy(
+                    points = entry.attendancePoints,
+                    lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
+                )
+            } else {
+                val benchIndex = waitingBench.indexOfFirst { it is RegisteredPlayer.MainPlayer && it.userId == entry.userId }
+                if (benchIndex >= 0) {
+                    val existing = waitingBench[benchIndex] as RegisteredPlayer.MainPlayer
+                    waitingBench[benchIndex] = existing.copy(
+                        points = entry.attendancePoints,
+                        lastWaitingBenchMatchNumber = entry.lastWaitingBenchMatchNumber,
+                    )
+                }
+            }
+
+            cadre.indices.forEach { i ->
+                val guest = cadre[i]
+                if (guest is RegisteredPlayer.GuestPlayer && guest.guestOf == entry.userId) {
+                    cadre[i] = guest.copy(points = entry.attendancePoints)
+                }
+            }
+            waitingBench.indices.forEach { i ->
+                val guest = waitingBench[i]
+                if (guest is RegisteredPlayer.GuestPlayer && guest.guestOf == entry.userId) {
+                    waitingBench[i] = guest.copy(points = entry.attendancePoints)
+                }
+            }
+        }
+
+        playerPriorityStrategy.reevaluateRegistration(this) { apply(it) }
+    }
+
+    private fun handleMatchResultEntered(event: MatchResultEnteredEvent) {
         this.result = event.players
     }
 
-    private fun handleMatchResultUpdatedEvent(event: MatchResultUpdatedEvent) {
+    private fun handleMatchResultUpdated(event: MatchResultUpdatedEvent) {
         val updatedList = this.result.toMutableList()
         if (event.newTeam != null && event.newResult != null) {
             val index = updatedList.indexOfFirst { it.userId == event.user }
@@ -257,7 +298,7 @@ class MatchAggregate(
         this.isCanceled = true
     }
 
-    private fun handlePlaygroundChangedEvent(event: PlaygroundChangedEvent) {
+    private fun handlePlaygroundChanged(event: PlaygroundChangedEvent) {
         this.playground = Playground(event.newPlayground)
     }
 
@@ -284,7 +325,9 @@ class MatchAggregate(
     }
 
     fun updatePlayerOverview(overview: PlayerOverview) {
-        TODO("Not yet implemented")
+        if (start.isBefore(LocalDateTime.now(clock))) return
+
+        apply(PlayerOverviewUpdatedEvent(aggregateId, overview.entries))
     }
 
     fun cancelMatch() {

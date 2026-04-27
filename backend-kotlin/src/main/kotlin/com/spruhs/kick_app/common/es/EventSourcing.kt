@@ -1,5 +1,6 @@
 package com.spruhs.kick_app.common.es
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinFeature
@@ -30,7 +31,7 @@ abstract class AggregateRoot(
     val changes: MutableList<BaseEvent> = mutableListOf()
     var version: Int = 0
 
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
     var clock: Clock = Clock.systemDefaultZone()
 
     protected abstract fun whenEvent(event: BaseEvent)

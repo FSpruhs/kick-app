@@ -25,13 +25,12 @@ class MatchOverview(
     val groupId: GroupId,
     val entries: MutableList<MatchOverviewEntry> = mutableListOf(),
     val events: MutableList<BaseEvent> = mutableListOf(),
-    var clock: Clock = Clock.systemDefaultZone(),
 ) {
     fun add(
         matchId: MatchId,
         start: LocalDateTime,
     ): Int {
-        require(start.isAfter(LocalDateTime.now(clock))) { "Match start must be in the future" }
+        require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
         require(entries.map { it.matchId }.none { it == matchId }) { "Match with id ${matchId.value} already exists" }
         val newNumber = nextMatchNumber(start)
         entries.replaceAll { entry ->
@@ -50,7 +49,7 @@ class MatchOverview(
 
     fun cancel(matchId: MatchId) {
         val entry = entries.find { it.matchId == matchId } ?: return
-        require(entry.start.isAfter(LocalDateTime.now(clock))) {
+        require(entry.start.isAfter(LocalDateTime.now())) {
             "Match with id ${matchId.value} has already started or is in the past"
         }
         entries.remove(entry)

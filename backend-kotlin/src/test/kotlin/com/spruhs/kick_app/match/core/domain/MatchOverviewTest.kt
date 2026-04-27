@@ -2,6 +2,7 @@ package com.spruhs.kick_app.match.core.domain
 
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -39,7 +40,7 @@ class MatchOverviewTest {
         assertThat(result).isEqualTo(2)
         assertThat(overview.entries).hasSize(3)
         assertThat(overview.events).hasSize(1)
-        assertThat(overview.events.first()).isEqualTo(MatchNumberChangedEvent("match2", 3))
+        assertThat(overview.events.first()).isEqualTo(MatchNumberChangedEvent("match2", MatchNumber(3)))
     }
 
     @Test
@@ -153,7 +154,7 @@ class MatchOverviewTest {
         // Then
         assertThat(overview.entries).hasSize(2)
         assertThat(overview.events).hasSize(1)
-        assertThat(overview.events.first()).isEqualTo(MatchNumberChangedEvent("match3", 2))
+        assertThat(overview.events.first()).isEqualTo(MatchNumberChangedEvent("match3", MatchNumber(2)))
         assertThat(overview.entries.map { it.matchId }).containsExactlyInAnyOrder(MatchId("match1"), MatchId("match3"))
     }
 

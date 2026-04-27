@@ -2,10 +2,17 @@ package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
+import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.TestMatchBuilder
+import com.spruhs.kick_app.match.api.MatchApi
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
+import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
+import com.spruhs.kick_app.match.core.domain.MatchOverview
+import com.spruhs.kick_app.match.core.domain.PlayerOverview
+import com.spruhs.kick_app.match.core.domain.PlayerPriorityStrategy
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
 import io.mockk.coEvery
@@ -30,6 +37,15 @@ class MatchCommandPortTest {
     @MockK
     lateinit var groupApi: GroupApi
 
+    @MockK
+    lateinit var matchOverviewService: MatchOverviewService
+
+    @MockK
+    lateinit var playerOverviewService: PlayerOverviewService
+
+    @MockK
+    lateinit var matchApi: MatchApi
+
     @InjectMockKs
     lateinit var matchCommandPort: MatchCommandPort
 
@@ -37,11 +53,13 @@ class MatchCommandPortTest {
     fun `plan should plan match`(): Unit =
         runBlocking {
             val requestingUserId = UserId("requestingUser")
-            val builder = TestMatchBuilder()
+            val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
             val command = builder.toPlanMatchCommand(requestingUserId)
 
             coEvery { groupApi.isActiveMember(command.groupId, requestingUserId) } returns true
             coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { matchOverviewService.getMatchHistory(command.groupId) } returns MatchOverview(command.groupId)
+            coEvery { matchOverviewService.save(any()) } returns Unit
 
             matchCommandPort.plan(command).let { result ->
                 assertThat(result.aggregateId).isNotEmpty()
@@ -209,13 +227,16 @@ class MatchCommandPortTest {
     fun `enterResult should enter result for match`(): Unit =
         runBlocking {
             val userId = UserId("user")
-            val builder = TestMatchBuilder()
+            val builder = TestMatchBuilder().withGroupId("testGroupId")
             val match = builder.build()
             val command = builder.toEnterResultCommand(userId)
 
             coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
             coEvery { groupApi.isActiveCoach(match.groupId, userId) } returns true
             coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { playerOverviewService.getOverview(match.groupId) } returns PlayerOverview(match.groupId)
+            coEvery { playerOverviewService.save(any()) } returns Unit
+            coEvery { matchApi.findPlanningMatchIds(match.groupId) } returns emptyList()
 
             matchCommandPort.enterResult(command)
 
@@ -233,6 +254,72 @@ class MatchCommandPortTest {
             coEvery { groupApi.isActiveCoach(match.groupId, userId) } returns false
             assertFailsWith<UserNotAuthorizedException> {
                 matchCommandPort.enterResult(command)
+            }
+        }
+
+    @Test
+    fun `addRegistration should add player overview when priority is round robin`(): Unit = runBlocking {
+        val userId = UserId("user")
+        val matchId = MatchId("testMatchId")
+        val match = TestMatchBuilder()
+            .withStart(LocalDateTime.now().plusDays(1))
+            .withGroupId("testGroupId")
+            .withPlayerPriorityStrategy(PlayerPriorityStrategyType.ROUND_ROBIN)
+            .build()
+
+        val command = AddRegistrationCommand(
+            updatingUser = userId,
+            updatedUser = userId,
+            matchId = matchId,
+            status = RegistrationStatusType.REGISTERED,
+            guests = 0
+        )
+
+        coEvery { aggregateStore.load(matchId.value, MatchAggregate::class.java) } returns match
+        coEvery { playerOverviewService.getOverviewEntry(match.groupId, userId) } returns PlayerOverviewEntry(userId)
+        coEvery { groupApi.isActiveMember(match.groupId, userId) } returns true
+        coEvery { aggregateStore.save(any()) } returns Unit
+
+        matchCommandPort.addRegistration(command)
+    }
+
+    @Test
+    fun `addRegistration should throw UserNotAuthorizedException when updatedUser is not an active member`(): Unit =
+        runBlocking {
+            val updatingUser = UserId("updatingUser")
+            val updatedUser = UserId("updatedUser")
+            val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
+            val match = builder.build()
+            val command = builder.toAddRegistrationCommand(updatingUser, updatedUser, RegistrationStatusType.REGISTERED)
+
+            coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
+            coEvery { groupApi.isActiveMember(match.groupId, updatedUser) } returns false
+
+            assertFailsWith<UserNotAuthorizedException> {
+                matchCommandPort.addRegistration(command)
+            }
+        }
+
+    @Test
+    fun `addRegistration should throw IllegalArgumentException when guests is negative`(): Unit =
+        runBlocking {
+            val updatingUser = UserId("updatingUser")
+            val updatedUser = UserId("updatingUser")
+            val builder = TestMatchBuilder().withStart(LocalDateTime.now().plusDays(1))
+            val match = builder.build()
+            val command = AddRegistrationCommand(
+                updatingUser = updatingUser,
+                updatedUser = updatedUser,
+                matchId = MatchId(match.aggregateId),
+                status = RegistrationStatusType.REGISTERED,
+                guests = -1,
+            )
+
+            coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
+            coEvery { groupApi.isActiveMember(match.groupId, updatedUser) } returns true
+
+            assertFailsWith<IllegalArgumentException> {
+                matchCommandPort.addRegistration(command)
             }
         }
 

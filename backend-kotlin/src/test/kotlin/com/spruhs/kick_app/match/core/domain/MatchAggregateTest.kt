@@ -3,6 +3,7 @@ package com.spruhs.kick_app.match.core.domain
 import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.UserId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
 import com.spruhs.kick_app.match.api.PlayerAddedToCadreEvent
@@ -218,19 +219,19 @@ class MatchAggregateTest {
         when (testData.oldRegistrationStatus) {
             RegistrationStatus.Added ->
                 matchAggregate.cadre.add(
-                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus, 0),
                 )
             RegistrationStatus.Cancelled ->
                 matchAggregate.waitingBench.add(
-                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus, 0),
                 )
             RegistrationStatus.Deregistered ->
                 matchAggregate.deregistered.add(
-                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus, 0),
                 )
             RegistrationStatus.Registered ->
                 matchAggregate.cadre.add(
-                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus),
+                    RegisteredPlayer.MainPlayer(newPlayerId, 0, LocalDateTime.now(), testData.oldRegistrationStatus, 0),
                 )
         }
 
@@ -382,36 +383,42 @@ class MatchAggregateTest {
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 2"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 3"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.GuestPlayer(
                     guestId = "guest 1",
                     guestOf = UserId("player 3"),
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.GuestPlayer(
                     guestId = "guest 2",
                     guestOf = UserId("player 3"),
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 6"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Added,
+                    points = 0,
                 ),
             )
 
@@ -422,36 +429,42 @@ class MatchAggregateTest {
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 2"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 3"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 4"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 5"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 6"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Added,
+                    points = 0,
                 ),
             )
         val nonFullCadre =
@@ -461,30 +474,35 @@ class MatchAggregateTest {
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 2"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 3"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 4"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
                 RegisteredPlayer.MainPlayer(
                     userId = UserId("player 5"),
                     guests = 0,
                     registeredAt = LocalDateTime.now(),
                     registrationStatus = RegistrationStatus.Registered,
+                    points = 0,
                 ),
             )
 
@@ -675,18 +693,21 @@ class MatchAggregateTest {
                                 guests = 0,
                                 registeredAt = LocalDateTime.now().minusHours(2),
                                 registrationStatus = RegistrationStatus.Cancelled,
+                                points = 0,
                             ),
                             RegisteredPlayer.MainPlayer(
                                 userId = UserId("notSoLongWaitingPlayer"),
                                 guests = 0,
                                 registeredAt = LocalDateTime.now(),
                                 registrationStatus = RegistrationStatus.Registered,
+                                points = 0,
                             ),
                             RegisteredPlayer.MainPlayer(
                                 userId = UserId("waitingPlayer"),
                                 guests = 0,
                                 registeredAt = LocalDateTime.now().minusHours(1),
                                 registrationStatus = RegistrationStatus.Registered,
+                                points = 0,
                             ),
                         ),
                     expectedWaitingPlayers = 2,
@@ -705,18 +726,21 @@ class MatchAggregateTest {
                                 guests = 0,
                                 registeredAt = LocalDateTime.now().minusHours(2),
                                 registrationStatus = RegistrationStatus.Cancelled,
+                                points = 0,
                             ),
                             RegisteredPlayer.MainPlayer(
                                 userId = UserId("notSoLongWaitingPlayer"),
                                 guests = 0,
                                 registeredAt = LocalDateTime.now(),
                                 registrationStatus = RegistrationStatus.Registered,
+                                points = 0,
                             ),
                             RegisteredPlayer.MainPlayer(
                                 userId = UserId("waitingPlayer"),
                                 guests = 0,
                                 registeredAt = LocalDateTime.now().minusHours(1),
                                 registrationStatus = RegistrationStatus.Registered,
+                                points = 0,
                             ),
                         ),
                     expectedWaitingPlayers = 3,

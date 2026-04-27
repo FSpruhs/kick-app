@@ -6,9 +6,11 @@ import com.spruhs.kick_app.user.core.domain.UserAggregate
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.time.Clock
 import java.time.LocalDateTime
 
 class MatchEventSerializerTest {
+
     @ParameterizedTest
     @MethodSource("data")
     fun `serialize and deserialize match events`(event: Any) {
@@ -41,6 +43,9 @@ class MatchEventSerializerTest {
                     listOf(ParticipatingPlayer(UserId("user"), PlayerResult.WIN, MatchTeam.A)),
                     LocalDateTime.now(),
                 ),
+                MatchNumberChangedEvent("matchId", MatchNumber(1)),
+                PlayerOverviewUpdatedEvent("matchId", listOf(PlayerOverviewEntry(UserId("userId"), 1, MatchNumber(2)))),
+                MatchResultUpdatedEvent("matchId", GroupId("groupId"), UserId("userId"), MatchNumber(1), MatchTeam.A, PlayerResult.WIN, MatchTeam.B, PlayerResult.LOSS),
             )
     }
 }

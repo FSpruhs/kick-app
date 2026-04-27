@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 class UserEventSerializerTest {
+
     @ParameterizedTest
     @MethodSource("data")
     fun `serialize and deserialize user events`(event: Any) {

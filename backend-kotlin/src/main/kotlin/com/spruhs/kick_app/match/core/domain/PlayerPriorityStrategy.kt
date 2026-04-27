@@ -28,13 +28,11 @@ interface PlayerPriorityStrategy {
         guests: Int = 0,
         playerOverview: PlayerOverviewEntry? = null,
         match: MatchAggregate,
-        clock: Clock = Clock.systemDefaultZone(),
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent>
 
     fun reevaluateRegistration(
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     )
 
@@ -50,11 +48,11 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
-        clock: Clock,
+
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, match, clock) {
+        startAddingRegistration(userId, registrationStatusType, guests, match) {
             events.add(it)
             apply(it)
         }
@@ -63,7 +61,6 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {}
 
@@ -72,10 +69,9 @@ class FirstComeFirstServe : PlayerPriorityStrategy {
         registrationStatusType: RegistrationStatusType,
         guests: Int,
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now(clock))) {
+        require(match.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {
@@ -240,11 +236,10 @@ class RoundRobin : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match, clock) {
+        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match) {
             events.add(it)
             apply(it)
         }
@@ -254,7 +249,6 @@ class RoundRobin : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
         match.waitingBench.sortWith(
@@ -271,7 +265,6 @@ class RoundRobin : PlayerPriorityStrategy {
                 registration.guests,
                 PlayerOverviewEntry(registration.userId, registration.attendancePoints, registration.lastWaitingBenchMatchNumber),
                 match,
-                clock,
                 apply,
             )
         }
@@ -283,10 +276,9 @@ class RoundRobin : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry,
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now(clock))) {
+        require(match.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {
@@ -552,11 +544,10 @@ class AttendanceBased : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry?,
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ): List<BaseEvent> {
         events.clear()
-        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match, clock) {
+        startAddingRegistration(userId, registrationStatusType, guests, playerOverview ?: PlayerOverviewEntry(userId), match) {
             events.add(it)
             apply(it)
         }
@@ -566,7 +557,6 @@ class AttendanceBased : PlayerPriorityStrategy {
 
     override fun reevaluateRegistration(
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
         match.waitingBench.sortWith(
@@ -583,7 +573,6 @@ class AttendanceBased : PlayerPriorityStrategy {
                 registration.guests,
                 PlayerOverviewEntry(registration.userId, registration.attendancePoints, registration.lastWaitingBenchMatchNumber),
                 match,
-                clock,
                 apply,
             )
         }
@@ -595,10 +584,9 @@ class AttendanceBased : PlayerPriorityStrategy {
         guests: Int,
         playerOverview: PlayerOverviewEntry,
         match: MatchAggregate,
-        clock: Clock,
         apply: (BaseEvent) -> Unit,
     ) {
-        require(match.start.isAfter(LocalDateTime.now(clock))) {
+        require(match.start.isAfter(LocalDateTime.now())) {
             throw MatchStartTimeException(MatchId(match.aggregateId))
         }
         require(guests >= 0 && guests <= match.playerCount.maxPlayer.value / 2) {

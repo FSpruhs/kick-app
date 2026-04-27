@@ -31,9 +31,6 @@ abstract class AggregateRoot(
     val changes: MutableList<BaseEvent> = mutableListOf()
     var version: Int = 0
 
-    @JsonIgnore
-    var clock: Clock = Clock.systemDefaultZone()
-
     protected abstract fun whenEvent(event: BaseEvent)
 
     fun apply(event: BaseEvent) {
@@ -65,7 +62,7 @@ class Event(
     var metadata: ByteArray = byteArrayOf()
     var timeStamp: LocalDateTime = LocalDateTime.now()
 
-    constructor(aggregate: AggregateRoot, eventType: String, data: ByteArray, metadata: ByteArray, clock: Clock = Clock.systemDefaultZone()) : this(
+    constructor(aggregate: AggregateRoot, eventType: String, data: ByteArray, metadata: ByteArray) : this(
         type = eventType,
         data = data,
         aggregateId = aggregate.aggregateId,
@@ -74,7 +71,7 @@ class Event(
         this.id = generateId()
         this.version = aggregate.version
         this.metadata = metadata
-        this.timeStamp = LocalDateTime.now(clock)
+        this.timeStamp = LocalDateTime.now()
     }
 
     constructor(
@@ -155,7 +152,6 @@ class AggregateStoreImpl(
     private val operator: TransactionalOperator,
     private val eventPublisher: EventPublisher,
     private val serializerFactory: SerializerFactory,
-    private val clock: Clock,
 ) : AggregateStore {
     override suspend fun saveEvents(events: List<Event>) = events.forEach { saveEvent(it) }
 
@@ -168,7 +164,7 @@ class AggregateStoreImpl(
                 .sql(LOAD_EVENTS_QUERY)
                 .bind(EventSourcingConstants.AGGREGATE_ID, aggregateId)
                 .bind(EventSourcingConstants.VERSION, version)
-                .map { row, meta -> eventFromRow(row, meta, clock) }
+                .map { row, meta -> eventFromRow(row, meta) }
                 .all()
                 .toIterable()
         }
@@ -204,7 +200,6 @@ class AggregateStoreImpl(
 
         if (aggregate.version == 0) throw AggregateNotFoundException(aggregateId, aggregateType.name)
 
-        aggregate.clock = clock
         return aggregate
     }
 
@@ -245,7 +240,7 @@ class AggregateStoreImpl(
             dbClient
                 .sql(LOAD_SNAPSHOT_QUERY)
                 .bind(EventSourcingConstants.AGGREGATE_ID, aggregateId)
-                .map { row, meta -> snapshotFromRow(row, meta, clock) }
+                .map { row, meta -> snapshotFromRow(row, meta) }
                 .awaitOne()
         } catch (e: EmptyResultDataAccessException) {
             null
@@ -259,7 +254,7 @@ class AggregateStoreImpl(
     }
 
     private suspend fun <T : AggregateRoot> saveSnapshot(aggregate: T) {
-        val snapshot = EventSourcingUtils.snapshotFromAggregate(aggregate, clock)
+        val snapshot = EventSourcingUtils.snapshotFromAggregate(aggregate)
 
         dbClient
             .sql(SAVE_SNAPSHOT_QUERY)
@@ -289,7 +284,6 @@ class AggregateStoreImpl(
         private fun snapshotFromRow(
             row: Row,
             meta: RowMetadata,
-            clock: Clock,
         ) = Snapshot(
             id = UUID.randomUUID(),
             aggregateId = row[EventSourcingConstants.AGGREGATE_ID, String::class.java] ?: "",
@@ -297,13 +291,12 @@ class AggregateStoreImpl(
             data = row[EventSourcingConstants.DATA, ByteArray::class.java] ?: byteArrayOf(),
             metaData = row[EventSourcingConstants.METADATA, ByteArray::class.java] ?: byteArrayOf(),
             version = row[EventSourcingConstants.VERSION, Int::class.java] ?: 0,
-            timeStamp = row[EventSourcingConstants.TIMESTAMP, LocalDateTime::class.java] ?: LocalDateTime.now(clock),
+            timeStamp = row[EventSourcingConstants.TIMESTAMP, LocalDateTime::class.java] ?: LocalDateTime.now(),
         )
 
         private fun eventFromRow(
             row: Row,
             meta: RowMetadata,
-            clock: Clock,
         ) = Event(
             type = row[EventSourcingConstants.EVENT_TYPE, String::class.java] ?: "",
             aggregateId = row[EventSourcingConstants.AGGREGATE_ID, String::class.java] ?: "",
@@ -312,7 +305,7 @@ class AggregateStoreImpl(
             version = row[EventSourcingConstants.VERSION, Int::class.java] ?: 0,
             data = row[EventSourcingConstants.DATA, ByteArray::class.java] ?: byteArrayOf(),
             metadata = row[EventSourcingConstants.METADATA, ByteArray::class.java] ?: byteArrayOf(),
-            timeStamp = row[EventSourcingConstants.TIMESTAMP, LocalDateTime::class.java] ?: LocalDateTime.now(clock),
+            timeStamp = row[EventSourcingConstants.TIMESTAMP, LocalDateTime::class.java] ?: LocalDateTime.now(),
         )
     }
 }
@@ -341,7 +334,6 @@ object EventSourcingUtils {
 
     fun <T : AggregateRoot> snapshotFromAggregate(
         aggregate: T,
-        clock: Clock = Clock.systemDefaultZone(),
     ): Snapshot {
         val dataBytes = mapper.writeValueAsBytes(aggregate)
         return Snapshot(
@@ -350,7 +342,7 @@ object EventSourcingUtils {
             aggregateType = aggregate.aggregateType,
             data = dataBytes,
             version = aggregate.version,
-            timeStamp = LocalDateTime.now(clock),
+            timeStamp = LocalDateTime.now(),
         )
     }
 

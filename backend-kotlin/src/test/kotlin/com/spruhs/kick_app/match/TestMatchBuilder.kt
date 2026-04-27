@@ -5,6 +5,7 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchTeam
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.api.PlayerResult
 import com.spruhs.kick_app.match.core.adapter.primary.EnterResultRequest
 import com.spruhs.kick_app.match.core.adapter.primary.PlanMatchRequest
@@ -14,14 +15,18 @@ import com.spruhs.kick_app.match.core.application.CancelMatchCommand
 import com.spruhs.kick_app.match.core.application.ChangePlaygroundCommand
 import com.spruhs.kick_app.match.core.application.EnterResultCommand
 import com.spruhs.kick_app.match.core.application.PlanMatchCommand
+import com.spruhs.kick_app.match.core.domain.AttendanceBased
+import com.spruhs.kick_app.match.core.domain.FirstComeFirstServe
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
 import com.spruhs.kick_app.match.core.domain.MaxPlayer
 import com.spruhs.kick_app.match.core.domain.MinPlayer
 import com.spruhs.kick_app.match.core.domain.PlayerCount
+import com.spruhs.kick_app.match.core.domain.PlayerPriorityStrategy
 import com.spruhs.kick_app.match.core.domain.Playground
 import com.spruhs.kick_app.match.core.domain.RegisteredPlayer
 import com.spruhs.kick_app.match.core.domain.RegistrationStatus
 import com.spruhs.kick_app.match.core.domain.RegistrationStatusType
+import com.spruhs.kick_app.match.core.domain.RoundRobin
 import com.spruhs.kick_app.view.core.service.MatchProjection
 import com.spruhs.kick_app.view.core.service.RegisteredPlayerInfo
 import java.time.LocalDateTime
@@ -36,18 +41,18 @@ class TestMatchBuilder {
     val minPlayers = 4
     val cadre =
         listOf(
-            RegisteredPlayer.MainPlayer(UserId("player 1"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
-            RegisteredPlayer.MainPlayer(UserId("player 2"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
+            RegisteredPlayer.MainPlayer(UserId("player 1"), 0, LocalDateTime.now(), RegistrationStatus.Registered, 0),
+            RegisteredPlayer.MainPlayer(UserId("player 2"), 0, LocalDateTime.now(), RegistrationStatus.Registered, 0),
         )
     val waitingBench =
         listOf(
-            RegisteredPlayer.MainPlayer(UserId("player 3"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
-            RegisteredPlayer.MainPlayer(UserId("player 4"), 0, LocalDateTime.now(), RegistrationStatus.Registered),
+            RegisteredPlayer.MainPlayer(UserId("player 3"), 0, LocalDateTime.now(), RegistrationStatus.Registered, 0),
+            RegisteredPlayer.MainPlayer(UserId("player 4"), 0, LocalDateTime.now(), RegistrationStatus.Registered, 0),
         )
     val deregistered =
         listOf(
-            RegisteredPlayer.MainPlayer(UserId("player 5"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered),
-            RegisteredPlayer.MainPlayer(UserId("player 6"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered),
+            RegisteredPlayer.MainPlayer(UserId("player 5"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered, 0),
+            RegisteredPlayer.MainPlayer(UserId("player 6"), 0, LocalDateTime.now(), RegistrationStatus.Deregistered, 0),
         )
     val participatingPlayers =
         listOf(
@@ -56,6 +61,7 @@ class TestMatchBuilder {
             ParticipatingPlayer(UserId("player 3"), PlayerResult.WIN, MatchTeam.A),
             ParticipatingPlayer(UserId("player 4"), PlayerResult.LOSS, MatchTeam.B),
         )
+    var playerPriorityStrategy: PlayerPriorityStrategy = FirstComeFirstServe()
 
     fun withStart(start: LocalDateTime) = apply { this.start = start }
 
@@ -64,6 +70,13 @@ class TestMatchBuilder {
     fun withId(matchId: String) = apply { this.matchId = matchId }
 
     fun withIsCanceled(isCanceled: Boolean) = apply { this.isCanceled = isCanceled }
+
+    fun withPlayerPriorityStrategy(strategyType: PlayerPriorityStrategyType) = apply {
+        this.playerPriorityStrategy = when (strategyType) {
+            PlayerPriorityStrategyType.FIRST_COME_FIRST_SERVE -> FirstComeFirstServe()
+            PlayerPriorityStrategyType.ROUND_ROBIN -> RoundRobin()
+            PlayerPriorityStrategyType.ATTENDANCE_BASED -> AttendanceBased()
+        }}
 
     fun build(): MatchAggregate =
         MatchAggregate(matchId).also { match ->
@@ -146,6 +159,7 @@ class TestMatchBuilder {
             updatedUser = updatedUser,
             matchId = MatchId(this.matchId),
             status = status,
+            guests = 0,
         )
 
     fun toProjection() =

@@ -267,7 +267,7 @@ class MatchAggregate(
                     RegisteredPlayer.MainPlayer(
                         userId,
                         guests,
-                        LocalDateTime.now(clock),
+                        LocalDateTime.now(),
                         status.toRegistrationStatus(),
                         attendancePoints,
                         lastWaitingBenchMatchNumber,
@@ -283,7 +283,7 @@ class MatchAggregate(
             val playerRegistration = findGuestRegistration(userId)
             if (playerRegistration == null) {
                 targetList.add(
-                    RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(clock), status.toRegistrationStatus(), attendancePoints),
+                    RegisteredPlayer.GuestPlayer(userId.value, guestOf, LocalDateTime.now(), status.toRegistrationStatus(), attendancePoints),
                 )
             } else {
                 cadre.remove(playerRegistration)
@@ -325,13 +325,13 @@ class MatchAggregate(
     }
 
     fun updatePlayerOverview(overview: PlayerOverview) {
-        if (start.isBefore(LocalDateTime.now(clock))) return
+        if (start.isBefore(LocalDateTime.now())) return
 
         apply(PlayerOverviewUpdatedEvent(aggregateId, overview.entries))
     }
 
     fun cancelMatch() {
-        require(LocalDateTime.now(clock).isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(LocalDateTime.now().isBefore(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         apply(MatchCanceledEvent(aggregateId, this.groupId))
     }
 
@@ -367,7 +367,7 @@ class MatchAggregate(
 
     private fun validateParticipatingPlayersInput(participatingPlayers: List<ParticipatingPlayer>) {
         require(!this.isCanceled) { throw MatchCanceledException(MatchId(this.aggregateId)) }
-        require(LocalDateTime.now(clock).isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
+        require(LocalDateTime.now().isAfter(this.start)) { throw MatchStartTimeException(MatchId(this.aggregateId)) }
         require(arePlayersUnique(participatingPlayers))
         require(participatingPlayers.size >= 2) { "At least two players must participate." }
         require(participatingPlayers.map { it.team }.toSet().size == 2) { "Both teams must be present in the result." }
@@ -467,7 +467,7 @@ class MatchAggregate(
         guests: Int = 0,
         playerOverview: PlayerOverviewEntry? = null,
     ) {
-        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this, clock) { apply(it) }
+        playerPriorityStrategy.addRegistration(userId, registrationStatusType, guests, playerOverview, this) { apply(it) }
     }
 
     fun cadreCapacity() = playerCount.maxPlayer.value - cadre.size

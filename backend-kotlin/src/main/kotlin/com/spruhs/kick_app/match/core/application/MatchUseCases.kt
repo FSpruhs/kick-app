@@ -103,7 +103,10 @@ class MatchCommandPort(
         updatePlayerMatchOverview(groupId, overview)
     }
 
-    private suspend fun updatePlayerOverview(result: EnterResultResponse, match: MatchAggregate): PlayerOverview {
+    private suspend fun updatePlayerOverview(
+        result: EnterResultResponse,
+        match: MatchAggregate,
+    ): PlayerOverview {
         playerOverviewService.getOverview(match.groupId).also { ov ->
             if (result is EnterResultResponse.FirstEntry) {
                 ov.enterResult(match)
@@ -115,12 +118,14 @@ class MatchCommandPort(
         }
     }
 
-    private suspend fun updatePlayerMatchOverview(groupId: GroupId, overview: PlayerOverview) =
-        matchApi.findPlanningMatchIds(groupId).forEach { matchId ->
-            handle(matchId) { match ->
-                match.updatePlayerOverview(overview)
-            }
+    private suspend fun updatePlayerMatchOverview(
+        groupId: GroupId,
+        overview: PlayerOverview,
+    ) = matchApi.findPlanningMatchIds(groupId).forEach { matchId ->
+        handle(matchId) { match ->
+            match.updatePlayerOverview(overview)
         }
+    }
 
     private suspend fun validateRegistrationRequest(
         command: AddRegistrationCommand,
@@ -171,7 +176,10 @@ class MatchCommandPort(
         }
     }
 
-    private suspend fun fetchPlayerOverview(match: MatchAggregate, user: UserId): PlayerOverviewEntry? =
+    private suspend fun fetchPlayerOverview(
+        match: MatchAggregate,
+        user: UserId,
+    ): PlayerOverviewEntry? =
         when (match.playerPriorityStrategy) {
             is RoundRobin, is AttendanceBased -> playerOverviewService.getOverviewEntry(match.groupId, user)
             else -> null

@@ -2,12 +2,12 @@ package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
 import com.spruhs.kick_app.common.es.BaseEvent
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.TestMatchBuilder
-import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.match.api.MatchApi
 import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
@@ -296,7 +296,8 @@ class MatchCommandPortTest {
         }
 
     @Test
-    fun `enterResult should throw UserNotAuthorizedException when user is not an active coach`(): Unit =        runBlocking {
+    fun `enterResult should throw UserNotAuthorizedException when user is not an active coach`(): Unit =
+        runBlocking {
             val userId = UserId("user")
             val builder = TestMatchBuilder()
             val match = builder.build()
@@ -383,10 +384,11 @@ class MatchCommandPortTest {
         runBlocking {
             val builder = TestMatchBuilder()
             val match = builder.build()
-            val event = MatchNumberChangedEvent(
-                aggregateId = match.aggregateId,
-                newMatchNumber = MatchNumber(3),
-            )
+            val event =
+                MatchNumberChangedEvent(
+                    aggregateId = match.aggregateId,
+                    newMatchNumber = MatchNumber(3),
+                )
 
             coEvery { aggregateStore.load(match.aggregateId, MatchAggregate::class.java) } returns match
             coEvery { aggregateStore.save(any()) } returns Unit

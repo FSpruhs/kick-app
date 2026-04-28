@@ -13,7 +13,7 @@
     <packaging>jar</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <name>kick-app</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Kotlin + Spring Boot backend for managing football groups, players, and matches using Event Sourcing and CQRS</description>
     <url/>
     <licenses>
         <license/>

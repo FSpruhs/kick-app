@@ -28,7 +28,7 @@ class MatchOverview(
     fun add(
         matchId: MatchId,
         start: LocalDateTime,
-    ): Int {
+    ): MatchNumber {
         require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
         require(entries.map { it.matchId }.none { it == matchId }) { "Match with id ${matchId.value} already exists" }
         val newNumber = nextMatchNumber(start)
@@ -43,7 +43,7 @@ class MatchOverview(
         }
         entries.add(MatchOverviewEntry(matchId, newNumber, start, MatchState.PLANNED))
         entries.sortBy { it.start }
-        return newNumber
+        return MatchNumber(newNumber)
     }
 
     fun cancel(matchId: MatchId) {

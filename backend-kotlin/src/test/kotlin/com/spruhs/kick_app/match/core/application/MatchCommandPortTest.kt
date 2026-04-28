@@ -1,12 +1,16 @@
 package com.spruhs.kick_app.match.core.application
 
 import com.spruhs.kick_app.common.es.AggregateStore
+import com.spruhs.kick_app.common.es.BaseEvent
 import com.spruhs.kick_app.common.exceptions.UserNotAuthorizedException
 import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.TestMatchBuilder
+import com.spruhs.kick_app.common.es.UnknownEventTypeException
 import com.spruhs.kick_app.match.api.MatchApi
+import com.spruhs.kick_app.match.api.MatchNumber
+import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.api.PlayerPriorityStrategyType
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
@@ -243,8 +247,56 @@ class MatchCommandPortTest {
         }
 
     @Test
-    fun `enterResult should throw UserNotAuthorizedException when user is not an active coach`(): Unit =
+    fun `enterResult should update player overview for all planning matches`(): Unit =
         runBlocking {
+            val userId = UserId("user")
+            val builder = TestMatchBuilder().withGroupId("testGroupId")
+            val match = builder.build()
+            val command = builder.toEnterResultCommand(userId)
+
+            val planningMatchId = MatchId("planningMatchId")
+            val planningMatch = TestMatchBuilder().withId("planningMatchId").withGroupId("testGroupId").build()
+
+            coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
+            coEvery { groupApi.isActiveCoach(match.groupId, userId) } returns true
+            coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { playerOverviewService.getOverview(match.groupId) } returns PlayerOverview(match.groupId)
+            coEvery { playerOverviewService.save(any()) } returns Unit
+            coEvery { matchApi.findPlanningMatchIds(match.groupId) } returns listOf(planningMatchId)
+            coEvery { aggregateStore.load(planningMatchId.value, MatchAggregate::class.java) } returns planningMatch
+
+            matchCommandPort.enterResult(command)
+
+            coVerify(exactly = 2) { aggregateStore.save(any()) }
+            coVerify { aggregateStore.load(planningMatchId.value, MatchAggregate::class.java) }
+        }
+
+    @Test
+    fun `enterResult should call updateResult when result already exists`(): Unit =
+        runBlocking {
+            val userId = UserId("user")
+            val builder = TestMatchBuilder().withGroupId("testGroupId")
+            val match = builder.build()
+            match.enterResult(builder.participatingPlayers)
+            match.clearChanges()
+
+            val command = builder.toEnterResultCommand(userId)
+
+            coEvery { aggregateStore.load(command.matchId.value, MatchAggregate::class.java) } returns match
+            coEvery { groupApi.isActiveCoach(match.groupId, userId) } returns true
+            coEvery { aggregateStore.save(any()) } returns Unit
+            coEvery { playerOverviewService.getOverview(match.groupId) } returns PlayerOverview(match.groupId)
+            coEvery { playerOverviewService.save(any()) } returns Unit
+            coEvery { matchApi.findPlanningMatchIds(match.groupId) } returns emptyList()
+
+            matchCommandPort.enterResult(command)
+
+            coVerify { playerOverviewService.save(any()) }
+            coVerify { aggregateStore.save(any()) }
+        }
+
+    @Test
+    fun `enterResult should throw UserNotAuthorizedException when user is not an active coach`(): Unit =        runBlocking {
             val userId = UserId("user")
             val builder = TestMatchBuilder()
             val match = builder.build()
@@ -323,6 +375,34 @@ class MatchCommandPortTest {
 
             assertFailsWith<IllegalArgumentException> {
                 matchCommandPort.addRegistration(command)
+            }
+        }
+
+    @Test
+    fun `onEvent should handle MatchNumberChangedEvent`(): Unit =
+        runBlocking {
+            val builder = TestMatchBuilder()
+            val match = builder.build()
+            val event = MatchNumberChangedEvent(
+                aggregateId = match.aggregateId,
+                newMatchNumber = MatchNumber(3),
+            )
+
+            coEvery { aggregateStore.load(match.aggregateId, MatchAggregate::class.java) } returns match
+            coEvery { aggregateStore.save(any()) } returns Unit
+
+            matchCommandPort.onEvent(event)
+
+            coVerify { aggregateStore.save(any()) }
+        }
+
+    @Test
+    fun `onEvent should throw UnknownEventTypeException for unknown event`(): Unit =
+        runBlocking {
+            val unknownEvent = object : BaseEvent("unknownId") {}
+
+            assertFailsWith<UnknownEventTypeException> {
+                matchCommandPort.onEvent(unknownEvent)
             }
         }
 

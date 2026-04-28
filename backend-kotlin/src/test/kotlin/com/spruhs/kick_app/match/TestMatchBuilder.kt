@@ -97,6 +97,7 @@ class TestMatchBuilder {
             this.deregistered.forEach { player ->
                 match.deregistered.add(player)
             }
+            match.playerPriorityStrategy = playerPriorityStrategy
         }
 
     fun toPlanMatchRequest(): PlanMatchRequest =

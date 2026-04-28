@@ -8,6 +8,7 @@ import com.spruhs.kick_app.common.types.MatchId
 import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.match.api.MatchCanceledEvent
 import com.spruhs.kick_app.match.api.MatchNumber
+import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.MatchPlannedEvent
 import com.spruhs.kick_app.match.api.MatchResultEnteredEvent
 import com.spruhs.kick_app.match.api.MatchResultUpdatedEvent
@@ -161,8 +162,13 @@ class MatchAggregate(
             is MatchResultEnteredEvent -> handleMatchResultEntered(event)
             is MatchResultUpdatedEvent -> handleMatchResultUpdated(event)
             is PlayerOverviewUpdatedEvent -> handlePlayerOverviewUpdated(event)
+            is MatchNumberChangedEvent -> handleMatchNumberChanged(event)
             else -> throw UnknownEventTypeException(event)
         }
+    }
+
+    private fun handleMatchNumberChanged(event: MatchNumberChangedEvent) {
+        this.matchNumber = event.newMatchNumber
     }
 
     private fun handlePlayerOverviewUpdated(event: PlayerOverviewUpdatedEvent) {
@@ -411,7 +417,7 @@ class MatchAggregate(
                         aggregateId = aggregateId,
                         groupId = this.groupId,
                         user = participatingPlayer.userId,
-                        matchNumber = this.matchNumber.value,
+                        matchNumber = this.matchNumber,
                         oldTeam = null,
                         oldResult = null,
                         newTeam = participatingPlayer.team,
@@ -424,7 +430,7 @@ class MatchAggregate(
                         aggregateId = aggregateId,
                         groupId = this.groupId,
                         user = participatingPlayer.userId,
-                        matchNumber = this.matchNumber.value,
+                        matchNumber = this.matchNumber,
                         oldTeam = player.team,
                         oldResult = player.playerResult,
                         newTeam = participatingPlayer.team,
@@ -442,7 +448,7 @@ class MatchAggregate(
                         aggregateId = aggregateId,
                         groupId = this.groupId,
                         user = participatingPlayer.userId,
-                        matchNumber = this.matchNumber.value,
+                        matchNumber = this.matchNumber,
                         oldTeam = participatingPlayer.team,
                         oldResult = participatingPlayer.playerResult,
                         newTeam = null,

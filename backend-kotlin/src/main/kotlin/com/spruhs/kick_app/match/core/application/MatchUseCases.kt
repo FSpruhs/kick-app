@@ -11,9 +11,9 @@ import com.spruhs.kick_app.common.types.UserId
 import com.spruhs.kick_app.common.types.generateId
 import com.spruhs.kick_app.group.api.GroupApi
 import com.spruhs.kick_app.match.api.MatchApi
-import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.api.MatchNumberChangedEvent
 import com.spruhs.kick_app.match.api.ParticipatingPlayer
+import com.spruhs.kick_app.match.api.PlayerOverviewEntry
 import com.spruhs.kick_app.match.core.domain.AttendanceBased
 import com.spruhs.kick_app.match.core.domain.EnterResultResponse
 import com.spruhs.kick_app.match.core.domain.MatchAggregate
@@ -48,8 +48,9 @@ class MatchCommandPort(
                 start = command.start,
                 playground = command.playground,
                 playerCount = command.playerCount,
-                lastMatchNumber = MatchNumber(lastMatchNumber),
+                lastMatchNumber = lastMatchNumber,
             )
+
             aggregateStore.save(it)
             matchOverviewService.save(matchOverview)
         }
@@ -74,17 +75,11 @@ class MatchCommandPort(
     suspend fun addRegistration(command: AddRegistrationCommand) =
         handle(command.matchId) { match ->
             validateRegistrationRequest(command, match)
-            val playerOverview =
-                if (match.playerPriorityStrategy is RoundRobin || match.playerPriorityStrategy is AttendanceBased) {
-                    playerOverviewService.getOverviewEntry(match.groupId, command.updatedUser)
-                } else {
-                    null
-                }
             match.addRegistration(
                 userId = command.updatedUser,
                 registrationStatusType = command.status,
                 guests = command.guests,
-                playerOverview = playerOverview,
+                playerOverview = fetchPlayerOverview(match, command.updatedUser),
             )
         }
 
@@ -98,27 +93,34 @@ class MatchCommandPort(
             }
             groupId = match.groupId
             val result = match.enterResult(command.players)
-            overview =
-                playerOverviewService.getOverview(match.groupId).also { ov ->
-                    if (result is EnterResultResponse.FirstEntry) {
-                        ov.enterResult(match)
-                    } else {
-                        ov.updateResult(match)
-                    }
-                    playerOverviewService.save(ov)
-                }
+            overview = updatePlayerOverview(result, match)
         }
 
         if (overview == null || groupId == null) {
             return
         }
 
+        updatePlayerMatchOverview(groupId, overview)
+    }
+
+    private suspend fun updatePlayerOverview(result: EnterResultResponse, match: MatchAggregate): PlayerOverview {
+        playerOverviewService.getOverview(match.groupId).also { ov ->
+            if (result is EnterResultResponse.FirstEntry) {
+                ov.enterResult(match)
+            } else {
+                ov.updateResult(match)
+            }
+            playerOverviewService.save(ov)
+            return ov
+        }
+    }
+
+    private suspend fun updatePlayerMatchOverview(groupId: GroupId, overview: PlayerOverview) =
         matchApi.findPlanningMatchIds(groupId).forEach { matchId ->
             handle(matchId) { match ->
                 match.updatePlayerOverview(overview)
             }
         }
-    }
 
     private suspend fun validateRegistrationRequest(
         command: AddRegistrationCommand,
@@ -149,12 +151,11 @@ class MatchCommandPort(
             match.apply(MatchNumberChangedEvent(event.aggregateId, event.newMatchNumber))
         }
 
-    suspend fun onEvent(event: BaseEvent) {
+    suspend fun onEvent(event: BaseEvent) =
         when (event) {
             is MatchNumberChangedEvent -> handleChangeMatchNumber(event)
             else -> throw UnknownEventTypeException(event)
         }
-    }
 
     private suspend fun loadMatch(matchId: MatchId): MatchAggregate = aggregateStore.load(matchId.value, MatchAggregate::class.java)
 
@@ -169,6 +170,12 @@ class MatchCommandPort(
             }
         }
     }
+
+    private suspend fun fetchPlayerOverview(match: MatchAggregate, user: UserId): PlayerOverviewEntry? =
+        when (match.playerPriorityStrategy) {
+            is RoundRobin, is AttendanceBased -> playerOverviewService.getOverviewEntry(match.groupId, user)
+            else -> null
+        }
 }
 
 data class EnterResultCommand(

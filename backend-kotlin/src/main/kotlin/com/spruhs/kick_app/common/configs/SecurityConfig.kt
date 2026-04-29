@@ -84,9 +84,7 @@ class DevSecurityConfig(
     private val corsConfigurationSource: CorsConfigurationSource,
 ) {
     @Bean
-    fun securityFilterChain(
-        http: ServerHttpSecurity,
-    ): SecurityWebFilterChain =
+    fun securityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain =
         http
             .csrf { it.disable() }
             .cors { it.configurationSource(corsConfigurationSource) }
@@ -98,7 +96,7 @@ class DevSecurityConfig(
                         "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/webjars/**",
-                        "/actuator/**"
+                        "/actuator/**",
                     ).permitAll()
                     .pathMatchers(HttpMethod.POST, "/api/v1/user")
                     .permitAll()
@@ -234,19 +232,27 @@ class DevAuthenticationWebFilter : WebFilter {
     private fun parseJwt(token: String): Jwt {
         val parts = token.split(".")
         require(parts.size == 3) { "Invalid JWT format" }
-        val payloadJson = String(java.util.Base64.getUrlDecoder().decode(parts[1]), Charsets.UTF_8)
-        val rawClaims: Map<String, Any> = jacksonObjectMapper().readValue(
-            payloadJson,
-            object : TypeReference<Map<String, Any>>() {},
-        )
+        val payloadJson =
+            String(
+                java.util.Base64
+                    .getUrlDecoder()
+                    .decode(parts[1]),
+                Charsets.UTF_8,
+            )
+        val rawClaims: Map<String, Any> =
+            jacksonObjectMapper().readValue(
+                payloadJson,
+                object : TypeReference<Map<String, Any>>() {},
+            )
         val timestampKeys = setOf("iat", "exp", "nbf", "auth_time", "updated_at")
-        val normalizedClaims = rawClaims.mapValues { (key, value) ->
-            if (key in timestampKeys && value is Number) {
-                Instant.ofEpochSecond(value.toLong())
-            } else {
-                value
+        val normalizedClaims =
+            rawClaims.mapValues { (key, value) ->
+                if (key in timestampKeys && value is Number) {
+                    Instant.ofEpochSecond(value.toLong())
+                } else {
+                    value
+                }
             }
-        }
         return Jwt
             .withTokenValue(token)
             .header("alg", "HS256")

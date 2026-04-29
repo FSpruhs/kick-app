@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 
 data class MatchOverviewEntry(
     val matchId: MatchId,
-    val matchNumber: Int,
+    val matchNumber: MatchNumber,
     val start: LocalDateTime,
     val state: MatchState,
 )
@@ -31,19 +31,11 @@ class MatchOverview(
     ): MatchNumber {
         require(start.isAfter(LocalDateTime.now())) { "Match start must be in the future" }
         require(entries.map { it.matchId }.none { it == matchId }) { "Match with id ${matchId.value} already exists" }
-        val newNumber = nextMatchNumber(start)
-        entries.replaceAll { entry ->
-            if (entry.matchNumber >= newNumber) {
-                val newMatchId = entry.matchNumber + 1
-                events.add(MatchNumberChangedEvent(entry.matchId.value, MatchNumber(newMatchId)))
-                entry.copy(matchNumber = newMatchId)
-            } else {
-                entry
-            }
+        return nextMatchNumber(start).also {
+            increaseOtherMatchNumbers(it)
+            entries.add(MatchOverviewEntry(matchId, it, start, MatchState.PLANNED))
+            entries.sortBy { entry -> entry.start }
         }
-        entries.add(MatchOverviewEntry(matchId, newNumber, start, MatchState.PLANNED))
-        entries.sortBy { it.start }
-        return MatchNumber(newNumber)
     }
 
     fun cancel(matchId: MatchId) {
@@ -52,15 +44,7 @@ class MatchOverview(
             "Match with id ${matchId.value} has already started or is in the past"
         }
         entries.remove(entry)
-        entries.replaceAll { e ->
-            if (e.matchNumber > entry.matchNumber) {
-                val newMatchNumber = e.matchNumber - 1
-                events.add(MatchNumberChangedEvent(e.matchId.value, MatchNumber(newMatchNumber)))
-                e.copy(matchNumber = newMatchNumber)
-            } else {
-                e
-            }
-        }
+        decreaseOtherMatchNumbers(entry)
     }
 
     fun resultEntered(matchId: MatchId) {
@@ -68,9 +52,7 @@ class MatchOverview(
             entries.find { it.matchId == matchId }
                 ?: return
 
-        val priorEntries = entries.filter { it.matchNumber < entry.matchNumber }
-
-        priorEntries
+        entries.filter { it.matchNumber < entry.matchNumber }
             .filter { it.state == MatchState.PLANNED }
             .forEach { planned ->
                 entries.replaceAll { e ->
@@ -85,17 +67,39 @@ class MatchOverview(
         }
     }
 
-    private fun nextMatchNumber(start: LocalDateTime): Int {
-        if (entries.isEmpty()) return 1
+    private fun nextMatchNumber(start: LocalDateTime): MatchNumber {
+        if (entries.isEmpty()) return MatchNumber(1)
         val sorted = entries.sortedWith(compareBy({ it.start }, { it.matchNumber }))
         val insertIndex = sorted.indexOfFirst { it.start.isAfter(start) }
         return if (insertIndex == -1) {
-            (sorted.lastOrNull()?.matchNumber ?: 0) + 1
+            (sorted.lastOrNull()?.matchNumber ?: MatchNumber(0)) + 1
         } else {
-            val prevNumber = if (insertIndex == 0) 0 else sorted[insertIndex - 1].matchNumber
+            val prevNumber = if (insertIndex == 0) MatchNumber(0) else sorted[insertIndex - 1].matchNumber
             prevNumber + 1
         }
     }
+
+    private fun decreaseOtherMatchNumbers(entry: MatchOverviewEntry) =
+        entries.replaceAll { e ->
+            if (e.matchNumber > entry.matchNumber) {
+                val newMatchNumber = e.matchNumber - 1
+                events.add(MatchNumberChangedEvent(e.matchId.value, newMatchNumber))
+                e.copy(matchNumber = newMatchNumber)
+            } else {
+                e
+            }
+        }
+
+    private fun increaseOtherMatchNumbers(newNumber: MatchNumber) =
+        entries.replaceAll { entry ->
+            if (entry.matchNumber >= newNumber) {
+                val newMatchId = entry.matchNumber + 1
+                events.add(MatchNumberChangedEvent(entry.matchId.value, newMatchId))
+                entry.copy(matchNumber = newMatchId)
+            } else {
+                entry
+            }
+        }
 }
 
 interface MatchOverviewPersistencePort {

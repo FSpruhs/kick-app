@@ -226,10 +226,20 @@ enum class PlayerPriorityStrategyType {
 @JvmInline
 value class MatchNumber(
     val value: Int,
-) {
+) : Comparable<MatchNumber> {
     init {
         require(value >= 0) { "Match number must be greater equal than 0" }
     }
+
+    override fun compareTo(other: MatchNumber): Int = value.compareTo(other.value)
+
+    operator fun inc(): MatchNumber = MatchNumber(value + 1)
+
+    operator fun dec(): MatchNumber = MatchNumber(value - 1)
+
+    operator fun plus(other: Int): MatchNumber = MatchNumber(value + other)
+
+    operator fun minus(other: Int): MatchNumber = MatchNumber(value - other)
 }
 
 data class PlayerOverviewEntry(

@@ -20,13 +20,13 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().plusDays(1),
                             state = MatchState.PLANNED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match2"),
-                            matchNumber = 2,
+                            matchNumber = MatchNumber(2),
                             start = LocalDateTime.now().plusDays(3),
                             state = MatchState.PLANNED,
                         ),
@@ -37,7 +37,7 @@ class MatchOverviewTest {
         val result = overview.add(MatchId("match3"), LocalDateTime.now().plusDays(2))
 
         // Then
-        assertThat(result).isEqualTo(2)
+        assertThat(result).isEqualTo(MatchNumber(2))
         assertThat(overview.entries).hasSize(3)
         assertThat(overview.events).hasSize(1)
         assertThat(overview.events.first()).isEqualTo(MatchNumberChangedEvent("match2", MatchNumber(3)))
@@ -53,7 +53,7 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().plusDays(1),
                             state = MatchState.PLANNED,
                         ),
@@ -90,7 +90,7 @@ class MatchOverviewTest {
         val result = overview.add(MatchId("match1"), LocalDateTime.now().plusDays(1))
 
         // Then
-        assertThat(result).isEqualTo(1)
+        assertThat(result).isEqualTo(MatchNumber(1))
     }
 
     @Test
@@ -103,7 +103,7 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().plusDays(1),
                             state = MatchState.PLANNED,
                         ),
@@ -114,7 +114,7 @@ class MatchOverviewTest {
         val result = overview.add(MatchId("match2"), LocalDateTime.now().plusDays(2))
 
         // Then
-        assertThat(result).isEqualTo(2)
+        assertThat(result).isEqualTo(MatchNumber(2))
         assertThat(overview.entries).hasSize(2)
         assertThat(overview.events).isEmpty()
     }
@@ -129,19 +129,19 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().plusDays(1),
                             state = MatchState.PLANNED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match2"),
-                            matchNumber = 2,
+                            matchNumber = MatchNumber(2),
                             start = LocalDateTime.now().plusDays(2),
                             state = MatchState.PLANNED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match3"),
-                            matchNumber = 3,
+                            matchNumber = MatchNumber(3),
                             start = LocalDateTime.now().plusDays(3),
                             state = MatchState.PLANNED,
                         ),
@@ -168,7 +168,7 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().plusDays(1),
                             state = MatchState.PLANNED,
                         ),
@@ -193,7 +193,7 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().minusDays(1),
                             state = MatchState.PLANNED,
                         ),
@@ -215,13 +215,13 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match0"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().minusDays(2),
                             state = MatchState.RESULT_ENTERED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 2,
+                            matchNumber = MatchNumber(2),
                             start = LocalDateTime.now().minusDays(1),
                             state = MatchState.PLANNED,
                         ),
@@ -238,6 +238,45 @@ class MatchOverviewTest {
     }
 
     @Test
+    fun `resultEntered should set prior planned matches with elapsed time to finished`() {
+        // Given
+        val overview =
+            MatchOverview(
+                groupId = GroupId("groupId"),
+                entries =
+                    mutableListOf(
+                        MatchOverviewEntry(
+                            matchId = MatchId("match1"),
+                            matchNumber = MatchNumber(1),
+                            start = LocalDateTime.now().minusDays(3),
+                            state = MatchState.PLANNED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match2"),
+                            matchNumber = MatchNumber(2),
+                            start = LocalDateTime.now().minusDays(2),
+                            state = MatchState.PLANNED,
+                        ),
+                        MatchOverviewEntry(
+                            matchId = MatchId("match3"),
+                            matchNumber = MatchNumber(3),
+                            start = LocalDateTime.now().minusDays(1),
+                            state = MatchState.PLANNED,
+                        ),
+                    ),
+            )
+
+        // When
+        overview.resultEntered(MatchId("match3"))
+
+        // Then
+        assertThat(overview.entries).hasSize(3)
+        assertThat(overview.entries.find { it.matchId == MatchId("match1") }?.state).isEqualTo(MatchState.FINISHED)
+        assertThat(overview.entries.find { it.matchId == MatchId("match2") }?.state).isEqualTo(MatchState.FINISHED)
+        assertThat(overview.entries.find { it.matchId == MatchId("match3") }?.state).isEqualTo(MatchState.RESULT_ENTERED)
+    }
+
+    @Test
     fun `resultEntered should enter result and keep last item`() {
         // Given
         val overview =
@@ -247,19 +286,19 @@ class MatchOverviewTest {
                     mutableListOf(
                         MatchOverviewEntry(
                             matchId = MatchId("match0"),
-                            matchNumber = 1,
+                            matchNumber = MatchNumber(1),
                             start = LocalDateTime.now().minusDays(3),
                             state = MatchState.RESULT_ENTERED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match1"),
-                            matchNumber = 2,
+                            matchNumber = MatchNumber(2),
                             start = LocalDateTime.now().minusDays(2),
                             state = MatchState.PLANNED,
                         ),
                         MatchOverviewEntry(
                             matchId = MatchId("match2"),
-                            matchNumber = 2,
+                            matchNumber = MatchNumber(2),
                             start = LocalDateTime.now().minusDays(1),
                             state = MatchState.PLANNED,
                         ),

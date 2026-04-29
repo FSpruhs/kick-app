@@ -2,6 +2,7 @@ package com.spruhs.kick_app.match.core.adapter.secondary
 
 import com.spruhs.kick_app.common.types.GroupId
 import com.spruhs.kick_app.common.types.MatchId
+import com.spruhs.kick_app.match.api.MatchNumber
 import com.spruhs.kick_app.match.core.domain.MatchOverview
 import com.spruhs.kick_app.match.core.domain.MatchOverviewEntry
 import com.spruhs.kick_app.match.core.domain.MatchOverviewPersistencePort
@@ -57,7 +58,7 @@ private fun MatchOverview.toDocument() =
 private fun MatchOverviewEntry.toDocument() =
     MatchOverviewEntryDocument(
         matchId = matchId.value,
-        matchNumber = matchNumber,
+        matchNumber = matchNumber.value,
         start = start,
         state = state.name,
     )
@@ -71,7 +72,7 @@ private fun MatchOverviewDocument.toDomain() =
 private fun MatchOverviewEntryDocument.toDomain() =
     MatchOverviewEntry(
         matchId = MatchId(matchId),
-        matchNumber = matchNumber,
+        matchNumber = MatchNumber(matchNumber),
         start = start,
         state = MatchState.valueOf(state),
     )

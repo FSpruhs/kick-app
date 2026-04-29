@@ -1,5 +1,7 @@
 package com.spruhs.kick_app.common.configs
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.auth.oauth2.ServiceAccountCredentials
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
@@ -39,6 +41,7 @@ import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import java.time.Instant
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -215,13 +218,10 @@ class DevAuthenticationWebFilter : WebFilter {
         exchange: ServerWebExchange,
         chain: WebFilterChain,
     ): Mono<Void?> {
-        val token = extractToken(exchange.request)
+        val token = extractToken(exchange.request) ?: return chain.filter(exchange)
 
-        if (token == null) {
-            return chain.filter(exchange)
-        }
-
-        val auth = UsernamePasswordAuthenticationToken(token, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
+        val jwt = parseJwt(token)
+        val auth = UsernamePasswordAuthenticationToken(jwt, null, listOf(SimpleGrantedAuthority("ROLE_USER")))
         val context = SecurityContextImpl(auth)
 
         return chain
@@ -229,6 +229,29 @@ class DevAuthenticationWebFilter : WebFilter {
             .contextWrite(
                 ReactiveSecurityContextHolder.withSecurityContext(Mono.just(context)),
             )
+    }
+
+    private fun parseJwt(token: String): Jwt {
+        val parts = token.split(".")
+        require(parts.size == 3) { "Invalid JWT format" }
+        val payloadJson = String(java.util.Base64.getUrlDecoder().decode(parts[1]), Charsets.UTF_8)
+        val rawClaims: Map<String, Any> = jacksonObjectMapper().readValue(
+            payloadJson,
+            object : TypeReference<Map<String, Any>>() {},
+        )
+        val timestampKeys = setOf("iat", "exp", "nbf", "auth_time", "updated_at")
+        val normalizedClaims = rawClaims.mapValues { (key, value) ->
+            if (key in timestampKeys && value is Number) {
+                Instant.ofEpochSecond(value.toLong())
+            } else {
+                value
+            }
+        }
+        return Jwt
+            .withTokenValue(token)
+            .header("alg", "HS256")
+            .claims { it.putAll(normalizedClaims) }
+            .build()
     }
 
     private fun extractToken(request: ServerHttpRequest): String? {

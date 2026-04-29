@@ -7,7 +7,7 @@ import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserIdentityProviderPort
 import com.spruhs.kick_app.user.core.domain.UserImagePort
-import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
+import com.spruhs.kick_app.user.core.domain.UserAlreadyExistsException
 import io.mockk.coEvery
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
@@ -42,7 +42,7 @@ class UserCommandsPortTest {
             coEvery { userApi.existsByEmail(command.email) } returns true
 
             // When + Then
-            assertFailsWith<UserWithEmailAlreadyExistsException> {
+            assertFailsWith<UserAlreadyExistsException> {
                 userCommandsPort.registerUser(command)
             }
         }

@@ -10,7 +10,7 @@ import com.spruhs.kick_app.user.api.UserApi
 import com.spruhs.kick_app.user.core.domain.NickName
 import com.spruhs.kick_app.user.core.domain.UserAggregate
 import com.spruhs.kick_app.user.core.domain.UserImagePort
-import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
+import com.spruhs.kick_app.user.core.domain.UserAlreadyExistsException
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,7 +22,11 @@ class UserCommandsPort(
 ) {
     suspend fun registerUser(command: RegisterUserCommand): UserAggregate {
         require(userApi.existsByEmail(command.email).not()) {
-            throw UserWithEmailAlreadyExistsException(command.email)
+            throw UserAlreadyExistsException(command.email, command.userId)
+        }
+
+        require(userApi.existsByUserId(command.userId).not()) {
+            throw UserAlreadyExistsException(command.email, command.userId)
         }
 
         return UserAggregate(command.userId.value).also {

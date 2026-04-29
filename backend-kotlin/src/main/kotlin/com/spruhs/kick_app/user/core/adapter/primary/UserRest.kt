@@ -11,7 +11,7 @@ import com.spruhs.kick_app.user.core.application.UserCommandsPort
 import com.spruhs.kick_app.user.core.application.UserImageUpload
 import com.spruhs.kick_app.user.core.domain.CreateUserIdentityProviderException
 import com.spruhs.kick_app.user.core.domain.NickName
-import com.spruhs.kick_app.user.core.domain.UserWithEmailAlreadyExistsException
+import com.spruhs.kick_app.user.core.domain.UserAlreadyExistsException
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpStatus
@@ -85,7 +85,7 @@ private suspend fun FilePart.toUserImageUpload(): UserImageUpload {
 @ControllerAdvice
 class UserExceptionHandler {
     @ExceptionHandler
-    fun handleUserWithEmailAlreadyExistsException(e: UserWithEmailAlreadyExistsException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
+    fun handleUserWithEmailAlreadyExistsException(e: UserAlreadyExistsException) = ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
 
     @ExceptionHandler
     fun handleUserNotAuthorizedException(e: UserNotAuthorizedException) = ResponseEntity(e.message, HttpStatus.UNAUTHORIZED)

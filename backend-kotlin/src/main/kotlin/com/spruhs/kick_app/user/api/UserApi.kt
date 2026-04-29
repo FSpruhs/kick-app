@@ -12,6 +12,8 @@ interface UserApi {
 
     suspend fun existsByEmail(email: Email): Boolean
 
+    suspend fun existsByUserId(userId: UserId): Boolean
+
     suspend fun findUserIdByEmail(email: Email): UserId?
 }
 

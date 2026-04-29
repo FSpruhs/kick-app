@@ -174,11 +174,16 @@ class UserApiService(
 
     override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email)
 
+    override suspend fun existsByUserId(userId: UserId): Boolean =
+        repository.existsByUserId(userId)
+
     override suspend fun findUserIdByEmail(email: Email): UserId? = repository.findByEmail(email)?.id
 }
 
 interface UserProjectionRepository {
     suspend fun existsByEmail(email: Email): Boolean
+
+    suspend fun existsByUserId(userId: UserId): Boolean
 
     suspend fun getUser(userId: UserId): UserProjection?
 

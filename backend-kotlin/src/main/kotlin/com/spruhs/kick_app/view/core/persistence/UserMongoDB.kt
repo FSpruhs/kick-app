@@ -72,6 +72,8 @@ class UserProjectionMongoDB(
             ?.toProjection()
 
     override suspend fun existsByEmail(email: Email): Boolean = repository.existsByEmail(email.value).awaitSingle()
+    override suspend fun existsByUserId(userId: UserId): Boolean =
+        repository.existsById(userId.value).awaitSingle()
 }
 
 @Repository

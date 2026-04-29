@@ -126,9 +126,10 @@ interface UserImagePort {
     fun delete(imageId: UserImageId)
 }
 
-data class UserWithEmailAlreadyExistsException(
+data class UserAlreadyExistsException(
     val email: Email,
-) : RuntimeException("User with email already exists: $email")
+    val userId: UserId
+) : RuntimeException("User with email $email or user id ${userId }already exists")
 
 class CreateUserIdentityProviderException(
     message: String,

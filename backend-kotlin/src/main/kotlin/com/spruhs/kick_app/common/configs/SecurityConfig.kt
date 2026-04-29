@@ -83,7 +83,6 @@ class DevSecurityConfig(
     @Bean
     fun securityFilterChain(
         http: ServerHttpSecurity,
-        jwtUtil: JwtUtil,
     ): SecurityWebFilterChain =
         http
             .csrf { it.disable() }
@@ -96,6 +95,7 @@ class DevSecurityConfig(
                         "/swagger-ui/**",
                         "/swagger-resources/**",
                         "/webjars/**",
+                        "/actuator/**"
                     ).permitAll()
                     .pathMatchers(HttpMethod.POST, "/api/v1/user")
                     .permitAll()

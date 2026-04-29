@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component
 @Order(1)
 class UserImporter(
     private val aggregateStore: AggregateStore,
-    private val userIdentityProviderPort: UserIdentityProviderPort,
     private val userCommandsPort: UserCommandsPort,
 ) : SampleDataImporter {
     private val log = getLogger(this::class.java)
@@ -49,7 +48,6 @@ class UserImporter(
         user.createUser(email, nickName)
         aggregateStore.save(user)
         uploadUserImage(userId)
-        userIdentityProviderPort.save(email, nickName, Password.fromPlaintext("Password123"), userId)
     }
 
     private suspend fun uploadUserImage(userId: UserId) {

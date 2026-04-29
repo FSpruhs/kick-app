@@ -9,6 +9,13 @@ class PlayerOverview(
     val groupId: GroupId,
     val entries: MutableList<PlayerOverviewEntry> = mutableListOf(),
 ) {
+    companion object {
+        const val PARTICIPATION_POINTS = 5
+        const val BENCH_BONUS = 3
+        const val CADRE_PENALTY = 3
+        const val UNINVOLVED_PENALTY = 1
+    }
+
     fun enterResult(match: MatchAggregate) {
         val updatedEntries = entries.toMutableList()
         val affectedUserIds = mutableSetOf<UserId>()
@@ -16,35 +23,23 @@ class PlayerOverview(
 
         calculateParticipatingPlayers(participatingUserIds, affectedUserIds, updatedEntries)
         calculateCadrePlayers(match, participatingUserIds, affectedUserIds, updatedEntries)
+        calculateWaitingBenchPlayers(match, participatingUserIds, affectedUserIds, updatedEntries)
+        reduceRemainingPlayers(updatedEntries, affectedUserIds)
 
-        val waitingBenchUserIds =
-            match.waitingBench
-                .filterIsInstance<RegisteredPlayer.MainPlayer>()
-                .map { it.userId }
-                .toSet()
-        for (userId in waitingBenchUserIds) {
-            if (userId in participatingUserIds) continue
-            affectedUserIds.add(userId)
-            val index = updatedEntries.indexOfFirst { it.userId == userId }
-            if (index >= 0) {
-                val entry = updatedEntries[index]
-                updatedEntries[index] =
-                    entry.copy(
-                        attendancePoints = entry.attendancePoints + 3,
-                        lastWaitingBenchMatchNumber = match.matchNumber,
-                    )
-            } else {
-                updatedEntries.add(PlayerOverviewEntry(userId, 3, match.matchNumber))
-            }
-        }
+        entries.clear()
+        entries.addAll(updatedEntries)
+    }
 
-        for (i in updatedEntries.indices) {
-            val entry = updatedEntries[i]
-            if (entry.userId !in affectedUserIds) {
-                updatedEntries[i] =
-                    entry.copy(
-                        attendancePoints = maxOf(0, entry.attendancePoints - 1),
-                    )
+    fun updateResult(match: MatchAggregate) {
+        val updatedEntries = entries.toMutableList()
+        val cadreUserIds = getCadreUserIds(match)
+        val waitingBenchUserIds = getWaitingBenchUserIds(match)
+
+        for (event in resultUpdatedEvents(match)) {
+            when {
+                isNewPlayerInResult(event) -> handleNewPlayer(event, cadreUserIds, waitingBenchUserIds, updatedEntries)
+                isPlayerLeavingResult(event) -> handlePlayerLeaved(event, cadreUserIds, waitingBenchUserIds, updatedEntries, match)
+                else -> Unit
             }
         }
 
@@ -55,104 +50,131 @@ class PlayerOverview(
     private fun calculateParticipatingPlayers(participatingUserIds: Set<UserId>, affectedUserIds: MutableSet<UserId>, updatedEntries: MutableList<PlayerOverviewEntry>) {
         for (userId in participatingUserIds) {
             affectedUserIds.add(userId)
-            val index = updatedEntries.indexOfFirst { it.userId == userId }
-            if (index >= 0) {
-                val entry = updatedEntries[index]
-                updatedEntries[index] =
-                    entry.copy(
-                        attendancePoints = entry.attendancePoints + 5,
-                        lastWaitingBenchMatchNumber = null,
-                    )
-            } else {
-                updatedEntries.add(PlayerOverviewEntry(userId, 5, null))
-            }
+            updateOrAddEntry(
+                updatedEntries,
+                userId,
+                update = { it.copy(attendancePoints = it.attendancePoints + PARTICIPATION_POINTS, lastWaitingBenchMatchNumber = null) },
+                default = { PlayerOverviewEntry(userId, PARTICIPATION_POINTS, null) },
+            )
         }
     }
 
     private fun calculateCadrePlayers(match: MatchAggregate, participatingUserIds: Set<UserId>, affectedUserIds: MutableSet<UserId>, updatedEntries: MutableList<PlayerOverviewEntry>) {
-        val cadreUserIds =
-            match.cadre
-                .filterIsInstance<RegisteredPlayer.MainPlayer>()
-                .map { it.userId }
-                .toSet()
+        val cadreUserIds = getCadreUserIds(match)
         for (userId in cadreUserIds) {
             if (userId in participatingUserIds) continue
             affectedUserIds.add(userId)
-            val index = updatedEntries.indexOfFirst { it.userId == userId }
-            if (index >= 0) {
-                val entry = updatedEntries[index]
-                updatedEntries[index] =
+            updateOrAddEntry(
+                updatedEntries,
+                userId,
+                update = { it.copy(attendancePoints = maxOf(0, it.attendancePoints - CADRE_PENALTY)) },
+                default = { PlayerOverviewEntry(userId, 0, null) },
+            )
+        }
+    }
+
+    private fun calculateWaitingBenchPlayers(match: MatchAggregate, participatingUserIds: Set<UserId>, affectedUserIds: MutableSet<UserId>, updatedEntries: MutableList<PlayerOverviewEntry>) {
+        val waitingBenchUserIds = getWaitingBenchUserIds(match)
+        for (userId in waitingBenchUserIds) {
+            if (userId in participatingUserIds) continue
+            affectedUserIds.add(userId)
+            updateOrAddEntry(
+                updatedEntries,
+                userId,
+                update = { it.copy(attendancePoints = it.attendancePoints + BENCH_BONUS, lastWaitingBenchMatchNumber = match.matchNumber) },
+                default = { PlayerOverviewEntry(userId, BENCH_BONUS, match.matchNumber) },
+            )
+        }
+    }
+
+    private fun reduceRemainingPlayers(updatedEntries: MutableList<PlayerOverviewEntry>, affectedUserIds: Set<UserId>) {
+        for (i in updatedEntries.indices) {
+            val entry = updatedEntries[i]
+            if (entry.userId !in affectedUserIds) {
+                updatedEntries[i] =
                     entry.copy(
-                        attendancePoints = maxOf(0, entry.attendancePoints - 3),
+                        attendancePoints = maxOf(0, entry.attendancePoints - 1),
                     )
-            } else {
-                updatedEntries.add(PlayerOverviewEntry(userId, 0, null))
             }
         }
     }
 
-    fun updateResult(match: MatchAggregate) {
-        val events = match.changes.filterIsInstance<MatchResultUpdatedEvent>()
-        val updatedEntries = entries.toMutableList()
+    private fun resultUpdatedEvents(match: MatchAggregate): List<MatchResultUpdatedEvent> =
+        match.changes.filterIsInstance<MatchResultUpdatedEvent>()
 
-        val cadreUserIds =
-            match.cadre
-                .filterIsInstance<RegisteredPlayer.MainPlayer>()
-                .map { it.userId }
-                .toSet()
-        val waitingBenchUserIds =
-            match.waitingBench
-                .filterIsInstance<RegisteredPlayer.MainPlayer>()
-                .map { it.userId }
-                .toSet()
+    private fun isPlayerLeavingResult(event: MatchResultUpdatedEvent): Boolean = event.oldResult != null && event.newResult == null
 
-        for (event in events) {
-            when {
-                event.oldResult == null && event.newResult != null -> {
-                    val correction =
-                        when (event.user) {
-                            in cadreUserIds -> 3 + 5
-                            in waitingBenchUserIds -> -3 + 5
-                            else -> 1 + 5
-                        }
-                    val index = updatedEntries.indexOfFirst { it.userId == event.user }
-                    if (index >= 0) {
-                        val entry = updatedEntries[index]
-                        updatedEntries[index] =
-                            entry.copy(
-                                attendancePoints = maxOf(0, entry.attendancePoints + correction),
-                                lastWaitingBenchMatchNumber = null,
-                            )
-                    } else {
-                        updatedEntries.add(PlayerOverviewEntry(event.user, maxOf(0, correction), null))
-                    }
-                }
+    private fun isNewPlayerInResult(event: MatchResultUpdatedEvent): Boolean = event.oldResult == null && event.newResult != null
 
-                event.oldResult != null && event.newResult == null -> {
-                    val correction =
-                        when (event.user) {
-                            in cadreUserIds -> -5 - 3
-                            in waitingBenchUserIds -> -5 + 3
-                            else -> -5 - 1
-                        }
-                    val index = updatedEntries.indexOfFirst { it.userId == event.user }
-                    if (index >= 0) {
-                        val entry = updatedEntries[index]
-                        val newWaitingBenchNumber = if (event.user in waitingBenchUserIds) match.matchNumber else entry.lastWaitingBenchMatchNumber
-                        updatedEntries[index] =
-                            entry.copy(
-                                attendancePoints = maxOf(0, entry.attendancePoints + correction),
-                                lastWaitingBenchMatchNumber = newWaitingBenchNumber,
-                            )
-                    }
-                }
-                else -> Unit
+    private fun handlePlayerLeaved(
+        event: MatchResultUpdatedEvent,
+        cadreUserIds: Set<UserId>,
+        waitingBenchUserIds: Set<UserId>,
+        updatedEntries: MutableList<PlayerOverviewEntry>,
+        match: MatchAggregate,
+    ) {
+        val correction =
+            when (event.user) {
+                in cadreUserIds -> -PARTICIPATION_POINTS - CADRE_PENALTY
+                in waitingBenchUserIds -> -PARTICIPATION_POINTS + BENCH_BONUS
+                else -> -PARTICIPATION_POINTS - UNINVOLVED_PENALTY
             }
-        }
-
-        entries.clear()
-        entries.addAll(updatedEntries)
+        updateOrAddEntry(
+            updatedEntries,
+            event.user,
+            update = { entry ->
+                val newWaitingBenchNumber = if (event.user in waitingBenchUserIds) match.matchNumber else entry.lastWaitingBenchMatchNumber
+                entry.copy(attendancePoints = maxOf(0, entry.attendancePoints + correction), lastWaitingBenchMatchNumber = newWaitingBenchNumber)
+            },
+            default = null,
+        )
     }
+
+    private fun handleNewPlayer(
+        event: MatchResultUpdatedEvent,
+        cadreUserIds: Set<UserId>,
+        waitingBenchUserIds: Set<UserId>,
+        updatedEntries: MutableList<PlayerOverviewEntry>,
+    ) {
+        val correction =
+            when (event.user) {
+                in cadreUserIds -> CADRE_PENALTY + PARTICIPATION_POINTS
+                in waitingBenchUserIds -> -BENCH_BONUS + PARTICIPATION_POINTS
+                else -> UNINVOLVED_PENALTY + PARTICIPATION_POINTS
+            }
+        updateOrAddEntry(
+            updatedEntries,
+            event.user,
+            update = { it.copy(attendancePoints = maxOf(0, it.attendancePoints + correction), lastWaitingBenchMatchNumber = null) },
+            default = { PlayerOverviewEntry(event.user, maxOf(0, correction), null) },
+        )
+    }
+
+    private fun updateOrAddEntry(
+        entries: MutableList<PlayerOverviewEntry>,
+        userId: UserId,
+        update: (PlayerOverviewEntry) -> PlayerOverviewEntry,
+        default: (() -> PlayerOverviewEntry)?,
+    ) {
+        val index = entries.indexOfFirst { it.userId == userId }
+        if (index >= 0) {
+            entries[index] = update(entries[index])
+        } else if (default != null) {
+            entries.add(default())
+        }
+    }
+
+    private fun getCadreUserIds(match: MatchAggregate): Set<UserId> =
+        match.cadre
+            .filterIsInstance<RegisteredPlayer.MainPlayer>()
+            .map { it.userId }
+            .toSet()
+
+    private fun getWaitingBenchUserIds(match: MatchAggregate): Set<UserId> =
+        match.waitingBench
+            .filterIsInstance<RegisteredPlayer.MainPlayer>()
+            .map { it.userId }
+            .toSet()
 }
 
 interface PlayerOverviewPersistencePort {
